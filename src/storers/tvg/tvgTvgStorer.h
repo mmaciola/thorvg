@@ -20,3 +20,22 @@
  * SOFTWARE.
  */
 
+#ifndef _TVG_TVG_STORER_H_
+#define _TVG_TVG_STORER_H_
+
+class TvgStorer : public Task
+{
+public:
+    string filePath;
+
+    SvgLoader();
+    ~SvgLoader();
+
+    using Storer::save;
+    bool open(const string& path) override;
+    bool write() override;
+    bool close() override;
+    void run(unsigned tid) override;
+};
+
+#endif //_TVG_TVG_STORER_H_

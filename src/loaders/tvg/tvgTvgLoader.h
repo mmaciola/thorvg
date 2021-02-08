@@ -20,3 +20,22 @@
  * SOFTWARE.
  */
 
+#ifndef _TVG_TVG_LOADER_H_
+#define _TVG_TVG_LOADER_H_
+
+class TvgLoader : public Task
+{
+public:
+    string filePath;
+
+    SvgLoader();
+    ~SvgLoader();
+
+    using Loader::open;
+    bool open(const string& path) override;
+    bool read() override;
+    bool close() override;
+    void run(unsigned tid) override;
+};
+
+#endif //_TVG_TVG_LOADER_H_
