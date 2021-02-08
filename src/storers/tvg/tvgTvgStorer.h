@@ -28,8 +28,8 @@ class TvgStorer : public Task
 public:
     string filePath;
 
-    SvgLoader();
-    ~SvgLoader();
+    SvgStorer();
+    ~SvgStorer();
 
     using Storer::save;
     bool open(const string& path) override;
