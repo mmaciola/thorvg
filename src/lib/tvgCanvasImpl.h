@@ -24,6 +24,8 @@
 
 #include "tvgPaint.h"
 
+#include "tvgTvgLoader.h"
+
 /************************************************************************/
 /* Internal Class Implementation                                        */
 /************************************************************************/
@@ -104,6 +106,14 @@ struct Canvas::Impl
         if (!renderer->postRender()) return Result::InsufficientCondition;
 
         return Result::Success;
+    }
+
+    Result load(const string& path)
+    {
+       TvgLoader loader = new TvgLoader();
+       if (!loader->open(path)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
+       return Result::Success;
     }
 };
 

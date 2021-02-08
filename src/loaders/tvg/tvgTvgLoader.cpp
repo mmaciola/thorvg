@@ -85,7 +85,9 @@ bool TvgLoader::open(const string& path)
 
 bool TvgLoader::read()
 {
-    return true;
+   //if (!content || size == 0) return false;
+   TaskScheduler::request(this);
+   return true;
 }
 
 bool TvgLoader::close()
