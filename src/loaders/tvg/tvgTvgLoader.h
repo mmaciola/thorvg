@@ -23,13 +23,13 @@
 #ifndef _TVG_TVG_LOADER_H_
 #define _TVG_TVG_LOADER_H_
 
-class TvgLoader : public Task
+#include "tvgTaskScheduler.h"
+
+class TvgLoader : public Loader, public Task
 {
 public:
-    string filePath;
-
-    SvgLoader();
-    ~SvgLoader();
+    TvgLoader();
+    ~TvgLoader();
 
     using Loader::open;
     bool open(const string& path) override;

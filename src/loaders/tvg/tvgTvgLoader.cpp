@@ -20,3 +20,75 @@
  * SOFTWARE.
  */
 
+#include <fstream>
+#include <string.h>
+#include "tvgLoaderMgr.h"
+#include "tvgTvgHelper.h"
+#include "tvgTvgLoader.h"
+
+TvgLoader::TvgLoader()
+{
+
+}
+TvgLoader::~TvgLoader()
+{
+
+}
+void TvgLoader::run(unsigned tid)
+{
+
+}
+
+/*
+ * Read header of the .tvg binary file
+ * See HEADER section in TVG Standard specification for details.
+ * Returns true on success, false otherwise.
+ */
+static bool tvg_read_header(ifstream &f)
+{
+   tvg_header header;
+   if (f.read((char*) &header, 8)) {
+         //LOG: Failed to read header section
+         return false;
+   }
+
+   if (memcmp(header.tvg_sign, TVG_HEADER_TVG_SIGN_CODE, 3)) return false;
+   if (memcmp(header.version, TVG_HEADER_TVG_VERSION_CODE, 3)) return false;
+
+   header.meta = (char*) malloc(sizeof(char) * header.meta_lenght);
+   if (header.meta == NULL) return false;
+   if (f.read(header.meta, header.meta_lenght))
+     {
+         free(header.meta);
+         header.meta = NULL;
+         return false;
+     }
+   return true;
+}
+
+bool TvgLoader::open(const string& path)
+{
+   ifstream f;
+   f.open(path, ifstream::in | ifstream::binary);
+
+   if (!f.is_open())
+    {
+        // LOG: Failed to open file
+        return false;
+    }
+
+   bool success = tvg_read_header(f);
+
+   f.close();
+   return success;
+}
+
+bool TvgLoader::read()
+{
+    return true;
+}
+
+bool TvgLoader::close()
+{
+    return true;
+}
