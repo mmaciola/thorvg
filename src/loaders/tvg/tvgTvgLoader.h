@@ -23,19 +23,29 @@
 #ifndef _TVG_TVG_LOADER_H_
 #define _TVG_TVG_LOADER_H_
 
+#include "tvgLoader.h"
 #include "tvgTaskScheduler.h"
 
 class TvgLoader : public Loader, public Task
 {
 public:
+   char * buffer;
+   const char * pointer = nullptr;
+   uint32_t size = 0;
+
     TvgLoader();
     ~TvgLoader();
 
     using Loader::open;
     bool open(const string& path) override;
+    bool open(const char* data, uint32_t size) override;
+
     bool read() override;
     bool close() override;
     void run(unsigned tid) override;
+
+    bool tvg_validate_header();
+    void tvg_clean_buffer();
 };
 
 #endif //_TVG_TVG_LOADER_H_

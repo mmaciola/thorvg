@@ -111,7 +111,7 @@ struct Canvas::Impl
     Result load(const string& path)
     {
        // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
-       TvgLoader loader = new TvgLoader();
+       TvgLoader * loader = new TvgLoader();
        if (!loader->open(path)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
        return Result::Success;

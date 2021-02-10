@@ -7,7 +7,7 @@ struct tvg_header {
    uint8_t tvg_sign[3]; // Sign phase, always "TVG" declared in TVG_HEADER_TVG_SIGN_CODE
    uint8_t version[3]; // Standard version number, declared in TVG_HEADER_TVG_VERSION_CODE
    uint16_t meta_lenght; // Matadata phase lenght
-   char * meta; // Matadata phase
+   const char * meta; // Matadata phase
 };
 
 #define TVG_CANVAS_BEGIN_INDICATOR 0xff

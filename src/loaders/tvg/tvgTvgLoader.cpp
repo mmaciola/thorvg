@@ -44,43 +44,83 @@ void TvgLoader::run(unsigned tid)
  * See HEADER section in TVG Standard specification for details.
  * Returns true on success, false otherwise.
  */
-static bool tvg_read_header(ifstream &f)
+bool TvgLoader::tvg_validate_header()
 {
-   tvg_header header;
-   if (f.read((char*) &header, 8)) {
-         //LOG: Failed to read header section
-         return false;
-   }
-
-   if (memcmp(header.tvg_sign, TVG_HEADER_TVG_SIGN_CODE, 3)) return false;
-   if (memcmp(header.version, TVG_HEADER_TVG_VERSION_CODE, 3)) return false;
-
-   header.meta = (char*) malloc(sizeof(char) * header.meta_lenght);
-   if (header.meta == NULL) return false;
-   if (f.read(header.meta, header.meta_lenght))
-     {
-         free(header.meta);
-         header.meta = NULL;
-         return false;
-     }
+   this->pointer = this->buffer;
+   tvg_header * header = (tvg_header *) this->pointer;
+   if (memcmp(header->tvg_sign, TVG_HEADER_TVG_SIGN_CODE, 3)) return false;
+   if (memcmp(header->version, TVG_HEADER_TVG_VERSION_CODE, 3)) return false;
+   header->meta = this->pointer + 8;
+   this->pointer += 8 + header->meta_lenght;
    return true;
+}
+
+
+void TvgLoader::tvg_clean_buffer()
+{
+   this->size = 0;
+   if (this->buffer)
+      {
+         free(this->buffer);
+         this->buffer = NULL;
+      }
 }
 
 bool TvgLoader::open(const string& path)
 {
    ifstream f;
-   f.open(path, ifstream::in | ifstream::binary);
+   f.open(path, ifstream::in | ifstream::binary | ifstream::ate);
 
    if (!f.is_open())
-    {
-        // LOG: Failed to open file
-        return false;
-    }
+       {
+           // LOG: Failed to open file
+           return false;
+       }
 
-   bool success = tvg_read_header(f);
+   this->size = f.tellg();
+   f.seekg(0, ifstream::beg);
+
+   this->buffer = (char*) malloc(this->size);
+   if (this->buffer == NULL)
+      {
+         // LOG: Failed to alloc buffer
+         this->size = 0;
+         f.close();
+         return false;
+      }
+
+   if (!f.read(this->buffer, size))
+      {
+         tvg_clean_buffer();
+         f.close();
+         return false;
+      }
 
    f.close();
+
+   bool success = tvg_validate_header();
+   if (!success)
+      {
+         // LOG: Header is improper
+         tvg_clean_buffer();
+      }
+
    return success;
+}
+
+bool TvgLoader::open(const char* data, uint32_t size)
+{
+    this->pointer = data;
+    this->size = size;
+
+    bool success = tvg_validate_header();
+    if (!success)
+       {
+          // LOG: Header is improper
+          tvg_clean_buffer();
+       }
+
+    return success;
 }
 
 bool TvgLoader::read()
