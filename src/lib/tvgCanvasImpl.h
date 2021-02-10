@@ -79,7 +79,7 @@ struct Canvas::Impl
         if (!renderer) return Result::InsufficientCondition;
 
         Array<RenderData> clips;
-	auto flag = force ? RenderUpdateFlag::All : RenderUpdateFlag::None;
+        auto flag = force ? RenderUpdateFlag::All : RenderUpdateFlag::None;
 
         //Update single paint node
         if (paint) {
@@ -113,6 +113,14 @@ struct Canvas::Impl
        // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(path)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
+       return Result::Success;
+    }
+
+    Result load(const char* data, uint32_t size)
+    {
+       TvgLoader * loader = new TvgLoader();
+       if (!loader->open(data, size)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
        return Result::Success;
     }

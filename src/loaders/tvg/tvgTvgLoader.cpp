@@ -26,6 +26,8 @@
 #include "tvgTvgHelper.h"
 #include "tvgTvgLoader.h"
 
+#define TVG_LOADER_LOG_ENABLED 1
+
 TvgLoader::TvgLoader()
 {
 
@@ -50,7 +52,14 @@ bool TvgLoader::tvg_validate_header()
    tvg_header * header = (tvg_header *) this->pointer;
    if (memcmp(header->tvg_sign, TVG_HEADER_TVG_SIGN_CODE, 3)) return false;
    if (memcmp(header->version, TVG_HEADER_TVG_VERSION_CODE, 3)) return false;
-   header->meta = this->pointer + 8;
+
+#ifdef TVG_LOADER_LOG_ENABLED
+   char metadata[header->meta_lenght + 1];
+   memcpy(metadata, this->pointer + 8, header->meta_lenght);
+   metadata[header->meta_lenght] = '\0';
+   printf("TVG_LOADER: Header is valid, metadata[%d]: %s.\n", header->meta_lenght, metadata);
+#endif
+
    this->pointer += 8 + header->meta_lenght;
    return true;
 }

@@ -1,13 +1,12 @@
 #ifndef _TVG_STANDARD_HELPER_H_
 #define _TVG_STANDARD_HELPER_H_
 
-#define TVG_HEADER_TVG_SIGN_CODE "TVS"
+#define TVG_HEADER_TVG_SIGN_CODE "TVG"
 #define TVG_HEADER_TVG_VERSION_CODE "000"
 struct tvg_header {
    uint8_t tvg_sign[3]; // Sign phase, always "TVG" declared in TVG_HEADER_TVG_SIGN_CODE
    uint8_t version[3]; // Standard version number, declared in TVG_HEADER_TVG_VERSION_CODE
    uint16_t meta_lenght; // Matadata phase lenght
-   const char * meta; // Matadata phase
 };
 
 #define TVG_CANVAS_BEGIN_INDICATOR 0xff

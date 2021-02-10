@@ -73,3 +73,15 @@ Result Canvas::sync() noexcept
 
     return Result::InsufficientCondition;
 }
+
+
+Result Canvas::load(const string& path)
+{
+   return pImpl->load(path);
+}
+
+
+Result Canvas::load(const char* data, uint32_t size)
+{
+   return pImpl->load(data, size);
+}
