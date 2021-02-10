@@ -36,10 +36,6 @@ TvgLoader::~TvgLoader()
 {
 
 }
-void TvgLoader::run(unsigned tid)
-{
-
-}
 
 /*
  * Read header of the .tvg binary file
@@ -63,6 +59,52 @@ bool TvgLoader::tvg_validate_header()
    this->pointer += 8 + header->meta_lenght;
    return true;
 }
+/*
+ * Read gradient of the .tvg binary file
+ * See GRADIENT section in TVG Standard specification for details.
+ * Returns true on success and moves pointer to next position or false if not gradient.
+ */
+bool TvgLoader::tvg_read_gradient()
+{
+   if (*(this->pointer) != TVG_GRADIENT_BEGIN_INDICATOR) return false;
+   this->pointer += 1;
+
+   tvg_flags_and_id * flags_and_id = (tvg_flags_and_id *) this->pointer;
+   this->pointer += sizeof(tvg_flags_and_id);
+
+   unique_ptr<tvg::Fill> fillGrad;
+   if (flags_and_id->flags & TVG_GRADIENT_FLAG_TYPE_RADIAL)
+      {
+         // radial gradient
+         tvg_gradient_radial * gradient_radial = (tvg_gradient_radial *) this->pointer;
+         this->pointer += sizeof(tvg_gradient_radial);
+
+         fillGrad = tvg::RadialGradient::gen();
+         ((unique_ptr<tvg::RadialGradient>) fillGrad)->radial(gradient_radial->x, gradient_radial->y, gradient_radial->radius);
+      }
+   else
+      {
+         // linear gradient
+         tvg_gradient_linear * gradient_linear = (tvg_gradient_linear *) this->pointer;
+         this->pointer += sizeof(tvg_gradient_linear);
+
+         fillGrad = tvg::LinearGradient::gen();
+         ((unique_ptr<tvg::LinearGradient>) fillGrad)->linear(gradient_linear->x1, gradient_linear->y1, gradient_linear->x2, gradient_linear->y2);
+      }
+
+   uint16_t cnt = (uint16_t) *this->pointer;
+   this->pointer += sizeof(uint16_t);
+
+   if (cnt > 0)
+      {
+         fillGrad->colorStops((Fill::ColorStop *) this->pointer, cnt);
+         this->pointer += cnt * sizeof(Fill::ColorStop);
+      }
+
+   // TODO: fillspread
+
+   return true;
+}
 
 
 void TvgLoader::tvg_clean_buffer()
@@ -73,6 +115,7 @@ void TvgLoader::tvg_clean_buffer()
          free(this->buffer);
          this->buffer = NULL;
       }
+   this->pointer = NULL;
 }
 
 bool TvgLoader::open(const string& path)
@@ -134,12 +177,23 @@ bool TvgLoader::open(const char* data, uint32_t size)
 
 bool TvgLoader::read()
 {
-   //if (!content || size == 0) return false;
+   if (!this->pointer || this->size == 0) return false;
    TaskScheduler::request(this);
    return true;
 }
 
 bool TvgLoader::close()
 {
-    return true;
+   tvg_clean_buffer();
+   return true;
 }
+
+void TvgLoader::run(unsigned tid)
+{
+   printf("TvgLoader::run \n");
+
+
+}
+
+
+
