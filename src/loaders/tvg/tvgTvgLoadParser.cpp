@@ -78,8 +78,8 @@ static bool tvg_read_canvas(const char** pointer)
    const tvg_canvas * canvas = (tvg_canvas *) *pointer;
    *pointer += sizeof(tvg_canvas);
 
-   // TODO: ...
-   printf("tvg_read_canvas\n");
+   auto swCanvas = tvg::SwCanvas::gen();
+   //swCanvas->target(buffer, WIDTH, canvas.width, canvas.height, tvg::SwCanvas::ARGB8888);
 
    return true;
 }
