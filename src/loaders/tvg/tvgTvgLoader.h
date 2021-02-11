@@ -47,6 +47,7 @@ public:
     bool tvg_validate_header();
     void tvg_clean_buffer();
     bool tvg_read_gradient();
+    bool tvg_parse();
 };
 
 #endif //_TVG_TVG_LOADER_H_

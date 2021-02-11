@@ -21,8 +21,13 @@ struct tvg_flags_and_id {
    uint8_t flags;
    uint32_t id;
 };
+
 #define TVG_GRADIENT_BEGIN_INDICATOR 0xfe
 #define TVG_GRADIENT_FLAG_TYPE_RADIAL 0b00000001 // if set- radial gradient, if clear- linear.
+#define TVG_GRADIENT_FLAG_MASK_FILL_SPREAD 0b00000110 // mask for fill spread
+#define TVG_GRADIENT_FLAG_FILL_SPREAD_PAD 0b00000010 // FillSpread::Pad
+#define TVG_GRADIENT_FLAG_FILL_SPREAD_REFLECT 0b00000100 // FillSpread::Reflect
+#define TVG_GRADIENT_FLAG_FILL_SPREAD_REPEAT 0b00000110 // FillSpread::Repeat
 struct tvg_gradient_linear {
    float x1;
    float y1;
