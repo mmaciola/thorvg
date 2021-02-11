@@ -107,6 +107,7 @@ void TvgLoader::run(unsigned tid)
 {
    if (!tvg_file_parse(this->pointer, this->size))
       {
+         printf("[mmaciola] tvg_file_parse ERROR\n");
          tvg_clean_buffer();
       }
 }

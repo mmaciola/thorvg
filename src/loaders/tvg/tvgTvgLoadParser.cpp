@@ -75,7 +75,11 @@ static bool tvg_read_canvas(const char** pointer)
    if (**pointer != TVG_CANVAS_BEGIN_INDICATOR) return false;
    *pointer += 1;
 
+   const tvg_canvas * canvas = (tvg_canvas *) *pointer;
+   *pointer += sizeof(tvg_canvas);
+
    // TODO: ...
+   printf("tvg_read_canvas\n");
 
    return true;
 }
@@ -103,30 +107,33 @@ static bool tvg_read_gradient(const char** pointer)
    if (**pointer != TVG_GRADIENT_BEGIN_INDICATOR) return false;
    *pointer += 1;
 
-   tvg_flags_and_id * flags_and_id = (tvg_flags_and_id *) *pointer;
+   const tvg_flags_and_id * flags_and_id = (tvg_flags_and_id *) *pointer;
    *pointer += sizeof(tvg_flags_and_id);
 
    unique_ptr<tvg::Fill> fillGrad;
    if (flags_and_id->flags & TVG_GRADIENT_FLAG_TYPE_RADIAL)
       {
          // radial gradient
-         tvg_gradient_radial * gradient_radial = (tvg_gradient_radial *) *pointer;
+         const tvg_gradient_radial * gradient_radial = (tvg_gradient_radial *) *pointer;
          *pointer += sizeof(tvg_gradient_radial);
 
-         fillGrad = tvg::RadialGradient::gen();
-         ((unique_ptr<tvg::RadialGradient>) fillGrad)->radial(gradient_radial->x, gradient_radial->y, gradient_radial->radius);
+         // TODO: check cast
+         auto fillGradRadial = tvg::RadialGradient::gen();
+         fillGradRadial->radial(gradient_radial->x, gradient_radial->y, gradient_radial->radius);
+         fillGrad = move(fillGradRadial);
       }
    else
       {
          // linear gradient
-         tvg_gradient_linear * gradient_linear = (tvg_gradient_linear *) *pointer;
+         const tvg_gradient_linear * gradient_linear = (tvg_gradient_linear *) *pointer;
          *pointer += sizeof(tvg_gradient_linear);
 
-         fillGrad = tvg::LinearGradient::gen();
-         ((unique_ptr<tvg::LinearGradient>) fillGrad)->linear(gradient_linear->x1, gradient_linear->y1, gradient_linear->x2, gradient_linear->y2);
+         auto fillGradLinear = tvg::LinearGradient::gen();
+         fillGradLinear->linear(gradient_linear->x1, gradient_linear->y1, gradient_linear->x2, gradient_linear->y2);
+         fillGrad = move(fillGradLinear);
       }
 
-   uint16_t cnt = (uint16_t) **pointer;
+   const uint16_t cnt = (uint16_t) **pointer;
    *pointer += sizeof(uint16_t);
 
    if (cnt > 0)
@@ -164,7 +171,7 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
    // TODO: [mmaciola] sprawdzic konwersje uint8 / char
    while (pointer < end)
       {
-         switch ((uint8_t) *(pointer))
+         switch (*(pointer))
          {
             case TVG_CANVAS_BEGIN_INDICATOR:
                if (!tvg_read_canvas(&pointer)) return false;
