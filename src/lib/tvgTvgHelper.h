@@ -1,6 +1,8 @@
 #ifndef _TVG_STANDARD_HELPER_H_
 #define _TVG_STANDARD_HELPER_H_
 
+#include <cstdint>
+
 #define TVG_HEADER_TVG_SIGN_CODE "TVG"
 #define TVG_HEADER_TVG_VERSION_CODE "000"
 struct tvg_header {

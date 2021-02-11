@@ -20,31 +20,11 @@
  * SOFTWARE.
  */
 
-#ifndef _TVG_TVG_LOADER_H_
-#define _TVG_TVG_LOADER_H_
+#ifndef _TVG_TVG_LOAD_PARSER_H_
+#define _TVG_TVG_LOAD_PARSER_H_
 
-#include "tvgLoader.h"
-#include "tvgTaskScheduler.h"
+#include "tvgCommon.h"
 
-class TvgLoader : public Loader, public Task
-{
-public:
-   char * buffer;
-   const char * pointer = nullptr;
-   uint32_t size = 0;
+bool tvg_file_parse(const char * pointer, uint32_t size);
 
-    TvgLoader();
-    ~TvgLoader();
-
-    using Loader::open;
-    bool open(const string& path) override;
-    bool open(const char* data, uint32_t size) override;
-
-    bool read() override;
-    bool close() override;
-    void run(unsigned tid) override;
-
-    void tvg_clean_buffer();
-};
-
-#endif //_TVG_TVG_LOADER_H_
+#endif //_TVG_TVG_LOAD_PARSER_H_
