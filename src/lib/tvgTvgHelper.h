@@ -42,4 +42,10 @@ struct tvg_gradient_radial {
    float radius;
 };
 
+#define TVG_RAW_IMAGE_BEGIN_INDICATOR (char)0xfd
+struct tvg_width_height {
+   uint32_t width;
+   uint32_t height;
+};
+
 #endif //_TVG_STANDARD_HELPER_H_

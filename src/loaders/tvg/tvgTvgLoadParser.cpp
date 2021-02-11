@@ -159,6 +159,27 @@ static bool tvg_read_gradient(const char** pointer)
    return true;
 }
 
+/*
+ * Read raw image section of the .tvg binary file
+ * Returns true on success and moves pointer to next position or false if corrupted.
+ * Details:
+ */
+static bool tvg_read_raw_image(const char** pointer)
+{
+   if (**pointer != TVG_RAW_IMAGE_BEGIN_INDICATOR) return false;
+   *pointer += 1;
+
+   const tvg_flags_and_id * flags_and_id = (tvg_flags_and_id *) *pointer;
+   *pointer += sizeof(tvg_flags_and_id);
+   const tvg_width_height * width_height = (tvg_width_height *) *pointer;
+   *pointer += sizeof(tvg_width_height);
+   const char * data = *pointer;
+   *pointer += width_height->width * width_height->height;
+
+   return true;
+
+}
+
 bool tvg_file_parse(const char * pointer, uint32_t size)
 {
    const char* end = pointer + size;
@@ -168,7 +189,6 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
          return false;
       }
 
-   // TODO: [mmaciola] sprawdzic konwersje uint8 / char
    while (pointer < end)
       {
          switch (*(pointer))
@@ -179,10 +199,14 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
             case TVG_GRADIENT_BEGIN_INDICATOR:
                if (!tvg_read_gradient(&pointer)) return false;
                break;
+            case TVG_RAW_IMAGE_BEGIN_INDICATOR:
+               if (!tvg_read_raw_image(&pointer)) return false;
+               break;
             default:
                return false;
          }
       }
+
    return true;
 }
 
