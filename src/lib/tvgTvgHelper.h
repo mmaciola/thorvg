@@ -48,4 +48,8 @@ struct tvg_width_height {
    uint32_t height;
 };
 
+#define TVG_SCENE_BEGIN_INDICATOR (char)0xfc
+
+#define TVG_PATH_BEGIN_INDICATOR (char)0xfb
+
 #endif //_TVG_STANDARD_HELPER_H_

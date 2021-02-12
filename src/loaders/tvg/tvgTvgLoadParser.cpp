@@ -87,6 +87,7 @@ static bool tvg_read_canvas(const char** pointer)
 
    auto swCanvas = tvg::SwCanvas::gen();
    swCanvas->target(buffer, canvas->width, canvas->width, canvas->height, tvg::SwCanvas::ARGB8888);
+   // swCanvas.get()
 
    return true;
 }
@@ -124,7 +125,7 @@ static bool tvg_read_gradient(const char** pointer)
          const tvg_gradient_radial * gradient_radial = (tvg_gradient_radial *) *pointer;
          *pointer += sizeof(tvg_gradient_radial);
 
-         // TODO: check cast
+         // TODO: check Gradient/Fill cast
          auto fillGradRadial = tvg::RadialGradient::gen();
          fillGradRadial->radial(gradient_radial->x, gradient_radial->y, gradient_radial->radius);
          fillGrad = move(fillGradRadial);
@@ -170,6 +171,7 @@ static bool tvg_read_gradient(const char** pointer)
  * Read raw image section of the .tvg binary file
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details:
+ * [0xfe][uint8 flags][uint32 identifier][uint32 width][uint32 height][data]
  */
 static bool tvg_read_raw_image(const char** pointer)
 {
@@ -184,7 +186,36 @@ static bool tvg_read_raw_image(const char** pointer)
    *pointer += width_height->width * width_height->height;
 
    return true;
+}
 
+/*
+ * Read scene section of the .tvg binary file
+ * Returns true on success and moves pointer to next position or false if corrupted.
+ * Details:
+ */
+static bool tvg_read_scene(const char** pointer)
+{
+   if (**pointer != TVG_SCENE_BEGIN_INDICATOR) return false;
+   *pointer += 1;
+
+   auto scene = Scene::gen();
+
+   return true;
+}
+
+/*
+ * Read path section of the .tvg binary file
+ * Returns true on success and moves pointer to next position or false if corrupted.
+ * Details:
+ */
+static bool tvg_read_path(const char** pointer)
+{
+   if (**pointer != TVG_PATH_BEGIN_INDICATOR) return false;
+   *pointer += 1;
+
+   auto shape = Shape::gen();
+
+   return true;
 }
 
 bool tvg_file_parse(const char * pointer, uint32_t size)
@@ -208,6 +239,12 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
                break;
             case TVG_RAW_IMAGE_BEGIN_INDICATOR:
                if (!tvg_read_raw_image(&pointer)) return false;
+               break;
+            case TVG_SCENE_BEGIN_INDICATOR:
+               if (!tvg_read_scene(&pointer)) return false;
+               break;
+            case TVG_PATH_BEGIN_INDICATOR:
+               if (!tvg_read_path(&pointer)) return false;
                break;
             default:
                return false;
