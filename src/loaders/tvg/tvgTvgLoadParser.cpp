@@ -213,10 +213,28 @@ static bool tvg_read_path(const char** pointer)
    if (**pointer != TVG_PATH_BEGIN_INDICATOR) return false;
    *pointer += 1;
 
+   // ShapePath
+   const uint32_t cmdCnt = (uint32_t) **pointer;
+   *pointer += sizeof(uint32_t);
+   const uint32_t ptsCnt = (uint32_t) **pointer;
+   *pointer += sizeof(uint32_t);
+   const PathCommand * cmds = (PathCommand *) *pointer;
+   *pointer += sizeof(PathCommand) * cmdCnt;
+   const Point * pts = (Point *) *pointer;
+   *pointer += sizeof(Point) * ptsCnt;
+
    auto shape = Shape::gen();
+   shape->appendPath(cmds, cmdCnt, pts, ptsCnt);
+
+   // ShapeStroke
 
    return true;
 }
+
+//TODO: Color
+//Path
+//Stroke
+//Fill
 
 bool tvg_file_parse(const char * pointer, uint32_t size)
 {
