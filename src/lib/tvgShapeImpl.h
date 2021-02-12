@@ -24,6 +24,7 @@
 
 #include <memory.h>
 #include "tvgPaint.h"
+#include "tvgTvgHelper.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -372,6 +373,90 @@ struct Shape::Impl
         }
 
         return ret.release();
+    }
+
+    /*
+     * Load stroke from .tvg binary file
+     */
+    bool strokeLoad(tvg_shape_stroke * shape_stroke)
+    {
+       // TODO [mmaciola]
+       stroke->width = shape_stroke->width;
+       memcpy(stroke->color, shape_stroke->color, sizeof(shape_stroke->color));
+
+       if (!strokeDash(&shape_stroke->dashPattern, shape_stroke->dashPatternCnt))
+          {
+             return false;
+          }
+
+       switch (shape_stroke->flags & TVG_STROKE_FLAG_MASK_CAP) {
+          case TVG_STROKE_FLAG_CAP_SQUARE:
+             stroke->cap = StrokeCap::Square;
+             break;
+          case TVG_STROKE_FLAG_CAP_ROUND:
+             stroke->cap = StrokeCap::Round;
+             break;
+          case TVG_STROKE_FLAG_CAP_BUTT:
+             stroke->cap = StrokeCap::Butt;
+             break;
+          default:
+             return false;
+       }
+
+       switch (shape_stroke->flags & TVG_STROKE_FLAG_MASK_JOIN) {
+          case TVG_STROKE_FLAG_JOIN_BEVEL:
+             stroke->join = StrokeJoin::Bevel;
+             break;
+          case TVG_STROKE_FLAG_JOIN_ROUND:
+             stroke->join = StrokeJoin::Round;
+             break;
+          case TVG_STROKE_FLAG_JOIN_MITER:
+             stroke->join = StrokeJoin::Miter;
+             break;
+          default:
+             return false;
+       }
+
+       return true;
+    }
+
+    /*
+     * Store stroke into .tvg binary file
+     */
+    void strokeStore(tvg_shape_stroke * shape_stroke)
+    {
+       // TODO [mmaciola] jak przechowywac dashPattern
+       shape_stroke->width = stroke->width;
+       memcpy(shape_stroke->color, stroke->color, sizeof(stroke->color));
+
+       shape_stroke->dashPatternCnt = stroke->dashCnt;
+       memcpy(&shape_stroke->dashPattern, stroke->dashPattern, sizeof(float) * stroke->dashCnt);
+
+       shape_stroke->flags = 0;
+       switch (stroke->cap)
+         {
+         case StrokeCap::Square:
+            shape_stroke->flags |= TVG_STROKE_FLAG_CAP_SQUARE;
+            break;
+         case StrokeCap::Round:
+            shape_stroke->flags |= TVG_STROKE_FLAG_CAP_ROUND;
+            break;
+         case StrokeCap::Butt:
+            shape_stroke->flags |= TVG_STROKE_FLAG_CAP_BUTT;
+            break;
+         }
+       switch (stroke->join)
+         {
+         case StrokeJoin::Bevel:
+            shape_stroke->flags |= TVG_STROKE_FLAG_JOIN_BEVEL;
+            break;
+         case StrokeJoin::Round:
+            shape_stroke->flags |= TVG_STROKE_FLAG_JOIN_ROUND;
+            break;
+         case StrokeJoin::Miter:
+            shape_stroke->flags |= TVG_STROKE_FLAG_JOIN_MITER;
+            break;
+         }
     }
 };
 

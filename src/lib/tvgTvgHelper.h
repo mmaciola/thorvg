@@ -51,5 +51,20 @@ struct tvg_width_height {
 #define TVG_SCENE_BEGIN_INDICATOR (char)0xfc
 
 #define TVG_PATH_BEGIN_INDICATOR (char)0xfb
+#define TVG_STROKE_FLAG_MASK_CAP 0b00000011 // mask for stroke StrokeCap
+#define TVG_STROKE_FLAG_CAP_SQUARE 0B00000001 // StrokeCap::Square
+#define TVG_STROKE_FLAG_CAP_ROUND 0B00000010 // StrokeCap::Round
+#define TVG_STROKE_FLAG_CAP_BUTT 0B00000011 // StrokeCap::Butt
+#define TVG_STROKE_FLAG_MASK_JOIN 0b00001100 // mask for stroke StrokeJoin
+#define TVG_STROKE_FLAG_JOIN_BEVEL 0B00000100 // StrokeJoin::Bevel
+#define TVG_STROKE_FLAG_JOIN_ROUND 0B00001000 // StrokeJoin::Round
+#define TVG_STROKE_FLAG_JOIN_MITER 0B00001100 // StrokeJoin::Miter
+struct tvg_shape_stroke {
+   float width;
+   uint8_t color[4];
+   uint8_t flags;
+   uint32_t dashPatternCnt;
+   float dashPattern;
+};
 
 #endif //_TVG_STANDARD_HELPER_H_

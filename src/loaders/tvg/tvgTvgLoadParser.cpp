@@ -227,6 +227,11 @@ static bool tvg_read_path(const char** pointer)
    shape->appendPath(cmds, cmdCnt, pts, ptsCnt);
 
    // ShapeStroke
+   const tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
+   *pointer += sizeof(tvg_shape_stroke);
+
+   shape->stroke(shape_stroke->width);
+   //shape->stroke(shape_stroke->width);
 
    return true;
 }
