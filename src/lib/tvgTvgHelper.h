@@ -50,7 +50,10 @@ struct tvg_width_height {
 
 #define TVG_SCENE_BEGIN_INDICATOR (char)0xfc
 
-#define TVG_PATH_BEGIN_INDICATOR (char)0xfb
+#define TVG_SHAPE_BEGIN_INDICATOR (char)0xfb
+#define TVG_SHAPE_FLAG_MASK_FILLRULE 0B00000001 // FillRule, if set FillRule::EvenOdd, else FillRule::Winding
+#define TVG_SHAPE_FLAG_HAS_STROKE 0B00000010
+#define TVG_SHAPE_FLAG_HAS_FILL 0B00000100
 #define TVG_STROKE_FLAG_MASK_CAP 0b00000011 // mask for stroke StrokeCap
 #define TVG_STROKE_FLAG_CAP_SQUARE 0B00000001 // StrokeCap::Square
 #define TVG_STROKE_FLAG_CAP_ROUND 0B00000010 // StrokeCap::Round

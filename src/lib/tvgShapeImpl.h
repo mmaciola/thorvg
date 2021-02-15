@@ -378,16 +378,15 @@ struct Shape::Impl
     /*
      * Load stroke from .tvg binary file
      */
-    bool strokeLoad(tvg_shape_stroke * shape_stroke)
+    bool tvgLoadStroke(const tvg_shape_stroke * shape_stroke)
     {
-       // TODO [mmaciola]
-       stroke->width = shape_stroke->width;
-       memcpy(stroke->color, shape_stroke->color, sizeof(shape_stroke->color));
-
        if (!strokeDash(&shape_stroke->dashPattern, shape_stroke->dashPatternCnt))
           {
              return false;
           }
+
+       stroke->width = shape_stroke->width;
+       memcpy(stroke->color, shape_stroke->color, sizeof(shape_stroke->color));
 
        switch (shape_stroke->flags & TVG_STROKE_FLAG_MASK_CAP) {
           case TVG_STROKE_FLAG_CAP_SQUARE:
@@ -421,11 +420,73 @@ struct Shape::Impl
     }
 
     /*
+     * Load shape from .tvg binary file
+     */
+    bool tvgLoad(const char** pointer)
+    {
+       // flags
+       const uint8_t flags = (uint8_t) **pointer;
+       *pointer += sizeof(uint8_t);
+
+       rule = (flags & TVG_SHAPE_FLAG_MASK_FILLRULE) ? FillRule::EvenOdd : FillRule::Winding;
+
+       // colors
+       const uint8_t * colors = (uint8_t*) *pointer;
+       *pointer += sizeof(uint8_t) * 4;
+
+       memcpy(&color, colors, sizeof(color));
+       flag = RenderUpdateFlag::Color;
+
+       // ShapePath
+       const uint32_t cmdCnt = (uint32_t) **pointer;
+       *pointer += sizeof(uint32_t);
+       const uint32_t ptsCnt = (uint32_t) **pointer;
+       *pointer += sizeof(uint32_t);
+       const PathCommand * cmds = (PathCommand *) *pointer;
+       *pointer += sizeof(PathCommand) * cmdCnt;
+       const Point * pts = (Point *) *pointer;
+       *pointer += sizeof(Point) * ptsCnt;
+
+       path.reserveCmd(cmdCnt);
+       path.reservePts(ptsCnt);
+       memcpy(path.cmds, cmds, sizeof(PathCommand) * cmdCnt);
+       memcpy(path.pts, pts, sizeof(Point) * ptsCnt);
+       flag |= RenderUpdateFlag::Path;
+
+       // ShapeStroke
+       if (flags & TVG_SHAPE_FLAG_HAS_STROKE)
+          {
+             const tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
+             *pointer += sizeof(tvg_shape_stroke) + sizeof(float) * (shape_stroke->dashPatternCnt - 1);
+
+             tvgLoadStroke(shape_stroke); // flag is set inside strokeDash
+          }
+
+       // fill
+       if (flags & TVG_SHAPE_FLAG_HAS_FILL)
+          {
+             // TODO [mmaciola] how store gradients
+             flag |= RenderUpdateFlag::Gradient;
+          }
+
+       return true;
+    }
+
+    /*
      * Store stroke into .tvg binary file
      */
     void strokeStore(tvg_shape_stroke * shape_stroke)
     {
        // TODO [mmaciola] jak przechowywac dashPattern
+       if (!shape_stroke)
+          {
+             shape_stroke = (tvg_shape_stroke *) malloc(sizeof(tvg_shape_stroke) + sizeof(float) * (stroke->dashCnt - 1));
+             if (!shape_stroke)
+               {
+                   return;
+               }
+          }
+
        shape_stroke->width = stroke->width;
        memcpy(shape_stroke->color, stroke->color, sizeof(stroke->color));
 

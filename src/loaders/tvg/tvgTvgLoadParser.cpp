@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <map>
 #include "tvgTvgHelper.h"
 #include "tvgTvgLoadParser.h"
 
@@ -204,14 +205,28 @@ static bool tvg_read_scene(const char** pointer)
 }
 
 /*
- * Read path section of the .tvg binary file
+ * Read shape section of the .tvg binary file
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details:
+ * Flags:
+ * xxxxxxx0 - FillRule.Winding
+ * xxxxxxx1 - FillRule.EvenOdd
+ * [0xfe][uint8 flags][color][path][stroke][fill]
+ *
+ * enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
  */
-static bool tvg_read_path(const char** pointer)
+static bool tvg_read_shape(const char** pointer)
 {
-   if (**pointer != TVG_PATH_BEGIN_INDICATOR) return false;
+   if (**pointer != TVG_SHAPE_BEGIN_INDICATOR) return false;
    *pointer += 1;
+
+   // flags
+   const uint8_t flags = (uint8_t) **pointer;
+   *pointer += sizeof(uint8_t);
+
+   // colors
+   const uint8_t * colors = (uint8_t*) *pointer;
+   *pointer += sizeof(uint8_t) * 4;
 
    // ShapePath
    const uint32_t cmdCnt = (uint32_t) **pointer;
@@ -236,10 +251,9 @@ static bool tvg_read_path(const char** pointer)
    return true;
 }
 
-//TODO: Color
+//TODO: Color-Fill
 //Path
 //Stroke
-//Fill
 
 bool tvg_file_parse(const char * pointer, uint32_t size)
 {
@@ -249,6 +263,8 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
          // LOG: Header is improper
          return false;
       }
+
+   map<uint32_t, int> m;
 
    while (pointer < end)
       {
@@ -266,8 +282,8 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
             case TVG_SCENE_BEGIN_INDICATOR:
                if (!tvg_read_scene(&pointer)) return false;
                break;
-            case TVG_PATH_BEGIN_INDICATOR:
-               if (!tvg_read_path(&pointer)) return false;
+            case TVG_SHAPE_BEGIN_INDICATOR:
+               if (!tvg_read_shape(&pointer)) return false;
                break;
             default:
                return false;
