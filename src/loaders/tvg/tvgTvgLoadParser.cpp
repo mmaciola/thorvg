@@ -194,12 +194,19 @@ static bool tvg_read_raw_image(const char** pointer)
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details:
  */
-static bool tvg_read_scene(const char** pointer)
+static bool tvg_read_scene(const char** pointer, Scene ** sc)
 {
    if (**pointer != TVG_SCENE_BEGIN_INDICATOR) return false;
    *pointer += 1;
 
-   auto scene = Scene::gen();
+   const tvg_scene * scene = (tvg_scene *) *pointer;
+   *pointer += sizeof(tvg_scene);
+
+   auto s = Scene::gen();
+   s->reserve(scene->reserved);
+   s->opacity(scene->opacity);
+   s->transform(scene->matrix);
+   *sc = s.release();
 
    return true;
 }
@@ -212,48 +219,21 @@ static bool tvg_read_scene(const char** pointer)
  * xxxxxxx0 - FillRule.Winding
  * xxxxxxx1 - FillRule.EvenOdd
  * [0xfe][uint8 flags][color][path][stroke][fill]
- *
- * enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
  */
-static bool tvg_read_shape(const char** pointer)
+static bool tvg_read_shape(const char** pointer, Scene * sc)
 {
+   if (!sc) return false;
    if (**pointer != TVG_SHAPE_BEGIN_INDICATOR) return false;
    *pointer += 1;
 
-   // flags
-   const uint8_t flags = (uint8_t) **pointer;
-   *pointer += sizeof(uint8_t);
+   auto s = Shape::gen();
+   s->tvgLoad(pointer); // parsing inside tvgShapeImpl.h
 
-   // colors
-   const uint8_t * colors = (uint8_t*) *pointer;
-   *pointer += sizeof(uint8_t) * 4;
-
-   // ShapePath
-   const uint32_t cmdCnt = (uint32_t) **pointer;
-   *pointer += sizeof(uint32_t);
-   const uint32_t ptsCnt = (uint32_t) **pointer;
-   *pointer += sizeof(uint32_t);
-   const PathCommand * cmds = (PathCommand *) *pointer;
-   *pointer += sizeof(PathCommand) * cmdCnt;
-   const Point * pts = (Point *) *pointer;
-   *pointer += sizeof(Point) * ptsCnt;
-
-   auto shape = Shape::gen();
-   shape->appendPath(cmds, cmdCnt, pts, ptsCnt);
-
-   // ShapeStroke
-   const tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
-   *pointer += sizeof(tvg_shape_stroke);
-
-   shape->stroke(shape_stroke->width);
-   //shape->stroke(shape_stroke->width);
+   sc->push(move(s));
 
    return true;
 }
 
-//TODO: Color-Fill
-//Path
-//Stroke
 
 bool tvg_file_parse(const char * pointer, uint32_t size)
 {
@@ -264,7 +244,8 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
          return false;
       }
 
-   map<uint32_t, int> m;
+   map<uint32_t, int> m; // TODO: ids for gradients
+   Scene * scene; // now allow single scene only
 
    while (pointer < end)
       {
@@ -280,10 +261,10 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
                if (!tvg_read_raw_image(&pointer)) return false;
                break;
             case TVG_SCENE_BEGIN_INDICATOR:
-               if (!tvg_read_scene(&pointer)) return false;
+               if (!tvg_read_scene(&pointer, &scene)) return false;
                break;
             case TVG_SHAPE_BEGIN_INDICATOR:
-               if (!tvg_read_shape(&pointer)) return false;
+               if (!tvg_read_shape(&pointer, scene)) return false;
                break;
             default:
                return false;

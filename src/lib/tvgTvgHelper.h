@@ -1,7 +1,7 @@
 #ifndef _TVG_STANDARD_HELPER_H_
 #define _TVG_STANDARD_HELPER_H_
 
-#include <cstdint>
+#include "thorvg.h"
 
 #define TVG_HEADER_TVG_SIGN_CODE "TVG"
 #define TVG_HEADER_TVG_VERSION_CODE "000"
@@ -49,6 +49,11 @@ struct tvg_width_height {
 };
 
 #define TVG_SCENE_BEGIN_INDICATOR (char)0xfc
+struct tvg_scene {
+   uint32_t reserved;
+   uint8_t opacity;
+   tvg::Matrix matrix;
+};
 
 #define TVG_SHAPE_BEGIN_INDICATOR (char)0xfb
 #define TVG_SHAPE_FLAG_MASK_FILLRULE 0B00000001 // FillRule, if set FillRule::EvenOdd, else FillRule::Winding

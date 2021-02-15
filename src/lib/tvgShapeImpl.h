@@ -376,7 +376,7 @@ struct Shape::Impl
     }
 
     /*
-     * Load stroke from .tvg binary file
+     * Load shape stroke from .tvg binary file
      */
     bool tvgLoadStroke(const tvg_shape_stroke * shape_stroke)
     {
@@ -421,6 +421,12 @@ struct Shape::Impl
 
     /*
      * Load shape from .tvg binary file
+     * Returns true on success and moves pointer to next position or false if corrupted.
+     * Details:
+     * Flags:
+     * xxxxxxx0 - FillRule.Winding
+     * xxxxxxx1 - FillRule.EvenOdd
+     * [uint8 flags][color][path][stroke][fill]
      */
     bool tvgLoad(const char** pointer)
     {
@@ -462,10 +468,10 @@ struct Shape::Impl
              tvgLoadStroke(shape_stroke); // flag is set inside strokeDash
           }
 
-       // fill
+       // Fill
        if (flags & TVG_SHAPE_FLAG_HAS_FILL)
           {
-             // TODO [mmaciola] how store gradients
+             // TODO [mmaciola] how store gradients- by id or duplication
              flag |= RenderUpdateFlag::Gradient;
           }
 

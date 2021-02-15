@@ -255,6 +255,9 @@ public:
     StrokeCap strokeCap() const noexcept;
     StrokeJoin strokeJoin() const noexcept;
 
+    // tvgTvgLoader
+    bool tvgLoad(const char** pointer) noexcept;
+
     static std::unique_ptr<Shape> gen() noexcept;
 
     _TVG_DECLARE_PRIVATE(Shape);

@@ -402,3 +402,9 @@ FillRule Shape::fillRule() const noexcept
 {
     return pImpl->rule;
 }
+
+// tvgTvgLoader
+bool Shape::tvgLoad(const char** pointer) noexcept
+{
+   return pImpl->tvgLoad(pointer);
+}
