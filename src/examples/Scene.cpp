@@ -23,6 +23,10 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     auto shape2 = tvg::Shape::gen();
     shape2->appendCircle(400, 400, 200, 200);    //cx, cy, radiusW, radiusH
     shape2->fill(255, 255, 0, 255);              //r, g, b, a
+    shape2->stroke(255, 255, 255, 255);
+    shape2->stroke(tvg::StrokeJoin::Round);
+    shape2->stroke(10);
+    shape2->tvgStore(0);
     scene->push(move(shape2));
 
     //Prepare Ellipse

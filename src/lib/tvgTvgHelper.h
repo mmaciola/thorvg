@@ -9,7 +9,7 @@ struct tvg_header {
    uint8_t tvg_sign[3]; // Sign phase, always "TVG" declared in TVG_HEADER_TVG_SIGN_CODE
    uint8_t version[3]; // Standard version number, declared in TVG_HEADER_TVG_VERSION_CODE
    uint16_t meta_lenght; // Matadata phase lenght
-};
+} __attribute__((packed));
 
 #define TVG_CANVAS_BEGIN_INDICATOR (char)0xff
 #define TVG_CANVAS_FLAG_HAVE_SIZE 0b00000001
@@ -17,12 +17,12 @@ struct tvg_canvas {
    uint8_t flags;
    uint32_t width;
    uint32_t height;
-};
+} __attribute__((packed));
 
 struct tvg_flags_and_id {
    uint8_t flags;
    uint32_t id;
-};
+} __attribute__((packed));
 
 #define TVG_GRADIENT_BEGIN_INDICATOR (char)0xfe
 #define TVG_GRADIENT_FLAG_TYPE_RADIAL 0b00000001 // if set- radial gradient, if clear- linear.
@@ -52,9 +52,8 @@ struct tvg_width_height {
 struct tvg_scene {
    uint32_t reservedCnt;
    uint8_t opacity;
-   uint8_t unused[3];
    tvg::Matrix matrix;
-};
+} __attribute__((packed));
 
 #define TVG_SHAPE_BEGIN_INDICATOR (char)0xfb
 #define TVG_SHAPE_FLAG_MASK_FILLRULE (char)0B00000001 // FillRule, if set FillRule::EvenOdd, else FillRule::Winding
@@ -74,6 +73,6 @@ struct tvg_shape_stroke {
    uint8_t flags;
    uint32_t dashPatternCnt;
    float dashPattern;
-};
+} __attribute__((packed));
 
 #endif //_TVG_STANDARD_HELPER_H_

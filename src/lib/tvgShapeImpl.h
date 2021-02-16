@@ -397,6 +397,7 @@ struct Shape::Impl
      */
     bool tvgLoadStroke(const tvg_shape_stroke * shape_stroke)
     {
+       printf("dashPatternCnt %d \n", shape_stroke->dashPatternCnt);
        if (!strokeDash(&shape_stroke->dashPattern, shape_stroke->dashPatternCnt))
           {
              return false;
@@ -470,7 +471,9 @@ struct Shape::Impl
        const Point * pts = (Point *) *pointer;
        *pointer += sizeof(Point) * ptsCnt;
 
+       path.cmdCnt = cmdCnt;
        path.reserveCmd(cmdCnt);
+       path.ptsCnt = ptsCnt;
        path.reservePts(ptsCnt);
        memcpy(path.cmds, cmds, sizeof(PathCommand) * cmdCnt);
        memcpy(path.pts, pts, sizeof(Point) * ptsCnt);
@@ -480,8 +483,10 @@ struct Shape::Impl
        if (flags & TVG_SHAPE_FLAG_HAS_STROKE)
           {
              const tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
-             *pointer += sizeof(tvg_shape_stroke) + sizeof(float) * (shape_stroke->dashPatternCnt - 1);
+             //*pointer += sizeof(tvg_shape_stroke) + sizeof(float) * (shape_stroke->dashPatternCnt - 1);
+             *pointer += sizeof(tvg_shape_stroke) + sizeof(float) * shape_stroke->dashPatternCnt - sizeof(float);
 
+             // TODO: problem
              tvgLoadStroke(shape_stroke); // flag is set inside strokeDash
           }
 
@@ -501,20 +506,21 @@ struct Shape::Impl
     void tvgStoreStroke(tvg_shape_stroke * shape_stroke)
     {
        // TODO [mmaciola] jak przechowywac dashPattern
-       if (!shape_stroke)
+       /*if (!shape_stroke)
           {
              shape_stroke = (tvg_shape_stroke *) malloc(sizeof(tvg_shape_stroke) + sizeof(float) * (stroke->dashCnt - 1));
              if (!shape_stroke)
                {
                    return;
                }
-          }
+          }*/
 
        shape_stroke->width = stroke->width;
        memcpy(shape_stroke->color, stroke->color, sizeof(stroke->color));
 
        shape_stroke->dashPatternCnt = stroke->dashCnt;
        memcpy(&shape_stroke->dashPattern, stroke->dashPattern, sizeof(float) * stroke->dashCnt);
+       printf("1 shape_stroke->dashPatternCnt %d \n", shape_stroke->dashPatternCnt);
 
        shape_stroke->flags = 0;
        switch (stroke->cap)
@@ -577,9 +583,10 @@ struct Shape::Impl
        if (stroke)
           {
              tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) pointer;
-             *pointer += sizeof(tvg_shape_stroke) + sizeof(float) * (shape_stroke->dashPatternCnt - 1);
+             pointer += sizeof(tvg_shape_stroke) + sizeof(float) * (shape_stroke->dashPatternCnt) - sizeof(float);
 
              tvgStoreStroke(shape_stroke);
+             printf("2 shape_stroke->dashPatternCnt %d \n", shape_stroke->dashPatternCnt);
           }
 
        // Fill
