@@ -472,8 +472,8 @@ struct Shape::Impl
        *pointer += sizeof(Point) * ptsCnt;
 
        path.cmdCnt = cmdCnt;
-       path.reserveCmd(cmdCnt);
        path.ptsCnt = ptsCnt;
+       path.reserveCmd(cmdCnt);
        path.reservePts(ptsCnt);
        memcpy(path.cmds, cmds, sizeof(PathCommand) * cmdCnt);
        memcpy(path.pts, pts, sizeof(Point) * ptsCnt);
