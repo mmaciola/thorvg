@@ -409,7 +409,7 @@ bool Shape::tvgLoad(const char** pointer) noexcept
    return pImpl->tvgLoad(pointer);
 }
 
-bool Shape::tvgStore(const char** pointer) noexcept
+bool Shape::tvgStore(char* pointer) noexcept
 {
    return pImpl->tvgStore(pointer);
 }

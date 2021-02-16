@@ -116,8 +116,8 @@ void TvgLoader::run(unsigned tid)
 unique_ptr<Scene> TvgLoader::scene()
 {
     this->done();
-    if (!root) return move(root);
-    else return nullptr;
+    if (root) return move(root);
+    return nullptr;
 }
 
 

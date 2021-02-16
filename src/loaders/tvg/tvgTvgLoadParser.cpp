@@ -209,8 +209,6 @@ static bool tvg_read_scene(const char** pointer, unique_ptr<Scene> * sc)
    s->transform(scene->matrix);
    *sc = move(s);
 
-   printf("TVG_LOADER: Pointer %02X %02X %02X %02X %02X %02X.\n", (uint8_t)(*pointer)[0], (uint8_t)(*pointer)[1], (uint8_t)(*pointer)[2], (uint8_t)(*pointer)[3], (uint8_t)(*pointer)[4], (uint8_t)(*pointer)[5]);
-
    return true;
 }
 
@@ -275,6 +273,7 @@ bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * roo
          }
       }
 
+   printf("TVG_LOADER: File parsed correctly.\n");
    return true;
 }
 

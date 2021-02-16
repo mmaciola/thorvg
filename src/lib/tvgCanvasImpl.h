@@ -34,6 +34,7 @@ struct Canvas::Impl
 {
     Array<Paint*> paints;
     RenderMethod* renderer;
+    unique_ptr<TvgLoader> loader = nullptr;
 
     Impl(RenderMethod* pRenderer):renderer(pRenderer)
     {
@@ -95,6 +96,15 @@ struct Canvas::Impl
 
     Result draw()
     {
+       if (loader) {
+             auto scene = loader->scene();
+             if (scene) {
+                   push(move(scene));
+                   loader->close();
+                   printf("scene loaded \n");
+             }
+       }
+
         if (!renderer) return Result::InsufficientCondition;
 
         if (!renderer->preRender()) return Result::InsufficientCondition;
@@ -111,7 +121,7 @@ struct Canvas::Impl
     Result load(const string& path)
     {
        // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
-       TvgLoader * loader = new TvgLoader();
+       loader = unique_ptr<TvgLoader>(new TvgLoader());
        if (!loader->open(path)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
        return Result::Success;
@@ -119,7 +129,7 @@ struct Canvas::Impl
 
     Result load(const char* data, uint32_t size)
     {
-       TvgLoader * loader = new TvgLoader();
+       loader = unique_ptr<TvgLoader>(new TvgLoader());
        if (!loader->open(data, size)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
        return Result::Success;

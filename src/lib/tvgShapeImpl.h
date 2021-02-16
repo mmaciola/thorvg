@@ -190,6 +190,23 @@ struct ShapePath
 
         return true;
     }
+
+    bool tvgStore(char ** buffer, uint32_t * size)
+    {
+       *size = 8 + sizeof(PathCommand) * cmdCnt + sizeof(Point) * ptsCnt;
+       *buffer = (char *) malloc(*size);
+       if (!*buffer) return false;
+
+       char * pointer = *buffer;
+       memcpy(pointer, &cmdCnt, sizeof(uint32_t));
+       pointer += sizeof(uint32_t);
+       memcpy(pointer, &ptsCnt, sizeof(uint32_t));
+       pointer += sizeof(uint32_t);
+       memcpy(pointer, cmds, sizeof(PathCommand) * cmdCnt);
+       pointer += sizeof(PathCommand) * cmdCnt;
+       memcpy(pointer, pts, sizeof(Point) * ptsCnt);
+       return true;
+    }
 };
 
 
@@ -532,8 +549,53 @@ struct Shape::Impl
      * Details: see above function tvgLoad
      * [uint8 flags][color][path][stroke][fill]
      */
-    bool tvgStore(const char** pointer)
+    bool tvgStore(char * unused)
     {
+       // Function below is fuct for testing, will be changed completely
+       char * buffer = (char *) malloc(2048);
+       char * pointer = buffer;
+
+       // flags
+       *pointer = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FLAG_MASK_FILLRULE : 0;
+       if (stroke) *pointer |= TVG_SHAPE_FLAG_HAS_STROKE;
+       if (fill) *pointer |= TVG_SHAPE_FLAG_HAS_FILL;
+       pointer += 1;
+
+       // colors
+       memcpy(pointer, &color, sizeof(color));
+       pointer += sizeof(color);
+
+       // ShapePath
+       char * pthBuffer;
+       uint32_t pthSize;
+       path.tvgStore(&pthBuffer, &pthSize);
+       memcpy(pointer, pthBuffer, pthSize);
+       pointer += pthSize;
+       free(pthBuffer);
+
+       // ShapeStroke
+       if (stroke)
+          {
+             tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) pointer;
+             *pointer += sizeof(tvg_shape_stroke) + sizeof(float) * (shape_stroke->dashPatternCnt - 1);
+
+             tvgStoreStroke(shape_stroke);
+          }
+
+       // Fill
+       if (fill)
+          {
+             // TODO [mmaciola] how store gradients- by id or duplication
+             //flag |= RenderUpdateFlag::Gradient;
+          }
+
+       // For testing print
+       printf("tvgStore:");
+       for (char * ptr = buffer; ptr < pointer; ptr++) {
+             printf(" %02X", (uint8_t)(*ptr));
+       }
+       printf(".\n");
+
        return true;
     }
 };

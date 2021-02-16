@@ -68,14 +68,14 @@ Result Scene::clear() noexcept
     return Result::Success;
 }
 
-
+// tvgTvgLoader / tvgTvgStorer
 Result Scene::load(const string& path)
 {
    return pImpl->load(path);
 }
 
-
 Result Scene::load(const char* data, uint32_t size)
 {
    return pImpl->load(data, size);
 }
+

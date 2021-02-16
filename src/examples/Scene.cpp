@@ -15,7 +15,8 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     //Prepare Round Rectangle
     auto shape1 = tvg::Shape::gen();
     shape1->appendRect(0, 0, 400, 400, 50, 50);  //x, y, w, h, rx, ry
-    shape1->fill(0, 255, 0, 255);                //r, g, b, a
+    shape1->fill(0x00, 0xba, 0xcc, 255);                //r, g, b, a
+    shape1->tvgStore(0);
     scene->push(move(shape1));
 
     //Prepare Circle
@@ -27,11 +28,11 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     //Prepare Ellipse
     auto shape3 = tvg::Shape::gen();
     shape3->appendCircle(600, 600, 150, 100);    //cx, cy, radiusW, radiusH
-    shape3->fill(0, 255, 255, 255);              //r, g, b, a
+    shape3->fill(32, 255, 128, 255);              //r, g, b, a
     scene->push(move(shape3));
 
     //Create another Scene
-    auto scene2 = tvg::Scene::gen();
+    /*auto scene2 = tvg::Scene::gen();
     scene2->reserve(2);   //reserve 2 shape nodes (optional)
 
     //Star
@@ -70,7 +71,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     scene2->push(move(shape5));
 
     //Push scene2 onto the scene
-    scene->push(move(scene2));
+    scene->push(move(scene2));*/
 
     //Draw the Scene onto the Canvas
     canvas->push(move(scene));

@@ -9,11 +9,14 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     if (!canvas) return;
 
     // Load Scene
-    auto scene = tvg::Scene::gen();
+    canvas->load(EXAMPLE_DIR"/canvas.tvg");
+
+    // Load Scene
+    /*auto scene = tvg::Scene::gen();
     scene->load(EXAMPLE_DIR"/canvas.tvg");
 
     // Draw the Scene onto the Canvas
-    canvas->push(move(scene));
+    canvas->push(move(scene));*/
 
 
     /*tvg::Matrix m = {};

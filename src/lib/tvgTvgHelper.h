@@ -57,9 +57,9 @@ struct tvg_scene {
 };
 
 #define TVG_SHAPE_BEGIN_INDICATOR (char)0xfb
-#define TVG_SHAPE_FLAG_MASK_FILLRULE 0B00000001 // FillRule, if set FillRule::EvenOdd, else FillRule::Winding
-#define TVG_SHAPE_FLAG_HAS_STROKE 0B00000010
-#define TVG_SHAPE_FLAG_HAS_FILL 0B00000100
+#define TVG_SHAPE_FLAG_MASK_FILLRULE (char)0B00000001 // FillRule, if set FillRule::EvenOdd, else FillRule::Winding
+#define TVG_SHAPE_FLAG_HAS_STROKE (char)0B00000010
+#define TVG_SHAPE_FLAG_HAS_FILL (char)0B00000100
 #define TVG_STROKE_FLAG_MASK_CAP 0b00000011 // mask for stroke StrokeCap
 #define TVG_STROKE_FLAG_CAP_SQUARE 0B00000001 // StrokeCap::Square
 #define TVG_STROKE_FLAG_CAP_ROUND 0B00000010 // StrokeCap::Round

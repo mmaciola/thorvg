@@ -257,7 +257,7 @@ public:
 
     // tvgTvgLoader / tvgTvgStorer
     bool tvgLoad(const char** pointer) noexcept;
-    bool tvgStore(const char** pointer) noexcept;
+    bool tvgStore(char* pointer) noexcept;
 
     static std::unique_ptr<Shape> gen() noexcept;
 
