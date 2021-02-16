@@ -25,6 +25,6 @@
 
 #include "tvgCommon.h"
 
-bool tvg_file_parse(const char * pointer, uint32_t size);
+bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * root);
 
 #endif //_TVG_TVG_LOAD_PARSER_H_

@@ -255,8 +255,9 @@ public:
     StrokeCap strokeCap() const noexcept;
     StrokeJoin strokeJoin() const noexcept;
 
-    // tvgTvgLoader
+    // tvgTvgLoader / tvgTvgStorer
     bool tvgLoad(const char** pointer) noexcept;
+    bool tvgStore(const char** pointer) noexcept;
 
     static std::unique_ptr<Shape> gen() noexcept;
 
@@ -309,6 +310,9 @@ public:
     Result push(std::unique_ptr<Paint> paint) noexcept;
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
+
+    virtual Result load(const std::string& path);
+    virtual Result load(const char* data, uint32_t size);
 
     static std::unique_ptr<Scene> gen() noexcept;
 

@@ -50,8 +50,9 @@ struct tvg_width_height {
 
 #define TVG_SCENE_BEGIN_INDICATOR (char)0xfc
 struct tvg_scene {
-   uint32_t reserved;
+   uint32_t reservedCnt;
    uint8_t opacity;
+   uint8_t unused[3];
    tvg::Matrix matrix;
 };
 

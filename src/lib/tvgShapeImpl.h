@@ -481,7 +481,7 @@ struct Shape::Impl
     /*
      * Store stroke into .tvg binary file
      */
-    void strokeStore(tvg_shape_stroke * shape_stroke)
+    void tvgStoreStroke(tvg_shape_stroke * shape_stroke)
     {
        // TODO [mmaciola] jak przechowywac dashPattern
        if (!shape_stroke)
@@ -524,6 +524,17 @@ struct Shape::Impl
             shape_stroke->flags |= TVG_STROKE_FLAG_JOIN_MITER;
             break;
          }
+    }
+
+    /*
+     * Store shape from .tvg binary file
+     * Returns true on success and moves pointer to next position or false if corrupted.
+     * Details: see above function tvgLoad
+     * [uint8 flags][color][path][stroke][fill]
+     */
+    bool tvgStore(const char** pointer)
+    {
+       return true;
     }
 };
 

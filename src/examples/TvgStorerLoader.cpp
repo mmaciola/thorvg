@@ -1,9 +1,36 @@
 #include "Common.h"
 
-void tvgLoadTvg(tvg::Canvas* canvas) {
-   printf("tvgLoadTvg\n");
-   canvas->load(EXAMPLE_DIR"/canvas.tvg");
+/************************************************************************/
+/* Drawing Commands                                                     */
+/************************************************************************/
+
+void tvgDrawCmds(tvg::Canvas* canvas)
+{
+    if (!canvas) return;
+
+    // Load Scene
+    auto scene = tvg::Scene::gen();
+    scene->load(EXAMPLE_DIR"/canvas.tvg");
+
+    // Draw the Scene onto the Canvas
+    canvas->push(move(scene));
+
+
+    /*tvg::Matrix m = {};
+    m.e11 = m.e22 = m.e33 = 1;
+    printf("Matrix \n");
+    printf("%f %f %f \n", m.e11, m.e12, m.e13);
+    printf("%f %f %f \n", m.e21, m.e22, m.e23);
+    printf("%f %f %f \n", m.e31, m.e32, m.e33);
+
+    uint8_t * p = (uint8_t *) &m;
+
+    for (int i = 0; i < sizeof(tvg::Matrix); i++) {
+          printf("%02X ", p[i]);
+    }
+    printf("\n");*/
 }
+
 
 /************************************************************************/
 /* Sw Engine Test Code                                                  */
@@ -15,9 +42,13 @@ void tvgSwTest(uint32_t* buffer)
 {
     //Create a Canvas
     swCanvas = tvg::SwCanvas::gen();
-    tvgLoadTvg(swCanvas.get());
+    swCanvas->target(buffer, WIDTH, WIDTH, HEIGHT, tvg::SwCanvas::ARGB8888);
 
-    //swCanvas->target(buffer, WIDTH, WIDTH, HEIGHT, tvg::SwCanvas::ARGB8888);
+    /* Push the shape into the Canvas drawing list
+       When this shape is into the canvas list, the shape could update & prepare
+       internal data asynchronously for coming rendering.
+       Canvas keeps this shape node unless user call canvas->clear() */
+    tvgDrawCmds(swCanvas.get());
 }
 
 void drawSwView(void* data, Eo* obj)
@@ -36,7 +67,17 @@ static unique_ptr<tvg::GlCanvas> glCanvas;
 
 void initGLview(Evas_Object *obj)
 {
-// todo: ???
+    static constexpr auto BPP = 4;
+
+    //Create a Canvas
+    glCanvas = tvg::GlCanvas::gen();
+    glCanvas->target(nullptr, WIDTH * BPP, WIDTH, HEIGHT);
+
+    /* Push the shape into the Canvas drawing list
+       When this shape is into the canvas list, the shape could update & prepare
+       internal data asynchronously for coming rendering.
+       Canvas keeps this shape node unless user call canvas->clear() */
+    tvgDrawCmds(glCanvas.get());
 }
 
 void drawGLview(Evas_Object *obj)
@@ -75,6 +116,7 @@ int main(int argc, char **argv)
 
     //Initialize ThorVG Engine
     if (tvg::Initializer::init(tvgEngine, threads) == tvg::Result::Success) {
+
 
         elm_init(argc, argv);
 

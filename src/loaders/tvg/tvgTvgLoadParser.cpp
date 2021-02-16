@@ -194,19 +194,22 @@ static bool tvg_read_raw_image(const char** pointer)
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details:
  */
-static bool tvg_read_scene(const char** pointer, Scene ** sc)
+static bool tvg_read_scene(const char** pointer, unique_ptr<Scene> * sc)
 {
    if (**pointer != TVG_SCENE_BEGIN_INDICATOR) return false;
    *pointer += 1;
+   printf("TVG_LOADER: Parsing scene.\n");
 
    const tvg_scene * scene = (tvg_scene *) *pointer;
    *pointer += sizeof(tvg_scene);
 
    auto s = Scene::gen();
-   s->reserve(scene->reserved);
+   s->reserve(scene->reservedCnt);
    s->opacity(scene->opacity);
    s->transform(scene->matrix);
-   *sc = s.release();
+   *sc = move(s);
+
+   printf("TVG_LOADER: Pointer %02X %02X %02X %02X %02X %02X.\n", (uint8_t)(*pointer)[0], (uint8_t)(*pointer)[1], (uint8_t)(*pointer)[2], (uint8_t)(*pointer)[3], (uint8_t)(*pointer)[4], (uint8_t)(*pointer)[5]);
 
    return true;
 }
@@ -220,22 +223,23 @@ static bool tvg_read_scene(const char** pointer, Scene ** sc)
  * xxxxxxx1 - FillRule.EvenOdd
  * [0xfe][uint8 flags][color][path][stroke][fill]
  */
-static bool tvg_read_shape(const char** pointer, Scene * sc)
+static bool tvg_read_shape(const char** pointer, unique_ptr<Scene> * sc)
 {
    if (!sc) return false;
    if (**pointer != TVG_SHAPE_BEGIN_INDICATOR) return false;
    *pointer += 1;
+   printf("TVG_LOADER: Parsing shape.\n");
 
    auto s = Shape::gen();
    s->tvgLoad(pointer); // parsing inside tvgShapeImpl.h
 
-   sc->push(move(s));
+   (*sc)->push(move(s));
 
    return true;
 }
 
 
-bool tvg_file_parse(const char * pointer, uint32_t size)
+bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * root)
 {
    const char* end = pointer + size;
    if (!tvg_read_header(&pointer) || pointer >= end)
@@ -245,7 +249,7 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
       }
 
    map<uint32_t, int> m; // TODO: ids for gradients
-   Scene * scene; // now allow single scene only
+   // Now designed for only one scene. Discuss
 
    while (pointer < end)
       {
@@ -261,10 +265,10 @@ bool tvg_file_parse(const char * pointer, uint32_t size)
                if (!tvg_read_raw_image(&pointer)) return false;
                break;
             case TVG_SCENE_BEGIN_INDICATOR:
-               if (!tvg_read_scene(&pointer, &scene)) return false;
+               if (!tvg_read_scene(&pointer, root)) return false;
                break;
             case TVG_SHAPE_BEGIN_INDICATOR:
-               if (!tvg_read_shape(&pointer, scene)) return false;
+               if (!tvg_read_shape(&pointer, root)) return false;
                break;
             default:
                return false;

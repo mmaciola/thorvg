@@ -99,17 +99,25 @@ bool TvgLoader::read()
 
 bool TvgLoader::close()
 {
+   this->done();
    tvg_clean_buffer();
    return true;
 }
 
 void TvgLoader::run(unsigned tid)
 {
-   if (!tvg_file_parse(this->pointer, this->size))
+   if (!tvg_file_parse(this->pointer, this->size, &(this->root)))
       {
          printf("[mmaciola] tvg_file_parse ERROR\n");
          tvg_clean_buffer();
       }
+}
+
+unique_ptr<Scene> TvgLoader::scene()
+{
+    this->done();
+    if (!root) return move(root);
+    else return nullptr;
 }
 
 
