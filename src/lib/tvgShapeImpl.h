@@ -394,6 +394,28 @@ struct Shape::Impl
 
     /*
      * Load shape stroke from .tvg binary file
+     * Returns true on success and moves pointer to next position or false if corrupted or other problem.
+     * Details:
+     * Stroke section starts with uint8 flags, these are describes below in Flags section.
+     * Next is float stroke width.
+     * If has_fill flag is set, next is uint32 fill identificator. If has_fill is clear, 4*uint8 fill color.
+     * Note that gradient fill for stroke is future feature, not implemented in tvg yet- TODO.
+     * If had_dash_pattern is set next is dash pattern: uint32 cnt, cnt*[float cmds].
+     *
+     * Flags:
+     * xxxxxx00 - Error
+     * xxxxxx01 - StrokeCap::Square
+     * xxxxxx10 - StrokeCap::Round
+     * xxxxxx11 - StrokeCap::Butt
+     * xxxx00xx - Error
+     * xxxx01xx - StrokeJoin::Bevel
+     * xxxx10xx - StrokeJoin::Round
+     * xxxx11xx - StrokeJoin::Miter
+     * xxxx00xx - Error
+     * xxx1xxxx - HAS_FILL - if set- fillid (gradient fill), if clear- color.
+     * xx1xxxxx - HAS_DASH_PATTERN
+     *
+     * [uint8 flags][4*uint8 color OR uint32 fillid][ShapePath][stroke]
      */
     bool tvgLoadStroke(const char** pointer)
     {
@@ -475,10 +497,18 @@ struct Shape::Impl
      * Load shape from .tvg binary file
      * Returns true on success and moves pointer to next position or false if corrupted.
      * Details:
+     * Shape section starts with uint8 flags, these are describes below in Flags section.
+     * If has_fill flag is set, next is uint32 fill identificator. If has_fill is clear, 4*uint8 fill color.
+     * Next are ShapePath: uint32 cmdCnt, uint32 ptsCnt, cmdCnt*[PathCommand cmds], ptsCnt*[Point pts].
+     * If has_stroke is set, next is stroke informations- see stroke section
+     *
      * Flags:
+     * xxxxxxx1 - FillRule.EvenOdd (TVG_SHAPE_FLAG_MASK_FILLRULE)
      * xxxxxxx0 - FillRule.Winding
-     * xxxxxxx1 - FillRule.EvenOdd
-     * [uint8 flags][color][path][stroke][fill]
+     * xxxxxx1x - HAS_STROKE (TVG_SHAPE_FLAG_HAS_STROKE)
+     * xxxxx1xx - HAS_FILL (TVG_SHAPE_FLAG_HAS_FILL) - if set- fillid (gradient fill), if clear- color.
+     *
+     * [uint8 flags][4*uint8 color OR uint32 fillid][ShapePath][stroke]
      */
     bool tvgLoad(const char** pointer)
     {
@@ -533,6 +563,7 @@ struct Shape::Impl
 
     /*
      * Store stroke into .tvg binary file
+     * Details: see above function tvgLoadStroke
      */
     void tvgStoreStroke(char** pointer)
     {
