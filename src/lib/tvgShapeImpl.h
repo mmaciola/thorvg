@@ -415,7 +415,7 @@ struct Shape::Impl
      * xxx1xxxx - HAS_FILL - if set- fillid (gradient fill), if clear- color.
      * xx1xxxxx - HAS_DASH_PATTERN
      *
-     * [uint8 flags][4*uint8 color OR uint32 fillid][ShapePath][stroke]
+     * [uint8 flags][uint32 width][4*uint8 color OR uint32 fillid][dashPattern]
      */
     bool tvgLoadStroke(const char** pointer)
     {
