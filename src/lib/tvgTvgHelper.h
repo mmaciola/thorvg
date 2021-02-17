@@ -67,12 +67,15 @@ struct tvg_scene {
 #define TVG_STROKE_FLAG_JOIN_BEVEL 0B00000100 // StrokeJoin::Bevel
 #define TVG_STROKE_FLAG_JOIN_ROUND 0B00001000 // StrokeJoin::Round
 #define TVG_STROKE_FLAG_JOIN_MITER 0B00001100 // StrokeJoin::Miter
+#define TVG_STROKE_FLAG_HAS_FILL 0B00010000 // flag for using fill. If set- fillid (gradient), if clear- color.
+#define TVG_STROKE_FLAG_HAS_DASH_PATTERN 0B00100000 // flag for using dashPattern
 struct tvg_shape_stroke {
-   float width;
-   uint8_t color[4];
    uint8_t flags;
-   uint32_t dashPatternCnt;
-   float dashPattern;
+   float width;
+   union {
+      uint8_t color[4];
+      uint32_t fillid;
+   };
 } __attribute__((packed));
 
 #endif //_TVG_STANDARD_HELPER_H_

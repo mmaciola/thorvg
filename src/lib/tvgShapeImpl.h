@@ -395,17 +395,29 @@ struct Shape::Impl
     /*
      * Load shape stroke from .tvg binary file
      */
-    bool tvgLoadStroke(const tvg_shape_stroke * shape_stroke)
+    bool tvgLoadStroke(const char** pointer)
     {
-       printf("dashPatternCnt %d \n", shape_stroke->dashPatternCnt);
-       if (!strokeDash(&shape_stroke->dashPattern, shape_stroke->dashPatternCnt))
+       const tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
+
+       if (!stroke) stroke = new ShapeStroke();
+       if (!stroke) return false;
+
+       // width
+       stroke->width = shape_stroke->width;
+
+       // color or fillid
+       if (shape_stroke->flags & TVG_STROKE_FLAG_HAS_FILL)
           {
-             return false;
+             // fill
+             printf("TVG_LOADER: Stroke fill is not compatible now \n"); // TODO
+          }
+       else
+          {
+             // color
+             memcpy(stroke->color, shape_stroke->color, sizeof(shape_stroke->color));
           }
 
-       stroke->width = shape_stroke->width;
-       memcpy(stroke->color, shape_stroke->color, sizeof(shape_stroke->color));
-
+       // stroke cap
        switch (shape_stroke->flags & TVG_STROKE_FLAG_MASK_CAP) {
           case TVG_STROKE_FLAG_CAP_SQUARE:
              stroke->cap = StrokeCap::Square;
@@ -420,6 +432,7 @@ struct Shape::Impl
              return false;
        }
 
+       // stroke join
        switch (shape_stroke->flags & TVG_STROKE_FLAG_MASK_JOIN) {
           case TVG_STROKE_FLAG_JOIN_BEVEL:
              stroke->join = StrokeJoin::Bevel;
@@ -433,6 +446,27 @@ struct Shape::Impl
           default:
              return false;
        }
+
+       // move pointer
+       *pointer += sizeof(tvg_shape_stroke);
+
+       // dashPattern
+       if (shape_stroke->flags & TVG_STROKE_FLAG_HAS_DASH_PATTERN)
+          {
+             const uint32_t dashPatternCnt = (uint32_t) **pointer;
+             *pointer += sizeof(uint32_t);
+             const float * dashPattern = (float *) *pointer;
+             *pointer += sizeof(float) * dashPatternCnt;
+
+             if (stroke->dashPattern) free(stroke->dashPattern);
+             stroke->dashPattern = static_cast<float*>(malloc(sizeof(float) * dashPatternCnt));
+             if (!stroke->dashPattern) return false;
+
+             stroke->dashCnt = dashPatternCnt;
+             memcpy(stroke->dashPattern, dashPattern, sizeof(float) * dashPatternCnt);
+
+             flag |= RenderUpdateFlag::Stroke;
+          }
 
        return true;
     }
@@ -454,12 +488,21 @@ struct Shape::Impl
 
        rule = (flags & TVG_SHAPE_FLAG_MASK_FILLRULE) ? FillRule::EvenOdd : FillRule::Winding;
 
-       // colors
-       const uint8_t * colors = (uint8_t*) *pointer;
-       *pointer += sizeof(uint8_t) * 4;
+       // colors or fill
+       if (flags & TVG_SHAPE_FLAG_HAS_FILL)
+          {
+             // TODO [mmaciola] how store gradients- by id or duplication
+             flag |= RenderUpdateFlag::Gradient;
+          }
+       else
+          {
+             // colors
+             const uint8_t * colors = (uint8_t*) *pointer;
+             *pointer += sizeof(uint8_t) * 4;
 
-       memcpy(&color, colors, sizeof(color));
-       flag = RenderUpdateFlag::Color;
+             memcpy(&color, colors, sizeof(color));
+             flag = RenderUpdateFlag::Color;
+          }
 
        // ShapePath
        const uint32_t cmdCnt = (uint32_t) **pointer;
@@ -482,19 +525,7 @@ struct Shape::Impl
        // ShapeStroke
        if (flags & TVG_SHAPE_FLAG_HAS_STROKE)
           {
-             const tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
-             //*pointer += sizeof(tvg_shape_stroke) + sizeof(float) * (shape_stroke->dashPatternCnt - 1);
-             *pointer += sizeof(tvg_shape_stroke) + sizeof(float) * shape_stroke->dashPatternCnt - sizeof(float);
-
-             // TODO: problem
-             tvgLoadStroke(shape_stroke); // flag is set inside strokeDash
-          }
-
-       // Fill
-       if (flags & TVG_SHAPE_FLAG_HAS_FILL)
-          {
-             // TODO [mmaciola] how store gradients- by id or duplication
-             flag |= RenderUpdateFlag::Gradient;
+             tvgLoadStroke(pointer);
           }
 
        return true;
@@ -503,24 +534,9 @@ struct Shape::Impl
     /*
      * Store stroke into .tvg binary file
      */
-    void tvgStoreStroke(tvg_shape_stroke * shape_stroke)
+    void tvgStoreStroke(char** pointer)
     {
-       // TODO [mmaciola] jak przechowywac dashPattern
-       /*if (!shape_stroke)
-          {
-             shape_stroke = (tvg_shape_stroke *) malloc(sizeof(tvg_shape_stroke) + sizeof(float) * (stroke->dashCnt - 1));
-             if (!shape_stroke)
-               {
-                   return;
-               }
-          }*/
-
-       shape_stroke->width = stroke->width;
-       memcpy(shape_stroke->color, stroke->color, sizeof(stroke->color));
-
-       shape_stroke->dashPatternCnt = stroke->dashCnt;
-       memcpy(&shape_stroke->dashPattern, stroke->dashPattern, sizeof(float) * stroke->dashCnt);
-       printf("1 shape_stroke->dashPatternCnt %d \n", shape_stroke->dashPatternCnt);
+       tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
 
        shape_stroke->flags = 0;
        switch (stroke->cap)
@@ -535,6 +551,7 @@ struct Shape::Impl
             shape_stroke->flags |= TVG_STROKE_FLAG_CAP_BUTT;
             break;
          }
+
        switch (stroke->join)
          {
          case StrokeJoin::Bevel:
@@ -547,6 +564,26 @@ struct Shape::Impl
             shape_stroke->flags |= TVG_STROKE_FLAG_JOIN_MITER;
             break;
          }
+
+       // width
+       shape_stroke->width = stroke->width;
+
+       // color vs fill todo
+       memcpy(shape_stroke->color, stroke->color, sizeof(stroke->color));
+
+       // move pointer
+       *pointer += sizeof(tvg_shape_stroke);
+
+       // dashPattern
+       if (stroke->dashCnt)
+          {
+             memcpy(*pointer, &stroke->dashCnt, sizeof(uint32_t));
+             *pointer += sizeof(uint32_t);
+             memcpy(*pointer, stroke->dashPattern, sizeof(float) * stroke->dashCnt);
+             *pointer += sizeof(float) * stroke->dashCnt;
+
+             shape_stroke->flags |= TVG_STROKE_FLAG_HAS_DASH_PATTERN;
+          }
     }
 
     /*
@@ -557,7 +594,7 @@ struct Shape::Impl
      */
     bool tvgStore(char * unused)
     {
-       // Function below is fuct for testing, will be changed completely
+       // Function below is for testing purposes only. Final tvgStore will be changed completely
        char * buffer = (char *) malloc(2048);
        char * pointer = buffer;
 
@@ -567,9 +604,16 @@ struct Shape::Impl
        if (fill) *pointer |= TVG_SHAPE_FLAG_HAS_FILL;
        pointer += 1;
 
-       // colors
-       memcpy(pointer, &color, sizeof(color));
-       pointer += sizeof(color);
+       // colors or fill
+       if (fill)
+          {
+             // TODO [mmaciola] how store gradients- by id or duplication
+          }
+       else
+          {
+             memcpy(pointer, &color, sizeof(color));
+             pointer += sizeof(color);
+          }
 
        // ShapePath
        char * pthBuffer;
@@ -582,18 +626,7 @@ struct Shape::Impl
        // ShapeStroke
        if (stroke)
           {
-             tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) pointer;
-             pointer += sizeof(tvg_shape_stroke) + sizeof(float) * (shape_stroke->dashPatternCnt) - sizeof(float);
-
-             tvgStoreStroke(shape_stroke);
-             printf("2 shape_stroke->dashPatternCnt %d \n", shape_stroke->dashPatternCnt);
-          }
-
-       // Fill
-       if (fill)
-          {
-             // TODO [mmaciola] how store gradients- by id or duplication
-             //flag |= RenderUpdateFlag::Gradient;
+             tvgStoreStroke(&pointer);
           }
 
        // For testing print

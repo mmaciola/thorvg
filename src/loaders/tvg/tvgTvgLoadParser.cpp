@@ -111,11 +111,12 @@ static bool tvg_read_canvas(const char** pointer)
  * xxxxx00x - ERROR
  * [0xff][uint8 flags][uint32 identifier][3xfloat x, y, r OR 4xfloat x1, y1, x2, y2][cnt][cnt*Fill::ColorStop]
  */
-static bool tvg_read_gradient(const char** pointer)
+static bool tvg_read_gradient(const char** pointer, map<uint32_t, unique_ptr<tvg::Fill>> * gids)
 {
    if (**pointer != TVG_GRADIENT_BEGIN_INDICATOR) return false;
    *pointer += 1;
 
+   // flags and id
    const tvg_flags_and_id * flags_and_id = (tvg_flags_and_id *) *pointer;
    *pointer += sizeof(tvg_flags_and_id);
 
@@ -142,6 +143,7 @@ static bool tvg_read_gradient(const char** pointer)
          fillGrad = move(fillGradLinear);
       }
 
+   // cnt and colorstops
    const uint16_t cnt = (uint16_t) **pointer;
    *pointer += sizeof(uint16_t);
 
@@ -164,6 +166,9 @@ static bool tvg_read_gradient(const char** pointer)
       default:
          return false;
    }
+
+   // insert into gradient ids map
+   //(*gids).insert (std::pair<uint32_t, unique_ptr<tvg::Fill>>(flags_and_id->id, fillGrad));
 
    return true;
 }
@@ -246,18 +251,18 @@ bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * roo
          return false;
       }
 
-   map<uint32_t, int> m; // TODO: ids for gradients
+   map<uint32_t, unique_ptr<tvg::Fill>> gids; // Gradient ids
    // Now designed for only one scene. Discuss
 
    while (pointer < end)
       {
          switch (*(pointer))
          {
-            case TVG_CANVAS_BEGIN_INDICATOR:
+            case TVG_CANVAS_BEGIN_INDICATOR: // TODO: if no canvas, will be unused
                if (!tvg_read_canvas(&pointer)) return false;
                break;
             case TVG_GRADIENT_BEGIN_INDICATOR:
-               if (!tvg_read_gradient(&pointer)) return false;
+               if (!tvg_read_gradient(&pointer, &gids)) return false;
                break;
             case TVG_RAW_IMAGE_BEGIN_INDICATOR:
                if (!tvg_read_raw_image(&pointer)) return false;
