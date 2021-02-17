@@ -168,7 +168,7 @@ static bool tvg_read_gradient(const char** pointer, map<uint32_t, unique_ptr<tvg
    }
 
    // insert into gradient ids map
-   //(*gids).insert (std::pair<uint32_t, unique_ptr<tvg::Fill>>(flags_and_id->id, fillGrad));
+   (*gids).insert( make_pair(flags_and_id->id, move(fillGrad)) );
 
    return true;
 }
@@ -220,11 +220,7 @@ static bool tvg_read_scene(const char** pointer, unique_ptr<Scene> * sc)
 /*
  * Read shape section of the .tvg binary file
  * Returns true on success and moves pointer to next position or false if corrupted.
- * Details:
- * Flags:
- * xxxxxxx0 - FillRule.Winding
- * xxxxxxx1 - FillRule.EvenOdd
- * [0xfe][uint8 flags][color][path][stroke][fill]
+ * Details: see tvgLoad() in tvgShapeImpl.h
  */
 static bool tvg_read_shape(const char** pointer, unique_ptr<Scene> * sc)
 {
