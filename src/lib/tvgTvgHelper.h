@@ -56,19 +56,21 @@ struct tvg_scene {
 } __attribute__((packed));
 
 #define TVG_SHAPE_BEGIN_INDICATOR (char)0xfb
-#define TVG_SHAPE_FLAG_MASK_FILLRULE (char)0B00000001 // FillRule, if set FillRule::EvenOdd, else FillRule::Winding
-#define TVG_SHAPE_FLAG_HAS_STROKE (char)0B00000010
-#define TVG_SHAPE_FLAG_HAS_FILL (char)0B00000100
+#define TVG_SHAPE_FLAG_MASK_FILLRULE (char)0b00000001 // FillRule, if set FillRule::EvenOdd, else FillRule::Winding
+#define TVG_SHAPE_FLAG_HAS_STROKE (char)0b00000010 // If set, has stroke section
+#define TVG_SHAPE_FLAG_HAS_FILL (char)0b00000100 // If set, has fillid. If clear, has color.
+#define TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX (char)0b00001000 // If set, has transform matrix
+
 #define TVG_STROKE_FLAG_MASK_CAP 0b00000011 // mask for stroke StrokeCap
-#define TVG_STROKE_FLAG_CAP_SQUARE 0B00000001 // StrokeCap::Square
-#define TVG_STROKE_FLAG_CAP_ROUND 0B00000010 // StrokeCap::Round
-#define TVG_STROKE_FLAG_CAP_BUTT 0B00000011 // StrokeCap::Butt
+#define TVG_STROKE_FLAG_CAP_SQUARE 0b00000001 // StrokeCap::Square
+#define TVG_STROKE_FLAG_CAP_ROUND 0b00000010 // StrokeCap::Round
+#define TVG_STROKE_FLAG_CAP_BUTT 0b00000011 // StrokeCap::Butt
 #define TVG_STROKE_FLAG_MASK_JOIN 0b00001100 // mask for stroke StrokeJoin
-#define TVG_STROKE_FLAG_JOIN_BEVEL 0B00000100 // StrokeJoin::Bevel
-#define TVG_STROKE_FLAG_JOIN_ROUND 0B00001000 // StrokeJoin::Round
-#define TVG_STROKE_FLAG_JOIN_MITER 0B00001100 // StrokeJoin::Miter
-#define TVG_STROKE_FLAG_HAS_FILL 0B00010000 // flag for using fill. If set- fillid (gradient), if clear- color.
-#define TVG_STROKE_FLAG_HAS_DASH_PATTERN 0B00100000 // flag for using dashPattern
+#define TVG_STROKE_FLAG_JOIN_BEVEL 0b00000100 // StrokeJoin::Bevel
+#define TVG_STROKE_FLAG_JOIN_ROUND 0b00001000 // StrokeJoin::Round
+#define TVG_STROKE_FLAG_JOIN_MITER 0b00001100 // StrokeJoin::Miter
+#define TVG_STROKE_FLAG_HAS_FILL 0b00010000 // flag for using fill. If set- fillid (gradient), if clear- color.
+#define TVG_STROKE_FLAG_HAS_DASH_PATTERN 0b00100000 // If set, stroke has dashPattern
 struct tvg_shape_stroke {
    uint8_t flags;
    float width;

@@ -507,10 +507,11 @@ struct Shape::Impl
      * xxxxxxx0 - FillRule.Winding
      * xxxxxx1x - HAS_STROKE (TVG_SHAPE_FLAG_HAS_STROKE)
      * xxxxx1xx - HAS_FILL (TVG_SHAPE_FLAG_HAS_FILL) - if set- fillid (gradient fill), if clear- color.
+     * xxxx1xxx - HAS_TRANSFORM (TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX)
      *
-     * [uint8 flags][4*uint8 color OR uint32 fillid][ShapePath][stroke]
+     * [uint8 flags][4*uint8 color OR uint32 fillid][ShapePath][9xfloat matrix][stroke]
      */
-    bool tvgLoad(const char** pointer)
+    bool tvgLoad(const char** pointer, const Matrix ** m)
     {
        // flags
        const uint8_t flags = (uint8_t) **pointer;
@@ -551,6 +552,13 @@ struct Shape::Impl
        memcpy(path.cmds, cmds, sizeof(PathCommand) * cmdCnt);
        memcpy(path.pts, pts, sizeof(Point) * ptsCnt);
        flag |= RenderUpdateFlag::Path;
+
+       // Transform matrix
+       if (flags & TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX)
+          {
+             *m = (Matrix*) *pointer;
+             *pointer += sizeof(Matrix);
+          }
 
        // ShapeStroke
        if (flags & TVG_SHAPE_FLAG_HAS_STROKE)
@@ -633,6 +641,7 @@ struct Shape::Impl
        *pointer = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FLAG_MASK_FILLRULE : 0;
        if (stroke) *pointer |= TVG_SHAPE_FLAG_HAS_STROKE;
        if (fill) *pointer |= TVG_SHAPE_FLAG_HAS_FILL;
+       // TODO: matrix store: *pointer |= TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX;
        pointer += 1;
 
        // colors or fill
@@ -653,6 +662,9 @@ struct Shape::Impl
        memcpy(pointer, pthBuffer, pthSize);
        pointer += pthSize;
        free(pthBuffer);
+
+       // Transform matrix
+       // TODO: Matrix store
 
        // ShapeStroke
        if (stroke)
