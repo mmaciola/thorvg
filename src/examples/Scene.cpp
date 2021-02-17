@@ -33,6 +33,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     auto shape3 = tvg::Shape::gen();
     shape3->appendCircle(600, 600, 150, 100);    //cx, cy, radiusW, radiusH
     shape3->fill(32, 255, 128, 255);              //r, g, b, a
+    shape3->tvgStore(0);
     scene->push(move(shape3));
 
     //Create another Scene
