@@ -507,16 +507,24 @@ struct Shape::Impl
      * xxxxxxx0 - FillRule.Winding
      * xxxxxx1x - HAS_STROKE (TVG_SHAPE_FLAG_HAS_STROKE)
      * xxxxx1xx - HAS_FILL (TVG_SHAPE_FLAG_HAS_FILL) - if set- fillid (gradient fill), if clear- color.
-     * xxxx1xxx - HAS_TRANSFORM (TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX)
      *
-     * [uint8 flags][4*uint8 color OR uint32 fillid][ShapePath][9xfloat matrix][stroke]
+     * [uint8 flags][uint8 lenght][4*uint8 color OR uint32 fillid][ShapePath][9xfloat matrix][stroke]
      */
-    bool tvgLoad(const char** pointer, const Matrix ** m)
+    bool tvgLoad(const char** pointer)
     {
-       // flags
-       const uint8_t flags = (uint8_t) **pointer;
-       *pointer += sizeof(uint8_t);
+       const char * moving_pointer = *pointer;
+       // flag
+       const uint8_t flags = (uint8_t) *moving_pointer;
+       moving_pointer += sizeof(uint8_t);
 
+       // lenght
+       const uint8_t lenght = (uint8_t) *moving_pointer;
+       moving_pointer += sizeof(uint8_t);
+       *pointer += sizeof(uint8_t) * lenght;
+       // validate lenght
+       if (lenght < 8) return false;
+
+       // rule (from flag)
        rule = (flags & TVG_SHAPE_FLAG_MASK_FILLRULE) ? FillRule::EvenOdd : FillRule::Winding;
 
        // colors or fill
@@ -528,22 +536,22 @@ struct Shape::Impl
        else
           {
              // colors
-             const uint8_t * colors = (uint8_t*) *pointer;
-             *pointer += sizeof(uint8_t) * 4;
+             const uint8_t * colors = (uint8_t*) moving_pointer;
+             moving_pointer += sizeof(uint8_t) * 4;
 
              memcpy(&color, colors, sizeof(color));
              flag = RenderUpdateFlag::Color;
           }
 
        // ShapePath
-       const uint32_t cmdCnt = (uint32_t) **pointer;
-       *pointer += sizeof(uint32_t);
-       const uint32_t ptsCnt = (uint32_t) **pointer;
-       *pointer += sizeof(uint32_t);
-       const PathCommand * cmds = (PathCommand *) *pointer;
-       *pointer += sizeof(PathCommand) * cmdCnt;
-       const Point * pts = (Point *) *pointer;
-       *pointer += sizeof(Point) * ptsCnt;
+       const uint32_t cmdCnt = (uint32_t) *moving_pointer;
+       moving_pointer += sizeof(uint32_t);
+       const uint32_t ptsCnt = (uint32_t) *moving_pointer;
+       moving_pointer += sizeof(uint32_t);
+       const PathCommand * cmds = (PathCommand *) moving_pointer;
+       moving_pointer += sizeof(PathCommand) * cmdCnt;
+       const Point * pts = (Point *) moving_pointer;
+       moving_pointer += sizeof(Point) * ptsCnt;
 
        path.cmdCnt = cmdCnt;
        path.ptsCnt = ptsCnt;
@@ -553,17 +561,10 @@ struct Shape::Impl
        memcpy(path.pts, pts, sizeof(Point) * ptsCnt);
        flag |= RenderUpdateFlag::Path;
 
-       // Transform matrix
-       if (flags & TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX)
-          {
-             *m = (Matrix*) *pointer;
-             *pointer += sizeof(Matrix);
-          }
-
        // ShapeStroke
        if (flags & TVG_SHAPE_FLAG_HAS_STROKE)
           {
-             tvgLoadStroke(pointer);
+             if (!tvgLoadStroke(&moving_pointer)) return false;
           }
 
        return true;
@@ -627,11 +628,11 @@ struct Shape::Impl
 
     /*
      * Store shape from .tvg binary file
-     * Returns true on success and moves pointer to next position or false if corrupted.
+     * TODO
      * Details: see above function tvgLoad
      * [uint8 flags][color][path][stroke][fill]
      */
-    bool tvgStore(char * unused)
+    bool tvgStore()
     {
        // Function below is for testing purposes only. Final tvgStore will be changed completely
        char * buffer = (char *) malloc(2048);
@@ -642,6 +643,10 @@ struct Shape::Impl
        if (stroke) *pointer |= TVG_SHAPE_FLAG_HAS_STROKE;
        if (fill) *pointer |= TVG_SHAPE_FLAG_HAS_FILL;
        // TODO: matrix store: *pointer |= TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX;
+       pointer += 1;
+
+       // lenght
+       *pointer = 'T';
        pointer += 1;
 
        // colors or fill
@@ -672,8 +677,11 @@ struct Shape::Impl
              tvgStoreStroke(&pointer);
           }
 
+       // lenght
+       *(buffer + 1) = pointer - buffer;
+
        // For testing print
-       printf("tvgStore:");
+       printf("SHAPE tvgStore:");
        for (char * ptr = buffer; ptr < pointer; ptr++) {
              printf(" %02X", (uint8_t)(*ptr));
        }

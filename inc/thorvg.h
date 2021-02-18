@@ -94,6 +94,10 @@ public:
 
     uint8_t opacity() const noexcept;
 
+    // tvgTvgLoader / tvgTvgStorer
+    bool tvgLoad(const char** pointer) noexcept;
+    bool tvgStore() noexcept;
+
     _TVG_DECLARE_ACCESSOR();
     _TVG_DECLARE_PRIVATE(Paint);
 };
@@ -257,7 +261,7 @@ public:
 
     // tvgTvgLoader / tvgTvgStorer
     bool tvgLoad(const char** pointer) noexcept;
-    bool tvgStore(char* pointer) noexcept;
+    bool tvgStore() noexcept;
 
     static std::unique_ptr<Shape> gen() noexcept;
 
@@ -311,8 +315,13 @@ public:
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
 
+    // TODO: NOW IN CANVAS!
     virtual Result load(const std::string& path);
     virtual Result load(const char* data, uint32_t size);
+
+    // tvgTvgLoader / tvgTvgStorer
+    bool tvgLoad(const char** pointer) noexcept;
+    bool tvgStore() noexcept;
 
     static std::unique_ptr<Scene> gen() noexcept;
 

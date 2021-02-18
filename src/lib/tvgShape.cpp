@@ -406,15 +406,16 @@ FillRule Shape::fillRule() const noexcept
 // tvgTvgLoader / tvgTvgStorer
 bool Shape::tvgLoad(const char** pointer) noexcept
 {
-   const Matrix * matrix = NULL;
-   if (!pImpl->tvgLoad(pointer, &matrix)) return false;
-   if (matrix) transform(*matrix);
-   return true;
+   // tvgLoad for parent class Paint
+   if (!Paint::tvgLoad(pointer)) return false;
+   // tvgLoad for Shape
+   return pImpl->tvgLoad(pointer);
 }
 
-bool Shape::tvgStore(char* pointer) noexcept
+bool Shape::tvgStore() noexcept
 {
-   const Matrix * matrix = NULL;
-   // TODO: matrix storer
-   return pImpl->tvgStore(pointer);
+   // tvgStore for parent class Paint
+   if (!Paint::tvgStore()) return false;
+   // tvgStore for Shape
+   return pImpl->tvgStore();
 }

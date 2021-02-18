@@ -205,13 +205,8 @@ static bool tvg_read_scene(const char** pointer, unique_ptr<Scene> * sc)
    *pointer += 1;
    printf("TVG_LOADER: Parsing scene.\n");
 
-   const tvg_scene * scene = (tvg_scene *) *pointer;
-   *pointer += sizeof(tvg_scene);
-
    auto s = Scene::gen();
-   s->reserve(scene->reservedCnt);
-   s->opacity(scene->opacity);
-   s->transform(scene->matrix);
+   s->tvgLoad(pointer);
    *sc = move(s);
 
    return true;
@@ -230,8 +225,7 @@ static bool tvg_read_shape(const char** pointer, unique_ptr<Scene> * sc)
    printf("TVG_LOADER: Parsing shape.\n");
 
    auto s = Shape::gen();
-   s->tvgLoad(pointer); // parsing inside tvgShapeImpl.h
-
+   s->tvgLoad(pointer);
    (*sc)->push(move(s));
 
    return true;

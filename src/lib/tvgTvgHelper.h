@@ -49,17 +49,14 @@ struct tvg_width_height {
 };
 
 #define TVG_SCENE_BEGIN_INDICATOR (char)0xfc
-struct tvg_scene {
-   uint32_t reservedCnt;
-   uint8_t opacity;
-   tvg::Matrix matrix;
-} __attribute__((packed));
+
+#define TVG_PAINT_FLAG_HAS_OPACITY (char)0b00000001
+#define TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX (char)0b00000010
 
 #define TVG_SHAPE_BEGIN_INDICATOR (char)0xfb
 #define TVG_SHAPE_FLAG_MASK_FILLRULE (char)0b00000001 // FillRule, if set FillRule::EvenOdd, else FillRule::Winding
 #define TVG_SHAPE_FLAG_HAS_STROKE (char)0b00000010 // If set, has stroke section
 #define TVG_SHAPE_FLAG_HAS_FILL (char)0b00000100 // If set, has fillid. If clear, has color.
-#define TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX (char)0b00001000 // If set, has transform matrix
 
 #define TVG_STROKE_FLAG_MASK_CAP 0b00000011 // mask for stroke StrokeCap
 #define TVG_STROKE_FLAG_CAP_SQUARE 0b00000001 // StrokeCap::Square
@@ -79,5 +76,12 @@ struct tvg_shape_stroke {
       uint32_t fillid;
    };
 } __attribute__((packed));
+
+
+
+
+
+
+
 
 #endif //_TVG_STANDARD_HELPER_H_
