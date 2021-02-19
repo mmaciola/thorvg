@@ -19,19 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef _TVG_COMMON_H_
-#define _TVG_COMMON_H_
+#ifndef _TVG_SAVER_MGR_H_
+#define _TVG_SAVER_MGR_H_
 
-#include "config.h"
-#include "thorvg.h"
-#include <iostream> //MGS - remove
+#include "tvgSaver.h"
 
-using namespace std;
-using namespace tvg;
+struct SaverMgr
+{
+    static unique_ptr<Saver> saver(const string& path);
+};
 
-#define FILL_ID_LINEAR 0
-#define FILL_ID_RADIAL 1
-
-#define TVG_UNUSED __attribute__ ((__unused__))
-
-#endif //_TVG_COMMON_H_
+#endif //_TVG_SAVER_MGR_H_

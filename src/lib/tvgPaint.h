@@ -26,7 +26,6 @@
 #include <math.h>
 #include "tvgRender.h"
 
-
 namespace tvg
 {
     struct StrategyMethod
@@ -39,6 +38,7 @@ namespace tvg
         virtual bool bounds(float* x, float* y, float* w, float* h) const = 0;
         virtual bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const = 0;
         virtual Paint* duplicate() = 0;
+        virtual void serialize(char** pointer) = 0;
     };
 
     struct Paint::Impl
@@ -225,6 +225,12 @@ namespace tvg
             cmpMethod = method;
             return true;
         }
+
+        void serialize(char** pointer)
+        {
+cout << __FILE__ << " " << __func__ << " paint" << endl;
+            smethod->serialize(pointer);
+        }
     };
 
 
@@ -264,6 +270,12 @@ namespace tvg
         Paint* duplicate() override
         {
             return inst->duplicate();
+        }
+
+        void serialize(char** pointer) override
+        {
+cout << __FILE__ << " " << __func__ << " str" << endl;
+             inst->serialize(pointer);
         }
     };
 }

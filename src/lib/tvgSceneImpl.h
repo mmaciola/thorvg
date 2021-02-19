@@ -23,6 +23,8 @@
 #define _TVG_SCENE_IMPL_H_
 
 #include "tvgPaint.h"
+#include "tvgSaverMgr.h"
+#include "tvgTvgSaver.h" // MGS - usunac
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -32,6 +34,8 @@ struct Scene::Impl
 {
     Array<Paint*> paints;
     uint8_t opacity;            //for composition
+
+    unique_ptr<Saver> saver = nullptr;
 
     bool dispose(RenderMethod& renderer)
     {
@@ -158,6 +162,27 @@ struct Scene::Impl
         }
 
         return ret.release();
+    }
+
+    void serialize(char** pointer)
+    {
+        for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
+            (*paint)->pImpl->serialize(pointer);
+        }
+    }
+
+    Result save(const std::string& path)
+    {
+        if (saver) saver->close();
+        saver = SaverMgr::saver(path);
+        if (!saver) return Result::NonSupport;
+        if (!saver->write()) return Result::Unknown;
+
+        // MGS - temp solution
+        auto tvgSaver = static_cast<TvgSaver*>(saver.get());
+        serialize(&tvgSaver->pointer);
+
+        return Result::Success;
     }
 };
 

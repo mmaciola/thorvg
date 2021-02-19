@@ -19,19 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef _TVG_COMMON_H_
-#define _TVG_COMMON_H_
+#include "tvgSaverMgr.h"
+#include "tvgTvgSaver.h"
 
-#include "config.h"
-#include "thorvg.h"
-#include <iostream> //MGS - remove
+/************************************************************************/
+/* Internal Class Implementation                                        */
+/************************************************************************/
 
-using namespace std;
-using namespace tvg;
 
-#define FILL_ID_LINEAR 0
-#define FILL_ID_RADIAL 1
+/************************************************************************/
+/* External Class Implementation                                        */
+/************************************************************************/
 
-#define TVG_UNUSED __attribute__ ((__unused__))
+unique_ptr<Saver> SaverMgr::saver(const string& path)
+{
+    auto saver = new TvgSaver();
+    if (saver->open(path)) return unique_ptr<Saver>(saver);
+    else delete(saver);
 
-#endif //_TVG_COMMON_H_
+    return nullptr;
+}

@@ -25,6 +25,7 @@
 #include <string>
 #include "tvgPaint.h"
 #include "tvgLoaderMgr.h"
+#include "tvgTvgHelper2.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -202,6 +203,41 @@ struct Picture::Impl
         dup->paint = paint->duplicate();
 
         return ret.release();
+    }
+
+    void serialize(char** pointer)
+    {
+        if (!*pointer) return;// false;
+
+        //NGS - reconsider
+        if (!pixels && loader) {
+            pixels = const_cast<uint32_t*>(loader->pixels());
+            w = loader->vw;
+            h = loader->vh;
+        }
+        if (fabsf(w) < FLT_EPSILON || fabsf(h) < FLT_EPSILON) return; //false 
+
+        FlagType flag;
+        ByteCounter byteCnt = 0;
+        size_t byteCntSize = sizeof(ByteCounter);
+        auto sizeofW = sizeof(w);
+        auto sizeofH = sizeof(h);
+
+        // picture indicator
+        flag = TVG_RAW_IMAGE_BEGIN_INDICATOR;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with picture
+        byteCnt = sizeofW + sizeofH + w * h * sizeof(pixels[0]);
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with picture: [w][h][pixels]
+        memcpy(*pointer, &w, sizeofW);
+        *pointer += sizeofW;
+        memcpy(*pointer, &h, sizeofH);
+        *pointer += sizeofH;
+        memcpy(*pointer, pixels, w * h * sizeof(pixels[0]));
+        *pointer += (size_t)(w * h) * sizeof(pixels[0]);
     }
 };
 
