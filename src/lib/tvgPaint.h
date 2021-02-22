@@ -25,7 +25,7 @@
 #include <float.h>
 #include <math.h>
 #include "tvgRender.h"
-#include "tvgTvgHelper.h"
+#include "tvgTvgHelper2.h"
 
 namespace tvg
 {
@@ -39,6 +39,7 @@ namespace tvg
         virtual bool bounds(float* x, float* y, float* w, float* h) const = 0;
         virtual bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const = 0;
         virtual Paint* duplicate() = 0;
+        virtual void serialize(char** pointer) = 0;
     };
 
     struct Paint::Impl
@@ -220,11 +221,15 @@ namespace tvg
 
         bool composite(Paint* target, CompositeMethod method)
         {
-            if (!target && method != CompositeMethod::None) return false;
-            if (target && method == CompositeMethod::None) return false;
+            if ((!target && method != CompositeMethod::None) || (target && method == CompositeMethod::None)) return false;
             cmpTarget = target;
             cmpMethod = method;
             return true;
+        }
+
+        void serialize(char** pointer)
+        {
+            smethod->serialize(pointer);
         }
 
         /*
@@ -347,6 +352,11 @@ namespace tvg
         Paint* duplicate() override
         {
             return inst->duplicate();
+        }
+
+        void serialize(char** pointer) override
+        {
+             inst->serialize(pointer);
         }
     };
 }

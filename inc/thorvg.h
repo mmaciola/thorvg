@@ -314,6 +314,7 @@ public:
     Result push(std::unique_ptr<Paint> paint) noexcept;
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
+    Result save(const std::string& path) noexcept;
 
     // TODO: NOW IN CANVAS!
     virtual Result load(const std::string& path);

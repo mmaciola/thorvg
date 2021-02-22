@@ -24,7 +24,8 @@
 
 #include <memory.h>
 #include "tvgPaint.h"
-#include "tvgTvgHelper.h"
+#include "tvgTvgHelper2.h"
+
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -390,6 +391,372 @@ struct Shape::Impl
         }
 
         return ret.release();
+    }
+
+    ByteCounter serializeFill(char** pointer, Fill* f)
+    {
+        if (!*pointer) return 0;
+
+        const Fill::ColorStop* stops = nullptr;
+        auto stopsCnt = f->colorStops(&stops);
+
+        if (!stops || stopsCnt == 0) return 0;
+
+        char* start = *pointer;
+        FlagType flag;
+        ByteCounter byteCnt = 0;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // fillspread flag
+        switch (f->spread()) {
+            case FillSpread::Pad: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_PAD;
+                break;
+            }
+            case FillSpread::Reflect: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_REFLECT;
+                break;
+            }
+            case FillSpread::Repeat: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_REPEAT;
+                break;
+            }
+        }
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with fillspread
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+
+        // colorStops flag
+        flag = TVG_FILL_FLAG_COLORSTOPS;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with colorStops
+        byteCnt = sizeof(stopsCnt) + stopsCnt * (sizeof(stops->offset) + 4 * sizeof(stops->r));  
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with colorStops: [stopsCnt][stops]
+        memcpy(*pointer, &stopsCnt, sizeof(stopsCnt));
+        *pointer += sizeof(stopsCnt);
+
+        for (uint32_t i = 0; i < stopsCnt; ++i) {  //MGS
+            memcpy(*pointer, &stops[i].offset, sizeof(stops->offset));
+            *pointer += sizeof(stops->offset);
+
+            memcpy(*pointer, &stops[i].r, sizeof(stops->r));
+            *pointer += sizeof(stops->r);
+            memcpy(*pointer, &stops[i].g, sizeof(stops->g));
+            *pointer += sizeof(stops->g);
+            memcpy(*pointer, &stops[i].b, sizeof(stops->b));
+            *pointer += sizeof(stops->b);
+            memcpy(*pointer, &stops[i].a, sizeof(stops->a));
+            *pointer += sizeof(stops->a);
+        }
+
+        // radial gradient
+        if (f->id() == FILL_ID_RADIAL) {
+            float argRadial[3];
+            auto radGrad = static_cast<RadialGradient*>(f);
+            if (radGrad->radial(argRadial, argRadial + 1,argRadial + 2) != Result::Success) {
+                // MGS rewind pointer
+                return 0;
+            }
+            // radial gradient flag
+            flag = TVG_GRADIENT_FLAG_TYPE_RADIAL;
+            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+            *pointer += TVG_FLAG_SIZE;
+            // number of bytes associated with radial gradinet
+            byteCnt = sizeof(argRadial);
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with radial gradient: [cx][cy][radius]
+            memcpy(*pointer, argRadial, byteCnt);
+            *pointer += byteCnt;
+        }
+        // linear gradient
+        else {
+            float argLinear[4];
+            auto linGrad = static_cast<LinearGradient*>(f);
+            if (linGrad->linear(argLinear, argLinear + 1, argLinear + 2, argLinear + 3) != Result::Success) {
+                // MGS rewind pointer
+                return 0;
+            }
+            // linear gradient flag
+            flag = TVG_GRADIENT_FLAG_TYPE_LINEAR;
+            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+            *pointer += TVG_FLAG_SIZE;
+            // number of bytes associated with linear gradient
+            byteCnt = sizeof(argLinear);
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with linear gradient: [x1][y1][x2][y2]
+            memcpy(*pointer, argLinear, byteCnt);
+            *pointer += byteCnt;
+        }
+
+        return *pointer - start;
+    }
+
+    /* assumption: all flags of given type have the same size */
+    ByteCounter serializeStroke(char** pointer)
+    {
+        if (!*pointer) return 0;
+
+        char* start = *pointer;
+        FlagType flag;
+        ByteCounter byteCnt = 0;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // cap flag
+        switch (stroke->cap) {
+            case StrokeCap::Square: {
+                flag = TVG_STROKE_FLAG_CAP_SQUARE;
+                break;
+            }
+            case StrokeCap::Round: {
+                flag = TVG_STROKE_FLAG_CAP_ROUND;
+                break;
+            }
+            case StrokeCap::Butt: {
+                flag = TVG_STROKE_FLAG_CAP_BUTT;
+                break;
+            }
+        }
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with cap
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+
+        // join flag
+        switch (stroke->join) {
+            case StrokeJoin::Bevel: {
+                flag = TVG_STROKE_FLAG_JOIN_BEVEL;
+                break;
+            }
+            case StrokeJoin::Round: {
+                flag = TVG_STROKE_FLAG_JOIN_ROUND;
+                break;
+            }
+            case StrokeJoin::Miter: {
+                flag = TVG_STROKE_FLAG_JOIN_MITER;
+                break;
+            }
+        }
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with join
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+
+        // width flag
+        flag = TVG_STROKE_FLAG_HAS_WIDTH;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with width
+        byteCnt = sizeof(stroke->width);
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with width
+        memcpy(*pointer, &stroke->width, byteCnt);
+        *pointer += byteCnt;
+
+/*
+        if (stroke->fill) {
+            // fill flag
+            flag = TVG_STROKE_FLAG_HAS_FILL;
+            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+            *pointer += TVG_FLAG_SIZE;
+            // number of bytes associated with fill - empty
+            *pointer += byteCntSize;
+            // bytes associated with fill
+            ByteCounter byteCnt = serializeFill(pointer, stroke->fill);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= TVG_FLAG_SIZE + byteCntSize;
+               return;
+            }
+            // number of bytes associated with fill - filled
+            memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
+        }
+*/
+
+        // color flag
+        flag = TVG_STROKE_FLAG_HAS_COLOR;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with color
+        byteCnt = sizeof(stroke->color);
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with color
+        memcpy(*pointer, stroke->color, byteCnt);
+        *pointer += byteCnt;
+
+        if (stroke->dashPattern && stroke->dashCnt > 0) {
+            auto sizeofCnt = sizeof(stroke->dashCnt);
+            auto sizeofPattern = sizeof(stroke->dashPattern[0]);
+            // dash flag
+            flag = TVG_STROKE_FLAG_HAS_DASH;
+            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+            *pointer += TVG_FLAG_SIZE;
+            // number of bytes associated with dash
+            byteCnt = sizeofCnt + stroke->dashCnt * sizeofPattern;
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with dash
+            memcpy(*pointer, &stroke->dashCnt, sizeofCnt);
+            *pointer += sizeofCnt;
+            memcpy(*pointer, stroke->dashPattern, stroke->dashCnt * sizeofPattern);
+            *pointer += stroke->dashCnt * sizeofPattern;
+        }
+
+        return *pointer - start;
+    }
+
+
+    ByteCounter serializePath(char** pointer)
+    {
+        if (!*pointer) return 0;
+        if (!path.cmds || !path.pts || !path.cmdCnt || !path.ptsCnt) return 0;  // MGS - double check - needed?
+
+        char* start = *pointer;
+        FlagType flag;
+        ByteCounter byteCnt = 0;
+        size_t byteCntSize = sizeof(ByteCounter);
+        auto sizeofCmdCnt = sizeof(path.cmdCnt);
+        auto sizeofCmds = sizeof(path.cmds[0]);
+        auto sizeofPtsCnt = sizeof(path.ptsCnt);
+        auto sizeofPts = sizeof(path.pts[0]);
+
+        // path commands flag
+        flag = TVG_PATH_FLAG_CMDS;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with path commands
+        byteCnt = sizeofCmdCnt + path.cmdCnt * sizeofCmds;
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with path commands: [cmdCnt][cmds]
+        memcpy(*pointer, &path.cmdCnt, sizeofCmdCnt);
+        *pointer += sizeofCmdCnt;
+        memcpy(*pointer, path.cmds, path.cmdCnt * sizeofCmds);
+        *pointer += path.cmdCnt * sizeofCmds;
+
+        // path points flag
+        flag = TVG_PATH_FLAG_PTS;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with path points
+        byteCnt = sizeofPtsCnt + path.ptsCnt * sizeofPts;
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with path points: [ptsCnt][pts]
+        memcpy(*pointer, &path.ptsCnt, sizeofPtsCnt);
+        *pointer += sizeofPtsCnt;
+        memcpy(*pointer, path.pts, path.ptsCnt * sizeofPts);
+        *pointer += path.ptsCnt * sizeofPts;
+
+        return *pointer - start;
+    }
+
+
+    void serialize(char** pointer)
+    {
+        if (!*pointer) return;// false;
+
+        char* start = *pointer;
+        FlagType flag;
+        ByteCounter byteCnt = 0;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // shape indicator
+        flag = TVG_SHAPE_BEGIN_INDICATOR;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with shape - empty for now
+        *pointer += byteCntSize;
+
+        // fillrule flag
+        flag = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FLAG_FILLRULE_EVENODD : TVG_SHAPE_FLAG_FILLRULE_WINDING;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with fillrule (0)
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+
+        if (stroke) {
+            // stroke flag
+            flag = TVG_SHAPE_FLAG_HAS_STROKE;
+            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+            *pointer += TVG_FLAG_SIZE;
+            // number of bytes associated with stroke - empty
+            *pointer += byteCntSize;
+            // bytes associated with stroke
+            byteCnt = serializeStroke(pointer);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= TVG_FLAG_SIZE + byteCntSize;
+               return;
+            }
+            // number of bytes associated with stroke - filled
+            memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
+        }
+
+        if (fill) {
+            // fill flag
+            flag = TVG_SHAPE_FLAG_HAS_FILL;
+            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+            *pointer += TVG_FLAG_SIZE;
+            // number of bytes associated with fill - empty
+            *pointer += byteCntSize;
+            // bytes associated with fill
+            ByteCounter byteCnt = serializeFill(pointer, fill);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= TVG_FLAG_SIZE + byteCntSize;
+               return;
+            }
+            // number of bytes associated with fill - filled
+            memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
+        }
+
+        // color flag
+        flag = TVG_SHAPE_FLAG_HAS_COLOR;
+        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+        *pointer += TVG_FLAG_SIZE;
+        // number of bytes associated with color
+        byteCnt = sizeof(color);
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with color
+        memcpy(*pointer, color, byteCnt);
+        *pointer += byteCnt;
+
+        if (path.cmds && path.pts) {
+            // path flag
+            flag = TVG_SHAPE_FLAG_HAS_PATH;
+            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
+            *pointer += TVG_FLAG_SIZE;
+            // number of bytes associated with path - empty
+            *pointer += byteCntSize;
+            // bytes associated with path
+            ByteCounter byteCnt = serializePath(pointer);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= TVG_FLAG_SIZE + byteCntSize;
+               return;
+            }
+            // number of bytes associated with path - filled
+            memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
+        }
+
+        // number of bytes associated with shape - filled
+        byteCnt = *pointer - start - TVG_FLAG_SIZE - byteCntSize;
+        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+
+        //return true;
     }
 
     /*

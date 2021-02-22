@@ -68,6 +68,13 @@ Result Scene::clear() noexcept
     return Result::Success;
 }
 
+Result Scene::save(const std::string& path) noexcept
+{
+    if (path.empty()) return Result::InvalidArguments;
+
+    return pImpl->save(path);
+}
+
 // tvgTvgLoader / tvgTvgStorer
 Result Scene::load(const string& path)
 {

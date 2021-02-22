@@ -19,73 +19,93 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include "tvgFill.h"
+
+#include <string.h>  //MGS ??
+#include "tvgTvgSaver.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
 /************************************************************************/
+bool saveScene()
+{
+    // MGS TODO 
+    return true;
+}
 
 
 /************************************************************************/
 /* External Class Implementation                                        */
 /************************************************************************/
 
-Fill::Fill():pImpl(new Impl())
+TvgSaver::TvgSaver()
 {
 }
 
-
-Fill::~Fill()
+TvgSaver::~TvgSaver()
 {
-    delete(pImpl);
+    close();
 }
 
-
-Result Fill::colorStops(const ColorStop* colorStops, uint32_t cnt) noexcept
+void TvgSaver::run(unsigned tid)
 {
-    if (cnt == 0) {
-        if (pImpl->colorStops) {
-            free(pImpl->colorStops);
-            pImpl->colorStops = nullptr;
-            pImpl->cnt = cnt;
-        }
-        return Result::Success;
+    if (!saveScene()) return; 
+};
+
+/*
+void TvgSaver::resizeBuffer()
+{
+    size *= 2;
+    buffer = static_cast<char*>(realloc(buffer, size));
+}
+
+bool TvgSaver::headerWriter()
+{
+    return true;
+}
+*/
+
+bool TvgSaver::open(const string& path)
+{
+    // MGS - open the file here? 
+    outFile.open(path, ios::out | ios::trunc | ios::binary);
+    if (!outFile.is_open())
+    {
+        //LOG: Failed to open file
+        return false;
     }
 
-    if (pImpl->cnt != cnt) {
-        pImpl->colorStops = static_cast<ColorStop*>(realloc(pImpl->colorStops, cnt * sizeof(ColorStop)));
+    size = 250000;//1024;
+    buffer = static_cast<char*>(malloc(size));
+    if (!buffer) {
+        size = 0;
+        // MGS - close the file or move it from here
+        return false;
     }
+    pointer = buffer;
 
-    pImpl->cnt = cnt;
-    memcpy(pImpl->colorStops, colorStops, cnt * sizeof(ColorStop));
+    return true; //headerWriter();
+}
 
-    return Result::Success;
+bool TvgSaver::write()
+{
+    if (!buffer || size == 0) return false;
+
+    TaskScheduler::request(this);
+
+    return true;
 }
 
 
-uint32_t Fill::colorStops(const ColorStop** colorStops) const noexcept
+bool TvgSaver::close()
 {
-    if (colorStops) *colorStops = pImpl->colorStops;
+    this->done();
 
-    return pImpl->cnt;
-}
+    // MGS - temp sollution ?
+    outFile.write(buffer,size);
+    outFile.close();
 
+    if (buffer) free(buffer);
+    size = 0;
 
-Result Fill::spread(FillSpread s) noexcept
-{
-    pImpl->spread = s;
-
-    return Result::Success;
-}
-
-
-FillSpread Fill::spread() const noexcept
-{
-    return pImpl->spread;
-}
-
-
-Fill* Fill::duplicate() const noexcept
-{
-    return pImpl->duplicate();
+    return true;
 }

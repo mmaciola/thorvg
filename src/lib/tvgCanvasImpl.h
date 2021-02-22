@@ -57,10 +57,8 @@ struct Canvas::Impl
 
     Result clear(bool free)
     {
-        if (!renderer) return Result::InsufficientCondition;
-
         //Clear render target before drawing
-        if (!renderer->clear()) return Result::InsufficientCondition;
+        if (!renderer || !renderer->clear()) return Result::InsufficientCondition;
 
         //free paints
         if (free) {
@@ -96,6 +94,9 @@ struct Canvas::Impl
 
     Result draw()
     {
+
+        if (!renderer || !renderer->preRender()) return Result::InsufficientCondition;
+
        if (loader) {
              auto scene = loader->scene();
              if (scene) {
@@ -104,10 +105,6 @@ struct Canvas::Impl
                    printf("scene loaded \n");
              }
        }
-
-        if (!renderer) return Result::InsufficientCondition;
-
-        if (!renderer->preRender()) return Result::InsufficientCondition;
 
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             if (!(*paint)->pImpl->render(*renderer)) return Result::InsufficientCondition;
