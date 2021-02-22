@@ -25,7 +25,7 @@
 #include <string>
 #include "tvgPaint.h"
 #include "tvgLoaderMgr.h"
-#include "tvgTvgHelper2.h"
+#include "tvgTvgHelper.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -225,8 +225,8 @@ struct Picture::Impl
 
         // picture indicator
         flag = TVG_RAW_IMAGE_BEGIN_INDICATOR;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with picture
         byteCnt = sizeofW + sizeofH + w * h * sizeof(pixels[0]);
         memcpy(*pointer, &byteCnt, byteCntSize);

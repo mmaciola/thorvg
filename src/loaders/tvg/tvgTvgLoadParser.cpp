@@ -60,141 +60,6 @@ static bool tvg_read_header(const char** pointer)
 }
 
 /*
- * Read canvas section of the .tvg binary file
- * Returns true on success and moves pointer to next position or false if corrupted.
- * Details:
- * Canvas informations starts the binary section.
- * Canvas section starts with with 0xff (TVG_CANVAS_BEGIN_INDICATOR) byte. Next is a single byte flag.
- * If first bit of flag is 1 (flag & 0x1), next eight bytes defines the default size of the canvas.
- * Flag is needed for future purposes. Skipping canvas size allows multiple canvas stored in a single file.
- * For first canvas section, size information is obligatory. If missing, error is returned.
- * Eg. for 32x32 canvas:
- * [0xff][uint8 flag 0x01][uint32 WIDTH 0x20000000][uint32 HEIGHT 0x20000000]
- */
-static bool tvg_read_canvas(const char** pointer)
-{
-   if (**pointer != TVG_CANVAS_BEGIN_INDICATOR) return false;
-   *pointer += 1;
-
-   const tvg_canvas * canvas = (tvg_canvas *) *pointer;
-   *pointer += sizeof(tvg_canvas);
-
-   // TODO: free buffer on finish
-   static uint32_t * buffer = (uint32_t*) malloc(canvas->width * canvas->height);
-   if (!buffer)
-      {
-         return false;
-      }
-
-   auto swCanvas = tvg::SwCanvas::gen();
-   swCanvas->target(buffer, canvas->width, canvas->width, canvas->height, tvg::SwCanvas::ARGB8888);
-   // swCanvas.get()
-
-   return true;
-}
-
-/*
- * Read gradient section of the .tvg binary file
- * Returns true on success and moves pointer to next position or false if corrupted.
- * Details:
- * Gradients starts with 0xfe (TVG_GRADIENT_BEGIN_INDICATOR) byte.
- * Next are: uint8 flags and uint32 unique identifier.
- * We do not define identifier to be incremential or start with zero, just unique.
- * If gradient is linear next are 4xfloat x1, y1, x2, y2. If radial, 3xfloat x, y, r.
- * Next are uint16 cnt and cnt*Fill::ColorStop.
- * Flags:
- * xxxxxxx0 - linear gradient
- * xxxxxxx1 - radial gradient
- * xxxxx01x - FillSpread::Pad
- * xxxxx10x - FillSpread::Reflect
- * xxxxx11x - FillSpread::Repeat
- * xxxxx00x - ERROR
- * [0xff][uint8 flags][uint32 identifier][3xfloat x, y, r OR 4xfloat x1, y1, x2, y2][cnt][cnt*Fill::ColorStop]
- */
-static bool tvg_read_gradient(const char** pointer, map<uint32_t, unique_ptr<tvg::Fill>> * gids)
-{
-   if (**pointer != TVG_GRADIENT_BEGIN_INDICATOR) return false;
-   *pointer += 1;
-
-   // flags and id
-   const tvg_flags_and_id * flags_and_id = (tvg_flags_and_id *) *pointer;
-   *pointer += sizeof(tvg_flags_and_id);
-
-   unique_ptr<tvg::Fill> fillGrad;
-   if (flags_and_id->flags & TVG_GRADIENT_FLAG_TYPE_RADIAL)
-      {
-         // radial gradient
-         const tvg_gradient_radial * gradient_radial = (tvg_gradient_radial *) *pointer;
-         *pointer += sizeof(tvg_gradient_radial);
-
-         // TODO: check Gradient/Fill cast
-         auto fillGradRadial = tvg::RadialGradient::gen();
-         fillGradRadial->radial(gradient_radial->x, gradient_radial->y, gradient_radial->radius);
-         fillGrad = move(fillGradRadial);
-      }
-   else
-      {
-         // linear gradient
-         const tvg_gradient_linear * gradient_linear = (tvg_gradient_linear *) *pointer;
-         *pointer += sizeof(tvg_gradient_linear);
-
-         auto fillGradLinear = tvg::LinearGradient::gen();
-         fillGradLinear->linear(gradient_linear->x1, gradient_linear->y1, gradient_linear->x2, gradient_linear->y2);
-         fillGrad = move(fillGradLinear);
-      }
-
-   // cnt and colorstops
-   const uint16_t cnt = (uint16_t) **pointer;
-   *pointer += sizeof(uint16_t);
-
-   if (cnt > 0)
-      {
-         fillGrad->colorStops((Fill::ColorStop *) *pointer, cnt);
-         *pointer += cnt * sizeof(Fill::ColorStop);
-      }
-
-   switch (flags_and_id->flags & TVG_GRADIENT_FLAG_MASK_FILL_SPREAD) {
-      case TVG_GRADIENT_FLAG_FILL_SPREAD_PAD:
-         fillGrad->spread(FillSpread::Pad);
-         break;
-      case TVG_GRADIENT_FLAG_FILL_SPREAD_REFLECT:
-         fillGrad->spread(FillSpread::Reflect);
-         break;
-      case TVG_GRADIENT_FLAG_FILL_SPREAD_REPEAT:
-         fillGrad->spread(FillSpread::Repeat);
-         break;
-      default:
-         return false;
-   }
-
-   // insert into gradient ids map
-   (*gids).insert( make_pair(flags_and_id->id, move(fillGrad)) );
-
-   return true;
-}
-
-/*
- * Read raw image section of the .tvg binary file
- * Returns true on success and moves pointer to next position or false if corrupted.
- * Details:
- * [0xfe][uint8 flags][uint32 identifier][uint32 width][uint32 height][data]
- */
-static bool tvg_read_raw_image(const char** pointer)
-{
-   if (**pointer != TVG_RAW_IMAGE_BEGIN_INDICATOR) return false;
-   *pointer += 1;
-
-   const tvg_flags_and_id * flags_and_id = (tvg_flags_and_id *) *pointer;
-   *pointer += sizeof(tvg_flags_and_id);
-   const tvg_width_height * width_height = (tvg_width_height *) *pointer;
-   *pointer += sizeof(tvg_width_height);
-   const char * data = *pointer;
-   *pointer += width_height->width * width_height->height;
-
-   return true;
-}
-
-/*
  * Read scene section of the .tvg binary file
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details:
@@ -241,22 +106,12 @@ bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * roo
          return false;
       }
 
-   map<uint32_t, unique_ptr<tvg::Fill>> gids; // Gradient ids
    // Now designed for only one scene. Discuss
 
    while (pointer < end)
       {
          switch (*(pointer))
          {
-            case TVG_CANVAS_BEGIN_INDICATOR: // TODO: if no canvas, will be unused
-               if (!tvg_read_canvas(&pointer)) return false;
-               break;
-            case TVG_GRADIENT_BEGIN_INDICATOR:
-               if (!tvg_read_gradient(&pointer, &gids)) return false;
-               break;
-            case TVG_RAW_IMAGE_BEGIN_INDICATOR:
-               if (!tvg_read_raw_image(&pointer)) return false;
-               break;
             case TVG_SCENE_BEGIN_INDICATOR:
                if (!tvg_read_scene(&pointer, root)) return false;
                break;

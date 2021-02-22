@@ -24,7 +24,7 @@
 
 #include <memory.h>
 #include "tvgPaint.h"
-#include "tvgTvgHelper2.h"
+#include "tvgTvgHelper.h"
 
 
 /************************************************************************/
@@ -422,16 +422,16 @@ struct Shape::Impl
                 break;
             }
         }
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with fillspread
         memcpy(*pointer, &byteCnt, byteCntSize);
         *pointer += byteCntSize;
 
         // colorStops flag
         flag = TVG_FILL_FLAG_COLORSTOPS;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with colorStops
         byteCnt = sizeof(stopsCnt) + stopsCnt * (sizeof(stops->offset) + 4 * sizeof(stops->r));  
         memcpy(*pointer, &byteCnt, byteCntSize);
@@ -464,8 +464,8 @@ struct Shape::Impl
             }
             // radial gradient flag
             flag = TVG_GRADIENT_FLAG_TYPE_RADIAL;
-            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-            *pointer += TVG_FLAG_SIZE;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
             // number of bytes associated with radial gradinet
             byteCnt = sizeof(argRadial);
             memcpy(*pointer, &byteCnt, byteCntSize);
@@ -484,8 +484,8 @@ struct Shape::Impl
             }
             // linear gradient flag
             flag = TVG_GRADIENT_FLAG_TYPE_LINEAR;
-            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-            *pointer += TVG_FLAG_SIZE;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
             // number of bytes associated with linear gradient
             byteCnt = sizeof(argLinear);
             memcpy(*pointer, &byteCnt, byteCntSize);
@@ -511,20 +511,20 @@ struct Shape::Impl
         // cap flag
         switch (stroke->cap) {
             case StrokeCap::Square: {
-                flag = TVG_STROKE_FLAG_CAP_SQUARE;
+                flag = TVG_SHAPE_STROKE_FLAG_CAP_SQUARE;
                 break;
             }
             case StrokeCap::Round: {
-                flag = TVG_STROKE_FLAG_CAP_ROUND;
+                flag = TVG_SHAPE_STROKE_FLAG_CAP_ROUND;
                 break;
             }
             case StrokeCap::Butt: {
-                flag = TVG_STROKE_FLAG_CAP_BUTT;
+                flag = TVG_SHAPE_STROKE_FLAG_CAP_BUTT;
                 break;
             }
         }
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with cap
         memcpy(*pointer, &byteCnt, byteCntSize);
         *pointer += byteCntSize;
@@ -532,28 +532,28 @@ struct Shape::Impl
         // join flag
         switch (stroke->join) {
             case StrokeJoin::Bevel: {
-                flag = TVG_STROKE_FLAG_JOIN_BEVEL;
+                flag = TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL;
                 break;
             }
             case StrokeJoin::Round: {
-                flag = TVG_STROKE_FLAG_JOIN_ROUND;
+                flag = TVG_SHAPE_STROKE_FLAG_JOIN_ROUND;
                 break;
             }
             case StrokeJoin::Miter: {
-                flag = TVG_STROKE_FLAG_JOIN_MITER;
+                flag = TVG_SHAPE_STROKE_FLAG_JOIN_MITER;
                 break;
             }
         }
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with join
         memcpy(*pointer, &byteCnt, byteCntSize);
         *pointer += byteCntSize;
 
         // width flag
-        flag = TVG_STROKE_FLAG_HAS_WIDTH;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        flag = TVG_SHAPE_STROKE_FLAG_WIDTH;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with width
         byteCnt = sizeof(stroke->width);
         memcpy(*pointer, &byteCnt, byteCntSize);
@@ -565,16 +565,16 @@ struct Shape::Impl
 /*
         if (stroke->fill) {
             // fill flag
-            flag = TVG_STROKE_FLAG_HAS_FILL;
-            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-            *pointer += TVG_FLAG_SIZE;
+            flag = TVG_SHAPE_STROKE_FLAG_HAS_FILL;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
             // number of bytes associated with fill - empty
             *pointer += byteCntSize;
             // bytes associated with fill
             ByteCounter byteCnt = serializeFill(pointer, stroke->fill);
             if (!byteCnt) {
                // MGS log + change size of the buffer
-               *pointer -= TVG_FLAG_SIZE + byteCntSize;
+               *pointer -= sizeof(FlagType) + byteCntSize;
                return;
             }
             // number of bytes associated with fill - filled
@@ -583,9 +583,9 @@ struct Shape::Impl
 */
 
         // color flag
-        flag = TVG_STROKE_FLAG_HAS_COLOR;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        flag = TVG_SHAPE_STROKE_FLAG_COLOR;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with color
         byteCnt = sizeof(stroke->color);
         memcpy(*pointer, &byteCnt, byteCntSize);
@@ -598,9 +598,9 @@ struct Shape::Impl
             auto sizeofCnt = sizeof(stroke->dashCnt);
             auto sizeofPattern = sizeof(stroke->dashPattern[0]);
             // dash flag
-            flag = TVG_STROKE_FLAG_HAS_DASH;
-            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-            *pointer += TVG_FLAG_SIZE;
+            flag = TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
             // number of bytes associated with dash
             byteCnt = sizeofCnt + stroke->dashCnt * sizeofPattern;
             memcpy(*pointer, &byteCnt, byteCntSize);
@@ -632,8 +632,8 @@ struct Shape::Impl
 
         // path commands flag
         flag = TVG_PATH_FLAG_CMDS;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with path commands
         byteCnt = sizeofCmdCnt + path.cmdCnt * sizeofCmds;
         memcpy(*pointer, &byteCnt, byteCntSize);
@@ -646,8 +646,8 @@ struct Shape::Impl
 
         // path points flag
         flag = TVG_PATH_FLAG_PTS;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with path points
         byteCnt = sizeofPtsCnt + path.ptsCnt * sizeofPts;
         memcpy(*pointer, &byteCnt, byteCntSize);
@@ -673,15 +673,15 @@ struct Shape::Impl
 
         // shape indicator
         flag = TVG_SHAPE_BEGIN_INDICATOR;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with shape - empty for now
         *pointer += byteCntSize;
 
         // fillrule flag
         flag = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FLAG_FILLRULE_EVENODD : TVG_SHAPE_FLAG_FILLRULE_WINDING;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with fillrule (0)
         memcpy(*pointer, &byteCnt, byteCntSize);
         *pointer += byteCntSize;
@@ -689,15 +689,15 @@ struct Shape::Impl
         if (stroke) {
             // stroke flag
             flag = TVG_SHAPE_FLAG_HAS_STROKE;
-            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-            *pointer += TVG_FLAG_SIZE;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
             // number of bytes associated with stroke - empty
             *pointer += byteCntSize;
             // bytes associated with stroke
             byteCnt = serializeStroke(pointer);
             if (!byteCnt) {
                // MGS log + change size of the buffer
-               *pointer -= TVG_FLAG_SIZE + byteCntSize;
+               *pointer -= sizeof(FlagType) + byteCntSize;
                return;
             }
             // number of bytes associated with stroke - filled
@@ -707,15 +707,15 @@ struct Shape::Impl
         if (fill) {
             // fill flag
             flag = TVG_SHAPE_FLAG_HAS_FILL;
-            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-            *pointer += TVG_FLAG_SIZE;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
             // number of bytes associated with fill - empty
             *pointer += byteCntSize;
             // bytes associated with fill
             ByteCounter byteCnt = serializeFill(pointer, fill);
             if (!byteCnt) {
                // MGS log + change size of the buffer
-               *pointer -= TVG_FLAG_SIZE + byteCntSize;
+               *pointer -= sizeof(FlagType) + byteCntSize;
                return;
             }
             // number of bytes associated with fill - filled
@@ -723,9 +723,9 @@ struct Shape::Impl
         }
 
         // color flag
-        flag = TVG_SHAPE_FLAG_HAS_COLOR;
-        memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-        *pointer += TVG_FLAG_SIZE;
+        flag = TVG_SHAPE_FLAG_COLOR;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
         // number of bytes associated with color
         byteCnt = sizeof(color);
         memcpy(*pointer, &byteCnt, byteCntSize);
@@ -737,15 +737,15 @@ struct Shape::Impl
         if (path.cmds && path.pts) {
             // path flag
             flag = TVG_SHAPE_FLAG_HAS_PATH;
-            memcpy(*pointer, &flag, TVG_FLAG_SIZE);
-            *pointer += TVG_FLAG_SIZE;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
             // number of bytes associated with path - empty
             *pointer += byteCntSize;
             // bytes associated with path
             ByteCounter byteCnt = serializePath(pointer);
             if (!byteCnt) {
                // MGS log + change size of the buffer
-               *pointer -= TVG_FLAG_SIZE + byteCntSize;
+               *pointer -= sizeof(FlagType) + byteCntSize;
                return;
             }
             // number of bytes associated with path - filled
@@ -753,7 +753,7 @@ struct Shape::Impl
         }
 
         // number of bytes associated with shape - filled
-        byteCnt = *pointer - start - TVG_FLAG_SIZE - byteCntSize;
+        byteCnt = *pointer - start - sizeof(FlagType) - byteCntSize;
         memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
 
         //return true;
@@ -786,7 +786,7 @@ struct Shape::Impl
      */
     bool tvgLoadStroke(const char** pointer)
     {
-       const tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
+       /*const tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
 
        if (!stroke) stroke = new ShapeStroke();
        if (!stroke) return false;
@@ -795,7 +795,7 @@ struct Shape::Impl
        stroke->width = shape_stroke->width;
 
        // color or fillid
-       if (shape_stroke->flags & TVG_STROKE_FLAG_HAS_FILL)
+       if (shape_stroke->flags & TVG_SHAPE_STROKE_FLAG_HAS_FILL)
           {
              // fill
              printf("TVG_LOADER: Stroke fill is not compatible now \n"); // TODO
@@ -807,14 +807,14 @@ struct Shape::Impl
           }
 
        // stroke cap
-       switch (shape_stroke->flags & TVG_STROKE_FLAG_MASK_CAP) {
-          case TVG_STROKE_FLAG_CAP_SQUARE:
+       switch (shape_stroke->flags & TVG_SHAPE_STROKE_FLAG_MASK_CAP) {
+          case TVG_SHAPE_STROKE_FLAG_CAP_SQUARE:
              stroke->cap = StrokeCap::Square;
              break;
-          case TVG_STROKE_FLAG_CAP_ROUND:
+          case TVG_SHAPE_STROKE_FLAG_CAP_ROUND:
              stroke->cap = StrokeCap::Round;
              break;
-          case TVG_STROKE_FLAG_CAP_BUTT:
+          case TVG_SHAPE_STROKE_FLAG_CAP_BUTT:
              stroke->cap = StrokeCap::Butt;
              break;
           default:
@@ -822,14 +822,14 @@ struct Shape::Impl
        }
 
        // stroke join
-       switch (shape_stroke->flags & TVG_STROKE_FLAG_MASK_JOIN) {
-          case TVG_STROKE_FLAG_JOIN_BEVEL:
+       switch (shape_stroke->flags & TVG_SHAPE_STROKE_FLAG_MASK_JOIN) {
+          case TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL:
              stroke->join = StrokeJoin::Bevel;
              break;
-          case TVG_STROKE_FLAG_JOIN_ROUND:
+          case TVG_SHAPE_STROKE_FLAG_JOIN_ROUND:
              stroke->join = StrokeJoin::Round;
              break;
-          case TVG_STROKE_FLAG_JOIN_MITER:
+          case TVG_SHAPE_STROKE_FLAG_JOIN_MITER:
              stroke->join = StrokeJoin::Miter;
              break;
           default:
@@ -840,7 +840,7 @@ struct Shape::Impl
        *pointer += sizeof(tvg_shape_stroke);
 
        // dashPattern
-       if (shape_stroke->flags & TVG_STROKE_FLAG_HAS_DASH_PATTERN)
+       if (shape_stroke->flags & TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN)
           {
              const uint32_t dashPatternCnt = (uint32_t) **pointer;
              *pointer += sizeof(uint32_t);
@@ -855,7 +855,7 @@ struct Shape::Impl
              memcpy(stroke->dashPattern, dashPattern, sizeof(float) * dashPatternCnt);
 
              flag |= RenderUpdateFlag::Stroke;
-          }
+          }*/
 
        return true;
     }
@@ -892,7 +892,7 @@ struct Shape::Impl
        if (lenght < 8) return false;
 
        // rule (from flag)
-       rule = (flags & TVG_SHAPE_FLAG_MASK_FILLRULE) ? FillRule::EvenOdd : FillRule::Winding;
+       //rule = (flags & TVG_SHAPE_FLAG_MASK_FILLRULE) ? FillRule::EvenOdd : FillRule::Winding;
 
        // colors or fill
        if (flags & TVG_SHAPE_FLAG_HAS_FILL)
@@ -943,32 +943,32 @@ struct Shape::Impl
      */
     void tvgStoreStroke(char** pointer)
     {
-       tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
+       /*tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
 
        shape_stroke->flags = 0;
        switch (stroke->cap)
          {
          case StrokeCap::Square:
-            shape_stroke->flags |= TVG_STROKE_FLAG_CAP_SQUARE;
+            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_CAP_SQUARE;
             break;
          case StrokeCap::Round:
-            shape_stroke->flags |= TVG_STROKE_FLAG_CAP_ROUND;
+            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_CAP_ROUND;
             break;
          case StrokeCap::Butt:
-            shape_stroke->flags |= TVG_STROKE_FLAG_CAP_BUTT;
+            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_CAP_BUTT;
             break;
          }
 
        switch (stroke->join)
          {
          case StrokeJoin::Bevel:
-            shape_stroke->flags |= TVG_STROKE_FLAG_JOIN_BEVEL;
+            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL;
             break;
          case StrokeJoin::Round:
-            shape_stroke->flags |= TVG_STROKE_FLAG_JOIN_ROUND;
+            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_JOIN_ROUND;
             break;
          case StrokeJoin::Miter:
-            shape_stroke->flags |= TVG_STROKE_FLAG_JOIN_MITER;
+            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_JOIN_MITER;
             break;
          }
 
@@ -989,8 +989,8 @@ struct Shape::Impl
              memcpy(*pointer, stroke->dashPattern, sizeof(float) * stroke->dashCnt);
              *pointer += sizeof(float) * stroke->dashCnt;
 
-             shape_stroke->flags |= TVG_STROKE_FLAG_HAS_DASH_PATTERN;
-          }
+             shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN;
+          }*/
     }
 
     /*
@@ -1006,7 +1006,7 @@ struct Shape::Impl
        char * pointer = buffer;
 
        // flags
-       *pointer = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FLAG_MASK_FILLRULE : 0;
+       //*pointer = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FLAG_MASK_FILLRULE : 0;
        if (stroke) *pointer |= TVG_SHAPE_FLAG_HAS_STROKE;
        if (fill) *pointer |= TVG_SHAPE_FLAG_HAS_FILL;
        // TODO: matrix store: *pointer |= TVG_SHAPE_FLAG_HAS_TRANSFORM_MATRIX;

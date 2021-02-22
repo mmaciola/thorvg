@@ -25,7 +25,7 @@
 #include <float.h>
 #include <math.h>
 #include "tvgRender.h"
-#include "tvgTvgHelper2.h"
+#include "tvgTvgHelper.h"
 
 namespace tvg
 {
@@ -262,7 +262,7 @@ namespace tvg
            if (lenght < 2) return false;
 
            // opacity
-           if (flags & TVG_PAINT_FLAG_HAS_OPACITY)
+           /*if (flags & TVG_PAINT_FLAG_HAS_OPACITY)
               {
                  opacity = (uint8_t) *moving_pointer;
                  moving_pointer += sizeof(uint8_t);
@@ -275,7 +275,7 @@ namespace tvg
                  moving_pointer += sizeof(Matrix);
                  //transform(*matrix);
                  //printf("Paint load matrix %f \n", matrix->e11);
-              }
+              }*/
 
            return true;
         }
@@ -291,7 +291,7 @@ namespace tvg
            char * pointer = buffer;
 
            // flags
-           *pointer = TVG_PAINT_FLAG_HAS_OPACITY | TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
+           //*pointer = TVG_PAINT_FLAG_HAS_OPACITY | TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
            pointer += sizeof(uint8_t);
            // lenght
            *pointer = 3*sizeof(uint8_t) + sizeof(Matrix);
