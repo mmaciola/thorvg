@@ -71,8 +71,43 @@ static bool tvg_read_scene(const char** pointer, unique_ptr<Scene> * sc)
    printf("TVG_LOADER: Parsing scene.\n");
 
    auto s = Scene::gen();
-   s->tvgLoad(pointer);
+   s->tvgLoad(pointer, /*end*/ NULL);
    *sc = move(s);
+
+   return true;
+}
+
+
+static bool tvg_read_scene(const char** pointer, const char* end)
+{
+   const tvg_block * base_block = (tvg_block*) *pointer;
+   if (base_block->type != TVG_SCENE_BEGIN_INDICATOR) return true;
+
+   const char* block_end = *pointer + TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (base_block->lenght);
+   if (block_end > end) return false;
+
+   auto s = Scene::gen();
+
+   while (*pointer < end)
+      {
+         const tvg_block * block = (tvg_block*) *pointer;
+         *pointer += TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (block->lenght);
+
+         switch (block->type)
+           {
+            case TVG_PAINT_FLAG_HAS_OPACITY:
+               if (block->lenght != 1) return false;
+               opacity = block->data;
+               break;
+            case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX:
+               if (block->lenght != sizeof(Matrix)) return false;
+               const Matrix * matrix = (Matrix *) &block->data;
+               transform(*matrix); // TODO: check if transformation works
+               break;
+           }
+      }
+
+   if (*pointer != block_end) return false;
 
    return true;
 }
@@ -90,7 +125,7 @@ static bool tvg_read_shape(const char** pointer, unique_ptr<Scene> * sc)
    printf("TVG_LOADER: Parsing shape.\n");
 
    auto s = Shape::gen();
-   s->tvgLoad(pointer);
+   s->tvgLoad(pointer, /*end*/ NULL);
    (*sc)->push(move(s));
 
    return true;
@@ -105,8 +140,6 @@ bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * roo
          // LOG: Header is improper
          return false;
       }
-
-   // Now designed for only one scene. Discuss
 
    while (pointer < end)
       {

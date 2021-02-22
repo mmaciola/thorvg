@@ -236,46 +236,36 @@ namespace tvg
          * Load paint from .tvg binary file
          * Returns true on success and moves pointer to next position or false if corrupted.
          * Details:
-         * Shape section starts with uint8 flags, these are describes below in Flags section.
-         * Next is section lenght in bytes (uint8).
-         * If HAS_OPACITY is set, next is opacity value (uint8).
-         * If HAS_TRANSFORM_MATRIX is set, next is transform matrix (9xfloat).
-         *
-         * Flags:
-         * xxxxxxx1 - HAS_OPACITY (TVG_PAINT_FLAG_HAS_OPACITY)
-         * xxxxxx1x - HAS_TRANSFORM_MATRIX (TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX)
-         *
-         * [uint8 flags][uint8 lenght][IF_FLAG uint8 opacity][IF_FLAG 9xfloat matrix]
+         * TODO
          */
-        bool tvgLoad(const char** pointer)
+        bool tvgLoad(const char** pointer, const char* end)
         {
-           const char * moving_pointer = *pointer;
-           // flag
-           const uint8_t flags = (uint8_t) *moving_pointer;
-           moving_pointer += sizeof(uint8_t);
+           const tvg_block * base_block = (tvg_block*) *pointer;
+           if (base_block->type != TVG_PAINT_BEGIN_INDICATOR) return true;
 
-           // lenght
-           const uint8_t lenght = (uint8_t) *moving_pointer;
-           moving_pointer += sizeof(uint8_t);
-           *pointer += sizeof(uint8_t) * lenght;
-           // validate lenght
-           if (lenght < 2) return false;
+           const char* block_end = *pointer + TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (base_block->lenght);
+           if (block_end > end) return false;
 
-           // opacity
-           /*if (flags & TVG_PAINT_FLAG_HAS_OPACITY)
+           while (*pointer < end)
               {
-                 opacity = (uint8_t) *moving_pointer;
-                 moving_pointer += sizeof(uint8_t);
+                 const tvg_block * block = (tvg_block*) *pointer;
+                 *pointer += TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (block->lenght);
+
+                 switch (block->type)
+                   {
+                    case TVG_PAINT_FLAG_HAS_OPACITY:
+                       if (block->lenght != 1) return false;
+                       opacity = block->data;
+                       break;
+                    case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX:
+                       if (block->lenght != sizeof(Matrix)) return false;
+                       const Matrix * matrix = (Matrix *) &block->data;
+                       transform(*matrix); // TODO: check if transformation works
+                       break;
+                   }
               }
 
-           // transform matrix
-           if (flags & TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX)
-              {
-                 const Matrix * matrix = (Matrix *) moving_pointer;
-                 moving_pointer += sizeof(Matrix);
-                 //transform(*matrix);
-                 //printf("Paint load matrix %f \n", matrix->e11);
-              }*/
+           if (*pointer != block_end) return false;
 
            return true;
         }
@@ -286,31 +276,6 @@ namespace tvg
          */
         bool tvgStore()
         {
-           // Test function
-           char buffer[128];
-           char * pointer = buffer;
-
-           // flags
-           //*pointer = TVG_PAINT_FLAG_HAS_OPACITY | TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
-           pointer += sizeof(uint8_t);
-           // lenght
-           *pointer = 3*sizeof(uint8_t) + sizeof(Matrix);
-           pointer += sizeof(uint8_t);
-           // opacity
-           *pointer = opacity;
-           pointer += sizeof(uint8_t);
-           // transform matrix
-           Matrix m = {1.0f,0,0, 0,1.0f,0, 0,0,1.0f}; // no matrix getter yet
-           memcpy(pointer, &m, sizeof(uint32_t));
-           pointer += sizeof(Matrix);
-
-           // Print for testing
-           printf("PAINT tvgStore:");
-           for (char * ptr = buffer; ptr < pointer; ptr++) {
-                 printf(" %02X", (uint8_t)(*ptr));
-           }
-           printf(".\n");
-
            return true;
         }
     };

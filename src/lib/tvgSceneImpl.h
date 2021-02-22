@@ -215,7 +215,7 @@ struct Scene::Impl
      *
      * [uint8 flags][uint8 lenght][uint32 reservedCnt]
      */
-    bool tvgLoad(const char** pointer)
+    bool tvgLoad(const char** pointer, const char* end)
     {
        const char * moving_pointer = *pointer;
        // flag

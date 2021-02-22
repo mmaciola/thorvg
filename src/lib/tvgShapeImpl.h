@@ -877,7 +877,7 @@ struct Shape::Impl
      *
      * [uint8 flags][uint8 lenght][4*uint8 color OR uint32 fillid][ShapePath][9xfloat matrix][stroke]
      */
-    bool tvgLoad(const char** pointer)
+    bool tvgLoad(const char** pointer, const char* end)
     {
        const char * moving_pointer = *pointer;
        // flag

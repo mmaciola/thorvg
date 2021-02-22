@@ -86,12 +86,12 @@ Result Scene::load(const char* data, uint32_t size)
    return pImpl->load(data, size);
 }
 
-bool Scene::tvgLoad(const char** pointer) noexcept
+bool Scene::tvgLoad(const char** pointer, const char* end) noexcept
 {
    // tvgLoad for parent class Paint
-   if (!Paint::tvgLoad(pointer)) return false;
+   if (!Paint::tvgLoad(pointer, end)) return false;
    // tvgLoad for Scene
-   return pImpl->tvgLoad(pointer);
+   return pImpl->tvgLoad(pointer, end);
 }
 
 bool Scene::tvgStore() noexcept

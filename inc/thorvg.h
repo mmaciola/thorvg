@@ -95,7 +95,7 @@ public:
     uint8_t opacity() const noexcept;
 
     // tvgTvgLoader / tvgTvgStorer
-    bool tvgLoad(const char** pointer) noexcept;
+    bool tvgLoad(const char** pointer, const char* end) noexcept;
     bool tvgStore() noexcept;
 
     _TVG_DECLARE_ACCESSOR();
@@ -260,7 +260,7 @@ public:
     StrokeJoin strokeJoin() const noexcept;
 
     // tvgTvgLoader / tvgTvgStorer
-    bool tvgLoad(const char** pointer) noexcept;
+    bool tvgLoad(const char** pointer, const char* end) noexcept;
     bool tvgStore() noexcept;
 
     static std::unique_ptr<Shape> gen() noexcept;
@@ -321,7 +321,7 @@ public:
     virtual Result load(const char* data, uint32_t size);
 
     // tvgTvgLoader / tvgTvgStorer
-    bool tvgLoad(const char** pointer) noexcept;
+    bool tvgLoad(const char** pointer, const char* end) noexcept;
     bool tvgStore() noexcept;
 
     static std::unique_ptr<Scene> gen() noexcept;
