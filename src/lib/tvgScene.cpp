@@ -68,11 +68,37 @@ Result Scene::clear() noexcept
     return Result::Success;
 }
 
-
 Result Scene::save(const std::string& path) noexcept
 {
     if (path.empty()) return Result::InvalidArguments;
 
     return pImpl->save(path);
+}
+
+// tvgTvgLoader / tvgTvgStorer
+Result Scene::load(const string& path)
+{
+   return pImpl->load(path);
+}
+
+Result Scene::load(const char* data, uint32_t size)
+{
+   return pImpl->load(data, size);
+}
+
+bool Scene::tvgLoad(const char** pointer) noexcept
+{
+   // tvgLoad for parent class Paint
+   if (!Paint::tvgLoad(pointer)) return false;
+   // tvgLoad for Scene
+   return pImpl->tvgLoad(pointer);
+}
+
+bool Scene::tvgStore() noexcept
+{
+   // tvgStore for parent class Paint
+   if (!Paint::tvgStore()) return false;
+   // tvgStore for Scene
+   return pImpl->tvgStore();
 }
 

@@ -94,6 +94,10 @@ public:
 
     uint8_t opacity() const noexcept;
 
+    // tvgTvgLoader / tvgTvgStorer
+    bool tvgLoad(const char** pointer) noexcept;
+    bool tvgStore() noexcept;
+
     _TVG_DECLARE_ACCESSOR();
     _TVG_DECLARE_PRIVATE(Paint);
 };
@@ -150,6 +154,9 @@ public:
     virtual Result update(Paint* paint) noexcept;
     virtual Result draw() noexcept;
     virtual Result sync() noexcept;
+
+    virtual Result load(const std::string& path);
+    virtual Result load(const char* data, uint32_t size);
 
     _TVG_DECLARE_PRIVATE(Canvas);
 };
@@ -252,6 +259,10 @@ public:
     StrokeCap strokeCap() const noexcept;
     StrokeJoin strokeJoin() const noexcept;
 
+    // tvgTvgLoader / tvgTvgStorer
+    bool tvgLoad(const char** pointer) noexcept;
+    bool tvgStore() noexcept;
+
     static std::unique_ptr<Shape> gen() noexcept;
 
     _TVG_DECLARE_PRIVATE(Shape);
@@ -304,6 +315,14 @@ public:
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
     Result save(const std::string& path) noexcept;
+
+    // TODO: NOW IN CANVAS!
+    virtual Result load(const std::string& path);
+    virtual Result load(const char* data, uint32_t size);
+
+    // tvgTvgLoader / tvgTvgStorer
+    bool tvgLoad(const char** pointer) noexcept;
+    bool tvgStore() noexcept;
 
     static std::unique_ptr<Scene> gen() noexcept;
 

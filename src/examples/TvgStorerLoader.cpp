@@ -8,79 +8,30 @@ void tvgDrawCmds(tvg::Canvas* canvas)
 {
     if (!canvas) return;
 
-    //Create a Scene
-    auto scene = tvg::Scene::gen();
-    scene->reserve(3);   //reserve 3 shape nodes (optional)
-    scene->tvgStore();
+    // Load Scene
+    canvas->load(EXAMPLE_DIR"/canvas.tvg");
 
-    //Prepare Round Rectangle
-    auto shape1 = tvg::Shape::gen();
-    shape1->appendRect(0, 0, 400, 400, 50, 50);  //x, y, w, h, rx, ry
-    shape1->fill(0x00, 0xba, 0xcc, 255);                //r, g, b, a
-    shape1->tvgStore();
-    scene->push(move(shape1));
+    // Load Scene
+    /*auto scene = tvg::Scene::gen();
+    scene->load(EXAMPLE_DIR"/canvas.tvg");
 
-    //Prepare Circle
-    auto shape2 = tvg::Shape::gen();
-    shape2->appendCircle(400, 400, 200, 200);    //cx, cy, radiusW, radiusH
-    shape2->fill(255, 255, 0, 255);              //r, g, b, a
-    shape2->stroke(255, 255, 255, 255);
-    shape2->stroke(tvg::StrokeJoin::Round);
-    shape2->stroke(10);
-    shape2->tvgStore();
-    scene->push(move(shape2));
+    // Draw the Scene onto the Canvas
+    canvas->push(move(scene));*/
 
-    //Prepare Ellipse
-    auto shape3 = tvg::Shape::gen();
-    shape3->appendCircle(600, 600, 150, 100);    //cx, cy, radiusW, radiusH
-    shape3->fill(32, 255, 128, 255);              //r, g, b, a
-    shape3->tvgStore();
-    scene->push(move(shape3));
 
-    //Create another Scene
-    /*auto scene2 = tvg::Scene::gen();
-    scene2->reserve(2);   //reserve 2 shape nodes (optional)
+    /*tvg::Matrix m = {};
+    m.e11 = m.e22 = m.e33 = 1;
+    printf("Matrix \n");
+    printf("%f %f %f \n", m.e11, m.e12, m.e13);
+    printf("%f %f %f \n", m.e21, m.e22, m.e23);
+    printf("%f %f %f \n", m.e31, m.e32, m.e33);
 
-    //Star
-    auto shape4 = tvg::Shape::gen();
+    uint8_t * p = (uint8_t *) &m;
 
-    //Appends Paths
-    shape4->moveTo(199, 34);
-    shape4->lineTo(253, 143);
-    shape4->lineTo(374, 160);
-    shape4->lineTo(287, 244);
-    shape4->lineTo(307, 365);
-    shape4->lineTo(199, 309);
-    shape4->lineTo(97, 365);
-    shape4->lineTo(112, 245);
-    shape4->lineTo(26, 161);
-    shape4->lineTo(146, 143);
-    shape4->close();
-    shape4->fill(0, 0, 255, 255);
-    scene2->push(move(shape4));
-
-    //Circle
-    auto shape5 = tvg::Shape::gen();
-
-    auto cx = 550.0f;
-    auto cy = 550.0f;
-    auto radius = 125.0f;
-    auto halfRadius = radius * 0.552284f;
-
-    //Append Paths
-    shape5->moveTo(cx, cy - radius);
-    shape5->cubicTo(cx + halfRadius, cy - radius, cx + radius, cy - halfRadius, cx + radius, cy);
-    shape5->cubicTo(cx + radius, cy + halfRadius, cx + halfRadius, cy + radius, cx, cy+ radius);
-    shape5->cubicTo(cx - halfRadius, cy + radius, cx - radius, cy + halfRadius, cx - radius, cy);
-    shape5->cubicTo(cx - radius, cy - halfRadius, cx - halfRadius, cy - radius, cx, cy - radius);
-    shape5->fill(255, 0, 0, 255);
-    scene2->push(move(shape5));
-
-    //Push scene2 onto the scene
-    scene->push(move(scene2));*/
-
-    //Draw the Scene onto the Canvas
-    canvas->push(move(scene));
+    for (int i = 0; i < sizeof(tvg::Matrix); i++) {
+          printf("%02X ", p[i]);
+    }
+    printf("\n");*/
 }
 
 

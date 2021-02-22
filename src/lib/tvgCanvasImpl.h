@@ -24,6 +24,8 @@
 
 #include "tvgPaint.h"
 
+#include "tvgTvgLoader.h"
+
 /************************************************************************/
 /* Internal Class Implementation                                        */
 /************************************************************************/
@@ -32,6 +34,7 @@ struct Canvas::Impl
 {
     Array<Paint*> paints;
     RenderMethod* renderer;
+    unique_ptr<TvgLoader> loader = nullptr;
 
     Impl(RenderMethod* pRenderer):renderer(pRenderer)
     {
@@ -91,7 +94,17 @@ struct Canvas::Impl
 
     Result draw()
     {
+
         if (!renderer || !renderer->preRender()) return Result::InsufficientCondition;
+
+       if (loader) {
+             auto scene = loader->scene();
+             if (scene) {
+                   push(move(scene));
+                   loader->close();
+                   printf("scene loaded \n");
+             }
+       }
 
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             if (!(*paint)->pImpl->render(*renderer)) return Result::InsufficientCondition;
@@ -100,6 +113,23 @@ struct Canvas::Impl
         if (!renderer->postRender()) return Result::InsufficientCondition;
 
         return Result::Success;
+    }
+
+    Result load(const string& path)
+    {
+       // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
+       loader = unique_ptr<TvgLoader>(new TvgLoader());
+       if (!loader->open(path)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
+       return Result::Success;
+    }
+
+    Result load(const char* data, uint32_t size)
+    {
+       loader = unique_ptr<TvgLoader>(new TvgLoader());
+       if (!loader->open(data, size)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
+       return Result::Success;
     }
 };
 
