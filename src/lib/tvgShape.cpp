@@ -404,7 +404,7 @@ FillRule Shape::fillRule() const noexcept
 }
 
 // tvgTvgLoader / tvgTvgStorer
-bool Shape::tvgLoad(const char** pointer, const char* end) noexcept
+/*bool Shape::tvgLoad(const char** pointer, const char* end) noexcept
 {
    // tvgLoad for parent class Paint
    if (!Paint::tvgLoad(pointer, end)) return false;
@@ -418,4 +418,4 @@ bool Shape::tvgStore() noexcept
    if (!Paint::tvgStore()) return false;
    // tvgStore for Shape
    return pImpl->tvgStore();
-}
+}*/

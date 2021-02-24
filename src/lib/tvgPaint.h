@@ -198,6 +198,7 @@ namespace tvg
 
         Paint* duplicate()
         {
+           printf("Paint* duplicate() paint h \n");
             auto ret = smethod->duplicate();
             if (!ret) return nullptr;
 
@@ -238,10 +239,10 @@ namespace tvg
          * Details:
          * TODO
          */
-        bool tvgLoad(const char** pointer, const char* end)
+        /*bool tvgLoad(const char** pointer, const char* end)
         {
            const tvg_block * base_block = (tvg_block*) *pointer;
-           if (base_block->type != TVG_PAINT_BEGIN_INDICATOR) return true;
+           //if (base_block->type != TVG_PAINT_BEGIN_INDICATOR) return true;
 
            const char* block_end = *pointer + TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (base_block->lenght);
            if (block_end > end) return false;
@@ -268,6 +269,38 @@ namespace tvg
            if (*pointer != block_end) return false;
 
            return true;
+        }*/
+
+        /*
+         * Load paint and derived classes from .tvg binary file
+         * Returns LoaderResult:: Success on success and moves pointer to next position,
+         * LoaderResult::InvalidType if corrupted or LoaderResult::InvalidType if not applicable for paint.
+         * Details:
+         * TODO
+         */
+        LoaderResult tvgLoad(const char** pointer, const char* end)
+        {
+           auto result = smethod->duplicate();
+           if (result != LoaderResult::InvalidType) return result;
+
+           const tvg_block * block = (tvg_block*) *pointer;
+           switch (block->type)
+              {
+              case TVG_PAINT_FLAG_HAS_OPACITY:
+                 if (block->lenght != 1) return false;
+                 opacity = block->data;
+                 break;
+              case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX:
+                 if (block->lenght != sizeof(Matrix)) return false;
+                 const Matrix * matrix = (Matrix *) &block->data;
+                 transform(*matrix); // TODO: check if transformation works
+                 break;
+              default:
+                 return LoaderResult::InvalidType;
+              }
+
+           *pointer += TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (block->lenght);
+           return LoaderResult::Success;
         }
 
         /*
@@ -316,6 +349,7 @@ namespace tvg
 
         Paint* duplicate() override
         {
+           printf("Paint* duplicate() paintmethod h \n");
             return inst->duplicate();
         }
 

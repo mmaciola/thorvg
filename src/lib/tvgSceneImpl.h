@@ -153,6 +153,7 @@ struct Scene::Impl
 
     Paint* duplicate()
     {
+       printf("Paint* duplicate() scene h \n");
         auto ret = Scene::gen();
         if (!ret) return nullptr;
         auto dup = ret.get()->pImpl;
@@ -215,7 +216,26 @@ struct Scene::Impl
      *
      * [uint8 flags][uint8 lenght][uint32 reservedCnt]
      */
-    bool tvgLoad(const char** pointer, const char* end)
+    LoaderResult tvgLoad(const char** pointer, const char* end)
+    {
+       const tvg_block * block = (tvg_block*) *pointer;
+       switch (block->type)
+         {
+          case TVG_PAINT_FLAG_HAS_OPACITY: {
+             if (block->lenght != 1) return LoaderResult::SizeCorruption;
+             uint32_t reservedCnt = (uint32_t) block->data;
+             paints.reserve(reservedCnt);
+             break;
+          }
+          default:
+             return LoaderResult::InvalidType;
+         }
+
+       *pointer += TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (block->lenght);
+       return LoaderResult::Success;
+    }
+
+    /*bool tvgLoad(const char** pointer, const char* end)
     {
        const char * moving_pointer = *pointer;
        // flag
@@ -235,7 +255,7 @@ struct Scene::Impl
        paints.reserve(reservedCnt);
 
        return true;
-    }
+    }*/
 
     /*
      * Store scene from .tvg binary file

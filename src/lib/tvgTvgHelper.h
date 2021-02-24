@@ -7,6 +7,7 @@ using FlagType = uint8_t;
 using ByteCounter = uint16_t;
 #define TVG_BASE_BLOCK_SIZE sizeof(FlagType) + sizeof(ByteCounter)
 
+
 #define TVG_HEADER_TVG_SIGN_CODE "TVG"
 #define TVG_HEADER_TVG_VERSION_CODE "000"
 struct tvg_header {

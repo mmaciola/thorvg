@@ -64,23 +64,23 @@ static bool tvg_read_header(const char** pointer)
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details:
  */
-static bool tvg_read_scene(const char** pointer, unique_ptr<Scene> * sc)
+/*static bool tvg_read_scene(const char** pointer, unique_ptr<Scene> * sc)
 {
    if (**pointer != TVG_SCENE_BEGIN_INDICATOR) return false;
    *pointer += 1;
    printf("TVG_LOADER: Parsing scene.\n");
 
    auto s = Scene::gen();
-   s->tvgLoad(pointer, /*end*/ NULL);
+   s->tvgLoad(pointer, /*end* / NULL);
    *sc = move(s);
 
    return true;
-}
+}*/
 
 
 static bool tvg_read_scene(const char** pointer, const char* end)
 {
-   const tvg_block * base_block = (tvg_block*) *pointer;
+   /*const tvg_block * base_block = (tvg_block*) *pointer;
    if (base_block->type != TVG_SCENE_BEGIN_INDICATOR) return true;
 
    const char* block_end = *pointer + TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (base_block->lenght);
@@ -107,7 +107,7 @@ static bool tvg_read_scene(const char** pointer, const char* end)
            }
       }
 
-   if (*pointer != block_end) return false;
+   if (*pointer != block_end) return false;*/
 
    return true;
 }
@@ -125,7 +125,7 @@ static bool tvg_read_shape(const char** pointer, unique_ptr<Scene> * sc)
    printf("TVG_LOADER: Parsing shape.\n");
 
    auto s = Shape::gen();
-   s->tvgLoad(pointer, /*end*/ NULL);
+   //s->tvgLoad(pointer, /*end*/ NULL);
    (*sc)->push(move(s));
 
    return true;
@@ -146,10 +146,11 @@ bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * roo
          switch (*(pointer))
          {
             case TVG_SCENE_BEGIN_INDICATOR:
-               if (!tvg_read_scene(&pointer, root)) return false;
+               //Scene::tvgLoad(pointer, end, root);
+               //if (!tvg_read_scene(&pointer, root)) return false;
                break;
             case TVG_SHAPE_BEGIN_INDICATOR:
-               if (!tvg_read_shape(&pointer, root)) return false;
+               //if (!tvg_read_shape(&pointer, root)) return false;
                break;
             default:
                return false;

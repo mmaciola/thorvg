@@ -86,7 +86,7 @@ Result Scene::load(const char* data, uint32_t size)
    return pImpl->load(data, size);
 }
 
-bool Scene::tvgLoad(const char** pointer, const char* end) noexcept
+/*bool Scene::tvgLoad(const char** pointer, const char* end) noexcept
 {
    // tvgLoad for parent class Paint
    if (!Paint::tvgLoad(pointer, end)) return false;
@@ -94,11 +94,42 @@ bool Scene::tvgLoad(const char** pointer, const char* end) noexcept
    return pImpl->tvgLoad(pointer, end);
 }
 
+
+LoaderResult Scene::tvgLoad(const char** pointer, const char* end, unique_ptr<Scene> * sc) noexcept
+{
+   const tvg_block * base_block = (tvg_block*) *pointer;
+   if (base_block->type != TVG_SCENE_BEGIN_INDICATOR) return LoaderResult::InvalidType;
+
+   const char* block_end = *pointer + TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (base_block->lenght);
+   if (block_end > end) return LoaderResult::SizeCorruption;
+
+   auto s = Scene::gen();
+
+   while (*pointer < end)
+      {
+         LoaderResult result = pImpl->tvgLoad(pointer, end);
+         if (result > LoaderResult::Success) return result;
+      }
+
+   if (*pointer != block_end) return LoaderResult::SizeCorruption;
+
+   *sc = move(s);
+   return LoaderResult::Success;
+}
+
+/*
+   // tvgLoad for parent class Paint
+   if (!Paint::tvgLoad(pointer, end)) return false;
+   // tvgLoad for Scene
+   return pImpl->tvgLoad(pointer, end);* /
+}
+ * /
+
 bool Scene::tvgStore() noexcept
 {
    // tvgStore for parent class Paint
    if (!Paint::tvgStore()) return false;
    // tvgStore for Scene
    return pImpl->tvgStore();
-}
+}*/
 

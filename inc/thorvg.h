@@ -54,6 +54,7 @@ enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
 enum class TVG_EXPORT CompositeMethod { None = 0, ClipPath, AlphaMask, InvAlphaMask };
 enum class TVG_EXPORT CanvasEngine { Sw = (1 << 1), Gl = (1 << 2)};
 
+enum LoaderResult { InvalidType, Success, SizeCorruption };
 
 struct Point
 {
@@ -95,7 +96,7 @@ public:
     uint8_t opacity() const noexcept;
 
     // tvgTvgLoader / tvgTvgStorer
-    bool tvgLoad(const char** pointer, const char* end) noexcept;
+    LoaderResult tvgLoad(const char** pointer, const char* end) noexcept;
     bool tvgStore() noexcept;
 
     _TVG_DECLARE_ACCESSOR();
@@ -259,10 +260,6 @@ public:
     StrokeCap strokeCap() const noexcept;
     StrokeJoin strokeJoin() const noexcept;
 
-    // tvgTvgLoader / tvgTvgStorer
-    bool tvgLoad(const char** pointer, const char* end) noexcept;
-    bool tvgStore() noexcept;
-
     static std::unique_ptr<Shape> gen() noexcept;
 
     _TVG_DECLARE_PRIVATE(Shape);
@@ -319,10 +316,6 @@ public:
     // TODO: NOW IN CANVAS!
     virtual Result load(const std::string& path);
     virtual Result load(const char* data, uint32_t size);
-
-    // tvgTvgLoader / tvgTvgStorer
-    bool tvgLoad(const char** pointer, const char* end) noexcept;
-    bool tvgStore() noexcept;
 
     static std::unique_ptr<Scene> gen() noexcept;
 

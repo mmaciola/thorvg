@@ -82,6 +82,7 @@ struct ShapePath
 
     void duplicate(const ShapePath* src)
     {
+       printf("void duplicate(const ShapePath* src) shape h \n");
         cmdCnt = src->cmdCnt;
         reservedCmdCnt = src->reservedCmdCnt;
         ptsCnt = src->ptsCnt;
@@ -364,6 +365,7 @@ struct Shape::Impl
 
     Paint* duplicate()
     {
+       printf("Paint* duplicate() shape h \n");
         auto ret = Shape::gen();
         if (!ret) return nullptr;
 
