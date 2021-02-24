@@ -19,23 +19,24 @@ struct tvg_header {
 struct tvg_block {
    FlagType type;
    ByteCounter lenght;
-   uint8_t data;
+   char data;
 } __attribute__((packed));
 
 #define TVG_SCENE_BEGIN_INDICATOR (FlagType)0xfe
 #define TVG_SHAPE_BEGIN_INDICATOR (FlagType)0xfd
 #define TVG_PICTURE_BEGIN_INDICATOR (FlagType)0xfc
-//#define TVG_PAINT_BEGIN_INDICATOR (FlagType)0xfb
 
 #define TVG_PAINT_FLAG_HAS_OPACITY (FlagType)0x01
 #define TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX (FlagType)0x02
 
-#define TVG_SHAPE_FLAG_HAS_PATH    (FlagType)0x01 // If set, shape has path section
-#define TVG_SHAPE_FLAG_HAS_STROKE  (FlagType)0x02 // If set, shape has stroke section
-#define TVG_SHAPE_FLAG_HAS_FILL    (FlagType)0x03 // If set, shape has fill section
-#define TVG_SHAPE_FLAG_COLOR   (FlagType)0x04 // If set, shape has color.
+#define TVG_SCENE_FLAG_RESERVEDCNT (FlagType)0x03
 
-#define TVG_SHAPE_FLAG_FILLRULE        (FlagType)0x05 // mask for shape FillRule
+#define TVG_SHAPE_FLAG_HAS_PATH    (FlagType)0x03 // If set, shape has path section
+#define TVG_SHAPE_FLAG_HAS_STROKE  (FlagType)0x04 // If set, shape has stroke section
+#define TVG_SHAPE_FLAG_HAS_FILL    (FlagType)0x05 // If set, shape has fill section
+#define TVG_SHAPE_FLAG_COLOR   (FlagType)0x06 // If set, shape has color.
+
+#define TVG_SHAPE_FLAG_FILLRULE        (FlagType)0x07 // mask for shape FillRule
 #define TVG_SHAPE_FLAG_FILLRULE_WINDING     0x01 // FillRule::Winding
 #define TVG_SHAPE_FLAG_FILLRULE_EVENODD     0x02 // FillRule::EvenOdd
 

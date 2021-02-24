@@ -212,12 +212,12 @@ struct Scene::Impl
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(const char** pointer, const char* end)
+    LoaderResult tvgLoad(const char* pointer, const char* end)
     {
-       const tvg_block * block = (tvg_block*) *pointer;
+       const tvg_block * block = (tvg_block*) pointer;
        switch (block->type)
          {
-          case TVG_PAINT_FLAG_HAS_OPACITY: {
+          case TVG_SCENE_FLAG_RESERVEDCNT: {
              if (block->lenght != 1) return LoaderResult::SizeCorruption;
              uint32_t reservedCnt = (uint32_t) block->data;
              paints.reserve(reservedCnt);
@@ -227,7 +227,6 @@ struct Scene::Impl
              return LoaderResult::InvalidType;
          }
 
-       *pointer = (char *) &block->data + sizeof(uint8_t) * (block->lenght);
        return LoaderResult::Success;
     }
 

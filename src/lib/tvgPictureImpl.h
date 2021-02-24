@@ -240,8 +240,9 @@ struct Picture::Impl
         *pointer += (size_t)(w * h) * sizeof(pixels[0]);
     }
 
-    LoaderResult tvgLoad(const char** pointer, const char* end)
+    LoaderResult tvgLoad(const char* pointer, const char* end)
     {
+       // TODO
        return LoaderResult::Success;
     }
 };

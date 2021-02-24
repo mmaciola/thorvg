@@ -40,7 +40,7 @@ namespace tvg
         virtual bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const = 0;
         virtual Paint* duplicate() = 0;
         virtual void serialize(char** pointer) = 0;
-        virtual LoaderResult tvgLoad(const char** pointer, const char* end) = 0;
+        virtual LoaderResult tvgLoad(const char* pointer, const char* end) = 0;
     };
 
     struct Paint::Impl
@@ -241,12 +241,12 @@ namespace tvg
          * Details:
          * TODO
          */
-        LoaderResult tvgLoad(const char** pointer, const char* end)
+        LoaderResult tvgLoad(const char* pointer, const char* end)
         {
            LoaderResult result = smethod->tvgLoad(pointer, end);
            if (result != LoaderResult::InvalidType) return result;
 
-           const tvg_block * block = (tvg_block*) *pointer;
+           const tvg_block * block = (tvg_block*) pointer;
            switch (block->type)
               {
                  case TVG_PAINT_FLAG_HAS_OPACITY: {
@@ -265,7 +265,6 @@ namespace tvg
                  }
               }
 
-           *pointer = (char *) &block->data + sizeof(uint8_t) * (block->lenght);
            return LoaderResult::Success;
         }
 
@@ -318,7 +317,7 @@ namespace tvg
             return inst->duplicate();
         }
 
-        LoaderResult tvgLoad(const char** pointer, const char* end) override
+        LoaderResult tvgLoad(const char* pointer, const char* end) override
         {
              return inst->tvgLoad(pointer, end);
         }
