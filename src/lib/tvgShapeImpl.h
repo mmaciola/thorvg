@@ -862,6 +862,89 @@ struct Shape::Impl
        return true;
     }
 
+
+
+    /*
+     * Load paint and derived classes from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoadPath(const char** pointer, const char* end)
+    {
+
+    }
+
+    /*
+     * Load paint and derived classes from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoadStroke(const char** pointer, const char* end)
+    {
+
+    }
+
+    /*
+     * Load paint and derived classes from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoad(const char** pointer, const char* end)
+    {
+       const tvg_block * block = (tvg_block*) *pointer;
+       switch (block->type)
+          {
+             case TVG_SHAPE_FLAG_HAS_PATH: {
+                LoaderResult result = tvgLoadPath(pointer, end);
+                if (result != LoaderResult::Success) return result;
+                break;
+             }
+             case TVG_SHAPE_FLAG_HAS_STROKE: {
+                LoaderResult result = tvgLoadStroke(pointer, end);
+                if (result != LoaderResult::Success) return result;
+                break;
+             }
+             case TVG_SHAPE_FLAG_HAS_FILL: {
+                // TODO
+                flag |= RenderUpdateFlag::Gradient;
+                break;
+             }
+             case TVG_SHAPE_FLAG_COLOR: {
+                if (block->lenght != sizeof(color)) return LoaderResult::SizeCorruption;
+                memcpy(&color, &block->data, sizeof(color)); // TODO: przetestowac
+                flag = RenderUpdateFlag::Color;
+                break;
+             }
+             case TVG_SHAPE_FLAG_FILLRULE: {
+                if (block->lenght != sizeof(uint8_t)) return LoaderResult::SizeCorruption;
+                switch (block->data)
+                {
+                   case TVG_SHAPE_FLAG_FILLRULE_WINDING:
+                      rule = FillRule::Winding;
+                      break;
+                   case TVG_SHAPE_FLAG_FILLRULE_EVENODD:
+                      rule = FillRule::EvenOdd;
+                      break;
+                }
+                break;
+             }
+             default: {
+                return LoaderResult::InvalidType;
+             }
+          }
+
+       *pointer = (char *) &block->data + sizeof(uint8_t) * (block->lenght);
+       return LoaderResult::Success;
+    }
+
+
+
     /*
      * Load shape from .tvg binary file
      * Returns true on success and moves pointer to next position or false if corrupted.
@@ -879,7 +962,7 @@ struct Shape::Impl
      *
      * [uint8 flags][uint8 lenght][4*uint8 color OR uint32 fillid][ShapePath][9xfloat matrix][stroke]
      */
-    bool tvgLoad(const char** pointer, const char* end)
+    /*bool tvgLoad(const char** pointer, const char* end)
     {
        const char * moving_pointer = *pointer;
        // flag
@@ -937,7 +1020,7 @@ struct Shape::Impl
           }
 
        return true;
-    }
+    }*/
 
     /*
      * Store stroke into .tvg binary file

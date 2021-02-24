@@ -40,6 +40,7 @@ namespace tvg
         virtual bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const = 0;
         virtual Paint* duplicate() = 0;
         virtual void serialize(char** pointer) = 0;
+        virtual LoaderResult tvgLoad(const char** pointer, const char* end) = 0;
     };
 
     struct Paint::Impl
@@ -234,72 +235,37 @@ namespace tvg
         }
 
         /*
-         * Load paint from .tvg binary file
-         * Returns true on success and moves pointer to next position or false if corrupted.
-         * Details:
-         * TODO
-         */
-        /*bool tvgLoad(const char** pointer, const char* end)
-        {
-           const tvg_block * base_block = (tvg_block*) *pointer;
-           //if (base_block->type != TVG_PAINT_BEGIN_INDICATOR) return true;
-
-           const char* block_end = *pointer + TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (base_block->lenght);
-           if (block_end > end) return false;
-
-           while (*pointer < end)
-              {
-                 const tvg_block * block = (tvg_block*) *pointer;
-                 *pointer += TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (block->lenght);
-
-                 switch (block->type)
-                   {
-                    case TVG_PAINT_FLAG_HAS_OPACITY:
-                       if (block->lenght != 1) return false;
-                       opacity = block->data;
-                       break;
-                    case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX:
-                       if (block->lenght != sizeof(Matrix)) return false;
-                       const Matrix * matrix = (Matrix *) &block->data;
-                       transform(*matrix); // TODO: check if transformation works
-                       break;
-                   }
-              }
-
-           if (*pointer != block_end) return false;
-
-           return true;
-        }*/
-
-        /*
          * Load paint and derived classes from .tvg binary file
          * Returns LoaderResult:: Success on success and moves pointer to next position,
-         * LoaderResult::InvalidType if corrupted or LoaderResult::InvalidType if not applicable for paint.
+         * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
          * Details:
          * TODO
          */
         LoaderResult tvgLoad(const char** pointer, const char* end)
         {
-           auto result = smethod->duplicate();
+           LoaderResult result = smethod->tvgLoad(pointer, end);
            if (result != LoaderResult::InvalidType) return result;
 
            const tvg_block * block = (tvg_block*) *pointer;
            switch (block->type)
               {
-              case TVG_PAINT_FLAG_HAS_OPACITY:
-                 if (block->lenght != 1) return false;
-                 opacity = block->data;
-                 break;
-              case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX:
-                 if (block->lenght != sizeof(Matrix)) return false;
-                 const Matrix * matrix = (Matrix *) &block->data;
-                 transform(*matrix); // TODO: check if transformation works
-                 break;
-              default:
-                 return LoaderResult::InvalidType;
+                 case TVG_PAINT_FLAG_HAS_OPACITY: {
+                    if (block->lenght != 1) return LoaderResult::SizeCorruption;
+                    opacity = block->data;
+                    break;
+                 }
+                 case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
+                    if (block->lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
+                    const Matrix * matrix = (Matrix *) &block->data;
+                    transform(*matrix); // TODO: check if transformation works
+                    break;
+                 }
+                 default: {
+                    return LoaderResult::InvalidType;
+                 }
               }
 
-           *pointer += TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (block->lenght);
+           *pointer = (char *) &block->data + sizeof(uint8_t) * (block->lenght);
            return LoaderResult::Success;
         }
 
@@ -349,8 +315,12 @@ namespace tvg
 
         Paint* duplicate() override
         {
-           printf("Paint* duplicate() paintmethod h \n");
             return inst->duplicate();
+        }
+
+        LoaderResult tvgLoad(const char** pointer, const char* end) override
+        {
+             return inst->tvgLoad(pointer, end);
         }
 
         void serialize(char** pointer) override

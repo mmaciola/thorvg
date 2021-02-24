@@ -206,15 +206,11 @@ struct Scene::Impl
     }
 
     /*
-     * Load scene from .tvg binary file
-     * Returns true on success and moves pointer to next position or false if corrupted.
+     * Load paint and derived classes from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
      * Details:
-     * Shape section starts with uint8 flags and uint8 lenght.
-     * Next is uint32 reservedCnt that describes amount of elements in paints array.
-     *
-     * Flags are now unused. For future purposes.
-     *
-     * [uint8 flags][uint8 lenght][uint32 reservedCnt]
+     * TODO
      */
     LoaderResult tvgLoad(const char** pointer, const char* end)
     {
@@ -231,31 +227,10 @@ struct Scene::Impl
              return LoaderResult::InvalidType;
          }
 
-       *pointer += TVG_BASE_BLOCK_SIZE + sizeof(uint8_t) * (block->lenght);
+       *pointer = (char *) &block->data + sizeof(uint8_t) * (block->lenght);
        return LoaderResult::Success;
     }
 
-    /*bool tvgLoad(const char** pointer, const char* end)
-    {
-       const char * moving_pointer = *pointer;
-       // flag
-       //UNUSED: const uint8_t flags = (uint8_t) *moving_pointer;
-       moving_pointer += sizeof(uint8_t);
-
-       // lenght
-       const uint8_t lenght = (uint8_t) *moving_pointer;
-       moving_pointer += sizeof(uint8_t);
-       *pointer += sizeof(uint8_t) * lenght;
-       // validate lenght
-       if (lenght < 6) return false;
-
-       // reservedCnt
-       uint32_t reservedCnt = (uint32_t) *moving_pointer;
-       moving_pointer += sizeof(uint32_t);
-       paints.reserve(reservedCnt);
-
-       return true;
-    }*/
 
     /*
      * Store scene from .tvg binary file
@@ -263,27 +238,6 @@ struct Scene::Impl
      */
     bool tvgStore()
     {
-       // Test function
-       char buffer[128];
-       char * pointer = buffer;
-
-       // flags
-       *pointer = 'S'; // for test
-       pointer += sizeof(uint8_t);
-       // lenght
-       *pointer = 2*sizeof(uint8_t) + sizeof(uint32_t);
-       pointer += sizeof(uint8_t);
-       // reservedCnt
-       memcpy(pointer, &(paints.count), sizeof(uint32_t));
-       pointer += sizeof(uint32_t);
-
-       // Print for testing
-       printf("SCENE tvgStore:");
-       for (char * ptr = buffer; ptr < pointer; ptr++) {
-             printf(" %02X", (uint8_t)(*ptr));
-       }
-       printf(".\n");
-
        return true;
     }
 };

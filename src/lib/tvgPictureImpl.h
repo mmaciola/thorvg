@@ -239,6 +239,11 @@ struct Picture::Impl
         memcpy(*pointer, pixels, w * h * sizeof(pixels[0]));
         *pointer += (size_t)(w * h) * sizeof(pixels[0]);
     }
+
+    LoaderResult tvgLoad(const char** pointer, const char* end)
+    {
+       return LoaderResult::Success;
+    }
 };
 
 #endif //_TVG_PICTURE_IMPL_H_

@@ -36,8 +36,8 @@ struct tvg_block {
 #define TVG_SHAPE_FLAG_COLOR   (FlagType)0x04 // If set, shape has color.
 
 #define TVG_SHAPE_FLAG_FILLRULE        (FlagType)0x05 // mask for shape FillRule
-#define TVG_SHAPE_FLAG_FILLRULE_EVENODD     0x01 // FillRule::EvenOdd
-#define TVG_SHAPE_FLAG_FILLRULE_WINDING     0x02 // FillRule::Winding
+#define TVG_SHAPE_FLAG_FILLRULE_WINDING     0x01 // FillRule::Winding
+#define TVG_SHAPE_FLAG_FILLRULE_EVENODD     0x02 // FillRule::EvenOdd
 
 #define TVG_SHAPE_STROKE_FLAG_CAP   (FlagType)0x06 // mask for stroke StrokeCap
 #define TVG_SHAPE_STROKE_FLAG_CAP_SQUARE 0x01 // StrokeCap::Square
