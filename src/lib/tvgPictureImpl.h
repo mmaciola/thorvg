@@ -240,9 +240,26 @@ struct Picture::Impl
         *pointer += (size_t)(w * h) * sizeof(pixels[0]);
     }
 
+    /*
+     * Load picture from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
     LoaderResult tvgLoad(const char* pointer, const char* end)
     {
-       // TODO
+       const tvg_block * block = (tvg_block*) pointer;
+       switch (block->type)
+         {
+          case 0: {
+             // TODO
+             break;
+          }
+          default:
+             return LoaderResult::InvalidType;
+         }
+
        return LoaderResult::Success;
     }
 };

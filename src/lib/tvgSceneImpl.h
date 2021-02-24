@@ -206,7 +206,7 @@ struct Scene::Impl
     }
 
     /*
-     * Load paint and derived classes from .tvg binary file
+     * Load scene from .tvg binary file
      * Returns LoaderResult:: Success on success and moves pointer to next position,
      * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
      * Details:

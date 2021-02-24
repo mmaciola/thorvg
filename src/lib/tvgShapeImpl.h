@@ -889,6 +889,7 @@ struct Shape::Impl
 
              pointer = block_end;
           }
+
        return LoaderResult::Success;
     }
 
@@ -906,28 +907,28 @@ struct Shape::Impl
 
        switch (block->type)
           {
-             case TVG_SHAPE_FLAG_HAS_PATH: {
+             case TVG_SHAPE_FLAG_HAS_PATH: { // path
                 LoaderResult result = tvgLoadPath(&block->data, block_end);
                 if (result != LoaderResult::Success) return result;
                 break;
              }
-             case TVG_SHAPE_FLAG_HAS_STROKE: {
+             case TVG_SHAPE_FLAG_HAS_STROKE: { // stroke section
                 LoaderResult result = tvgLoadStroke(&block->data, block_end);
                 if (result != LoaderResult::Success) return result;
                 break;
              }
-             case TVG_SHAPE_FLAG_HAS_FILL: {
+             case TVG_SHAPE_FLAG_HAS_FILL: { // fill (gradient)
                 // TODO
                 flag |= RenderUpdateFlag::Gradient;
                 break;
              }
-             case TVG_SHAPE_FLAG_COLOR: {
+             case TVG_SHAPE_FLAG_COLOR: { // color
                 if (block->lenght != sizeof(color)) return LoaderResult::SizeCorruption;
                 memcpy(&color, &block->data, sizeof(color)); // TODO: przetestowac
                 flag = RenderUpdateFlag::Color;
                 break;
              }
-             case TVG_SHAPE_FLAG_FILLRULE: {
+             case TVG_SHAPE_FLAG_FILLRULE: { // fill rule
                 if (block->lenght != sizeof(uint8_t)) return LoaderResult::SizeCorruption;
                 switch (block->data)
                 {
@@ -946,141 +947,6 @@ struct Shape::Impl
           }
 
        return LoaderResult::Success;
-    }
-
-
-
-    /*
-     * Load shape from .tvg binary file
-     * Returns true on success and moves pointer to next position or false if corrupted.
-     * Details:
-     * Shape section starts with uint8 flags, these are describes below in Flags section.
-     * If has_fill flag is set, next is uint32 fill identificator. If has_fill is clear, 4*uint8 fill color.
-     * Next are ShapePath: uint32 cmdCnt, uint32 ptsCnt, cmdCnt*[PathCommand cmds], ptsCnt*[Point pts].
-     * If has_stroke is set, next is stroke informations- see stroke section
-     *
-     * Flags:
-     * xxxxxxx1 - FillRule.EvenOdd (TVG_SHAPE_FLAG_MASK_FILLRULE)
-     * xxxxxxx0 - FillRule.Winding
-     * xxxxxx1x - HAS_STROKE (TVG_SHAPE_FLAG_HAS_STROKE)
-     * xxxxx1xx - HAS_FILL (TVG_SHAPE_FLAG_HAS_FILL) - if set- fillid (gradient fill), if clear- color.
-     *
-     * [uint8 flags][uint8 lenght][4*uint8 color OR uint32 fillid][ShapePath][9xfloat matrix][stroke]
-     */
-    /*bool tvgLoad(const char* pointer, const char* end)
-    {
-       const char * moving_pointer = *pointer;
-       // flag
-       const uint8_t flags = (uint8_t) *moving_pointer;
-       moving_pointer += sizeof(uint8_t);
-
-       // lenght
-       const uint8_t lenght = (uint8_t) *moving_pointer;
-       moving_pointer += sizeof(uint8_t);
-       *pointer += sizeof(uint8_t) * lenght;
-       // validate lenght
-       if (lenght < 8) return false;
-
-       // rule (from flag)
-       //rule = (flags & TVG_SHAPE_FLAG_MASK_FILLRULE) ? FillRule::EvenOdd : FillRule::Winding;
-
-       // colors or fill
-       if (flags & TVG_SHAPE_FLAG_HAS_FILL)
-          {
-             // TODO [mmaciola] how store gradients- by id or duplication
-             flag |= RenderUpdateFlag::Gradient;
-          }
-       else
-          {
-             // colors
-             const uint8_t * colors = (uint8_t*) moving_pointer;
-             moving_pointer += sizeof(uint8_t) * 4;
-
-             memcpy(&color, colors, sizeof(color));
-             flag = RenderUpdateFlag::Color;
-          }
-
-       // ShapePath
-       const uint32_t cmdCnt = (uint32_t) *moving_pointer;
-       moving_pointer += sizeof(uint32_t);
-       const uint32_t ptsCnt = (uint32_t) *moving_pointer;
-       moving_pointer += sizeof(uint32_t);
-       const PathCommand * cmds = (PathCommand *) moving_pointer;
-       moving_pointer += sizeof(PathCommand) * cmdCnt;
-       const Point * pts = (Point *) moving_pointer;
-       moving_pointer += sizeof(Point) * ptsCnt;
-
-       path.cmdCnt = cmdCnt;
-       path.ptsCnt = ptsCnt;
-       path.reserveCmd(cmdCnt);
-       path.reservePts(ptsCnt);
-       memcpy(path.cmds, cmds, sizeof(PathCommand) * cmdCnt);
-       memcpy(path.pts, pts, sizeof(Point) * ptsCnt);
-       flag |= RenderUpdateFlag::Path;
-
-       // ShapeStroke
-       if (flags & TVG_SHAPE_FLAG_HAS_STROKE)
-          {
-             if (!tvgLoadStroke(&moving_pointer)) return false;
-          }
-
-       return true;
-    }*/
-
-    /*
-     * Store stroke into .tvg binary file
-     * Details: see above function tvgLoadStroke
-     */
-    void tvgStoreStroke(char** pointer)
-    {
-       /*tvg_shape_stroke * shape_stroke = (tvg_shape_stroke *) *pointer;
-
-       shape_stroke->flags = 0;
-       switch (stroke->cap)
-         {
-         case StrokeCap::Square:
-            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_CAP_SQUARE;
-            break;
-         case StrokeCap::Round:
-            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_CAP_ROUND;
-            break;
-         case StrokeCap::Butt:
-            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_CAP_BUTT;
-            break;
-         }
-
-       switch (stroke->join)
-         {
-         case StrokeJoin::Bevel:
-            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL;
-            break;
-         case StrokeJoin::Round:
-            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_JOIN_ROUND;
-            break;
-         case StrokeJoin::Miter:
-            shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_JOIN_MITER;
-            break;
-         }
-
-       // width
-       shape_stroke->width = stroke->width;
-
-       // color vs fill todo
-       memcpy(shape_stroke->color, stroke->color, sizeof(stroke->color));
-
-       // move pointer
-       *pointer += sizeof(tvg_shape_stroke);
-
-       // dashPattern
-       if (stroke->dashCnt)
-          {
-             memcpy(*pointer, &stroke->dashCnt, sizeof(uint32_t));
-             *pointer += sizeof(uint32_t);
-             memcpy(*pointer, stroke->dashPattern, sizeof(float) * stroke->dashCnt);
-             *pointer += sizeof(float) * stroke->dashCnt;
-
-             shape_stroke->flags |= TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN;
-          }*/
     }
 
     /*
