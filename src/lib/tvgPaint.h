@@ -40,6 +40,7 @@ namespace tvg
         virtual bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const = 0;
         virtual Paint* duplicate() = 0;
         virtual void serialize(char** pointer) = 0;
+        virtual LoaderResult tvgLoad(const char* pointer, const char* end) = 0;
     };
 
     struct Paint::Impl
@@ -198,6 +199,7 @@ namespace tvg
 
         Paint* duplicate()
         {
+           printf("Paint* duplicate() paint h \n");
             auto ret = smethod->duplicate();
             if (!ret) return nullptr;
 
@@ -233,51 +235,37 @@ namespace tvg
         }
 
         /*
-         * Load paint from .tvg binary file
-         * Returns true on success and moves pointer to next position or false if corrupted.
+         * Load paint and derived classes from .tvg binary file
+         * Returns LoaderResult:: Success on success and moves pointer to next position,
+         * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
          * Details:
-         * Shape section starts with uint8 flags, these are describes below in Flags section.
-         * Next is section lenght in bytes (uint8).
-         * If HAS_OPACITY is set, next is opacity value (uint8).
-         * If HAS_TRANSFORM_MATRIX is set, next is transform matrix (9xfloat).
-         *
-         * Flags:
-         * xxxxxxx1 - HAS_OPACITY (TVG_PAINT_FLAG_HAS_OPACITY)
-         * xxxxxx1x - HAS_TRANSFORM_MATRIX (TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX)
-         *
-         * [uint8 flags][uint8 lenght][IF_FLAG uint8 opacity][IF_FLAG 9xfloat matrix]
+         * TODO
          */
-        bool tvgLoad(const char** pointer)
+        LoaderResult tvgLoad(const char* pointer, const char* end)
         {
-           const char * moving_pointer = *pointer;
-           // flag
-           const uint8_t flags = (uint8_t) *moving_pointer;
-           moving_pointer += sizeof(uint8_t);
+           LoaderResult result = smethod->tvgLoad(pointer, end);
+           if (result != LoaderResult::InvalidType) return result;
 
-           // lenght
-           const uint8_t lenght = (uint8_t) *moving_pointer;
-           moving_pointer += sizeof(uint8_t);
-           *pointer += sizeof(uint8_t) * lenght;
-           // validate lenght
-           if (lenght < 2) return false;
-
-           // opacity
-           /*if (flags & TVG_PAINT_FLAG_HAS_OPACITY)
+           const tvg_block * block = (tvg_block*) pointer;
+           switch (block->type)
               {
-                 opacity = (uint8_t) *moving_pointer;
-                 moving_pointer += sizeof(uint8_t);
+                 case TVG_PAINT_FLAG_HAS_OPACITY: {
+                    if (block->lenght != 1) return LoaderResult::SizeCorruption;
+                    opacity = block->data;
+                    break;
+                 }
+                 case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
+                    if (block->lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
+                    const Matrix * matrix = (Matrix *) &block->data;
+                    transform(*matrix); // TODO: check if transformation works
+                    break;
+                 }
+                 default: {
+                    return LoaderResult::InvalidType;
+                 }
               }
 
-           // transform matrix
-           if (flags & TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX)
-              {
-                 const Matrix * matrix = (Matrix *) moving_pointer;
-                 moving_pointer += sizeof(Matrix);
-                 //transform(*matrix);
-                 //printf("Paint load matrix %f \n", matrix->e11);
-              }*/
-
-           return true;
+           return LoaderResult::Success;
         }
 
         /*
@@ -286,31 +274,6 @@ namespace tvg
          */
         bool tvgStore()
         {
-           // Test function
-           char buffer[128];
-           char * pointer = buffer;
-
-           // flags
-           //*pointer = TVG_PAINT_FLAG_HAS_OPACITY | TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
-           pointer += sizeof(uint8_t);
-           // lenght
-           *pointer = 3*sizeof(uint8_t) + sizeof(Matrix);
-           pointer += sizeof(uint8_t);
-           // opacity
-           *pointer = opacity;
-           pointer += sizeof(uint8_t);
-           // transform matrix
-           Matrix m = {1.0f,0,0, 0,1.0f,0, 0,0,1.0f}; // no matrix getter yet
-           memcpy(pointer, &m, sizeof(uint32_t));
-           pointer += sizeof(Matrix);
-
-           // Print for testing
-           printf("PAINT tvgStore:");
-           for (char * ptr = buffer; ptr < pointer; ptr++) {
-                 printf(" %02X", (uint8_t)(*ptr));
-           }
-           printf(".\n");
-
            return true;
         }
     };
@@ -352,6 +315,11 @@ namespace tvg
         Paint* duplicate() override
         {
             return inst->duplicate();
+        }
+
+        LoaderResult tvgLoad(const char* pointer, const char* end) override
+        {
+             return inst->tvgLoad(pointer, end);
         }
 
         void serialize(char** pointer) override

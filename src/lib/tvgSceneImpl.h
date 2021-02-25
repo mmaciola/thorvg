@@ -153,6 +153,7 @@ struct Scene::Impl
 
     Paint* duplicate()
     {
+       printf("Paint* duplicate() scene h \n");
         auto ret = Scene::gen();
         if (!ret) return nullptr;
         auto dup = ret.get()->pImpl;
@@ -206,36 +207,29 @@ struct Scene::Impl
 
     /*
      * Load scene from .tvg binary file
-     * Returns true on success and moves pointer to next position or false if corrupted.
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
      * Details:
-     * Shape section starts with uint8 flags and uint8 lenght.
-     * Next is uint32 reservedCnt that describes amount of elements in paints array.
-     *
-     * Flags are now unused. For future purposes.
-     *
-     * [uint8 flags][uint8 lenght][uint32 reservedCnt]
+     * TODO
      */
-    bool tvgLoad(const char** pointer)
+    LoaderResult tvgLoad(const char* pointer, const char* end)
     {
-       const char * moving_pointer = *pointer;
-       // flag
-       //UNUSED: const uint8_t flags = (uint8_t) *moving_pointer;
-       moving_pointer += sizeof(uint8_t);
+       const tvg_block * block = (tvg_block*) pointer;
+       switch (block->type)
+         {
+          case TVG_SCENE_FLAG_RESERVEDCNT: {
+             if (block->lenght != 1) return LoaderResult::SizeCorruption;
+             uint32_t reservedCnt = (uint32_t) block->data;
+             paints.reserve(reservedCnt);
+             break;
+          }
+          default:
+             return LoaderResult::InvalidType;
+         }
 
-       // lenght
-       const uint8_t lenght = (uint8_t) *moving_pointer;
-       moving_pointer += sizeof(uint8_t);
-       *pointer += sizeof(uint8_t) * lenght;
-       // validate lenght
-       if (lenght < 6) return false;
-
-       // reservedCnt
-       uint32_t reservedCnt = (uint32_t) *moving_pointer;
-       moving_pointer += sizeof(uint32_t);
-       paints.reserve(reservedCnt);
-
-       return true;
+       return LoaderResult::Success;
     }
+
 
     /*
      * Store scene from .tvg binary file
@@ -243,27 +237,6 @@ struct Scene::Impl
      */
     bool tvgStore()
     {
-       // Test function
-       char buffer[128];
-       char * pointer = buffer;
-
-       // flags
-       *pointer = 'S'; // for test
-       pointer += sizeof(uint8_t);
-       // lenght
-       *pointer = 2*sizeof(uint8_t) + sizeof(uint32_t);
-       pointer += sizeof(uint8_t);
-       // reservedCnt
-       memcpy(pointer, &(paints.count), sizeof(uint32_t));
-       pointer += sizeof(uint32_t);
-
-       // Print for testing
-       printf("SCENE tvgStore:");
-       for (char * ptr = buffer; ptr < pointer; ptr++) {
-             printf(" %02X", (uint8_t)(*ptr));
-       }
-       printf(".\n");
-
        return true;
     }
 };
