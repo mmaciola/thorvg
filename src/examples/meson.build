@@ -34,6 +34,7 @@ source_file = [
     'Masking.cpp',
     'InvMasking.cpp',
     'TvgStorerLoader.cpp',
+    'Tvg.cpp',
 ]
 
 foreach current_file : source_file
