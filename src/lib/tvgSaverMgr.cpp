@@ -31,9 +31,11 @@
 /* External Class Implementation                                        */
 /************************************************************************/
 
-unique_ptr<Saver> SaverMgr::saver(const string& path)
+//unique_ptr<Saver> SaverMgr::saver(const string& path)
+unique_ptr<Saver> SaverMgr::saver(const string& path, Scene* scene) //MGS2
 {
-    auto saver = new TvgSaver();
+    //auto saver = new TvgSaver(); //MGS2
+    auto saver = new TvgSaver(scene);
     if (saver->open(path)) return unique_ptr<Saver>(saver);
     else delete(saver);
 

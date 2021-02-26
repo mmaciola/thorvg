@@ -68,11 +68,19 @@ Result Scene::clear() noexcept
     return Result::Success;
 }
 
+
 Result Scene::save(const std::string& path) noexcept
 {
     if (path.empty()) return Result::InvalidArguments;
 
-    return pImpl->save(path);
+    //return pImpl->save(path);
+    return pImpl->save(path, this); //MGS2
+}
+
+//MGS2 - temp solution, can't fine a better one for now
+void Scene::serialize()
+{
+    pImpl->serializationStart();
 }
 
 // tvgTvgLoader / tvgTvgStorer
@@ -80,6 +88,7 @@ Result Scene::load(const string& path)
 {
    return pImpl->load(path);
 }
+
 
 Result Scene::load(const char* data, uint32_t size)
 {

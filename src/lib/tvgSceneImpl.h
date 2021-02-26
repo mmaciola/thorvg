@@ -169,21 +169,34 @@ struct Scene::Impl
 
     void serialize(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             (*paint)->pImpl->serialize(pointer);
         }
     }
 
-    Result save(const std::string& path)
+//MGS2 - temp solution
+    void serializationStart()
     {
-        if (saver) saver->close();
-        saver = SaverMgr::saver(path);
-        if (!saver) return Result::NonSupport;
-        if (!saver->write()) return Result::Unknown;
-
-        // MGS - temp solution
+cout << __FILE__ << " " << __func__ << endl;
+//        if (!saver->write()) return;// Result::Unknown; //MGS3
         auto tvgSaver = static_cast<TvgSaver*>(saver.get());
         serialize(&tvgSaver->pointer);
+    }
+
+//    Result save(const std::string& path)
+    Result save(const std::string& path, Scene *scene) //MGS2
+    {
+cout << __FILE__ << " " << __func__ << endl;
+        if (saver) saver->close();
+        //saver = SaverMgr::saver(path);
+        saver = SaverMgr::saver(path, scene);  //MGS2
+        if (!saver) return Result::NonSupport;
+        if (!saver->write()) return Result::Unknown; //MGS3 - tu za wczesnie jest to staskowac...
+
+        // MGS - temp solution
+//        auto tvgSaver = static_cast<TvgSaver*>(saver.get());  //MGS2
+//        serialize(&tvgSaver->pointer);
 
         return Result::Success;
     }

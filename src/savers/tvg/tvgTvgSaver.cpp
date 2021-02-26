@@ -42,18 +42,20 @@ bool header(char** pointer)
     return true;
 }
 
+/*
 bool saveScene()
 {
     // MGS TODO 
     return true;
 }
-
+*/
 
 /************************************************************************/
 /* External Class Implementation                                        */
 /************************************************************************/
 
-TvgSaver::TvgSaver()
+//TvgSaver::TvgSaver()
+TvgSaver::TvgSaver(Scene* scene) : root(scene)  //MGS2
 {
 }
 
@@ -64,7 +66,17 @@ TvgSaver::~TvgSaver()
 
 void TvgSaver::run(unsigned tid)
 {
-    if (!saveScene()) return; 
+    root->serialize();  //MGS temp bo nie moge tego obejsc
+
+// MGS2
+/* 
+  ale tak sie nie da, bo nie mam dostepu do pImpla bo jest protected
+  dalam scenie friend saver, no ale to saver ma dostep a nie tvgsaver
+
+  chce tutaj wywolac fun ze sceny z pImpla serialize
+*/
+    //scene->pImpl->serialize(&pointer); 
+//    if (!saveScene()) return; 
 };
 
 /*

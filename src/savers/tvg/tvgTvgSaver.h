@@ -36,7 +36,10 @@ public:
 //    uint32_t size = 0;   reserved needed! MGS
     char* pointer = nullptr;
 
-    TvgSaver();
+    Scene* root;  //MGS2
+
+//    TvgSaver();
+    TvgSaver(Scene* scene);  //MGS2
     ~TvgSaver();
 
     using Saver::open;  // MGS

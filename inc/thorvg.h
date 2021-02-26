@@ -43,7 +43,7 @@ class RenderMethod;
 class Scene;
 class Picture;
 class Canvas;
-
+//class Saver;  //MGS2
 
 enum class TVG_EXPORT Result { Success = 0, InvalidArguments, InsufficientCondition, FailedAllocation, MemoryCorruption, NonSupport, Unknown };
 enum class TVG_EXPORT PathCommand { Close = 0, MoveTo, LineTo, CubicTo };
@@ -312,6 +312,9 @@ public:
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
     Result save(const std::string& path) noexcept;
+//MGS2 temp solution
+    void serialize();
+
 
     // TODO: NOW IN CANVAS!
     virtual Result load(const std::string& path);
@@ -319,6 +322,8 @@ public:
 
     static std::unique_ptr<Scene> gen() noexcept;
 
+// MGS2 to mi nic nie daje
+//    friend Saver;
     _TVG_DECLARE_PRIVATE(Scene);
 };
 

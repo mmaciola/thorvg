@@ -397,6 +397,7 @@ struct Shape::Impl
 
     ByteCounter serializeFill(char** pointer, Fill* f)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return 0;
 
         const Fill::ColorStop* stops = nullptr;
@@ -508,6 +509,7 @@ struct Shape::Impl
     /* assumption: all flags of given type have the same size */
     ByteCounter serializeStroke(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return 0;
 
         char* start = *pointer;
@@ -634,6 +636,7 @@ struct Shape::Impl
 
     ByteCounter serializePath(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return 0;
         if (!path.cmds || !path.pts || !path.cmdCnt || !path.ptsCnt) return 0;  // MGS - double check - needed?
 
@@ -681,6 +684,7 @@ struct Shape::Impl
 
     void serialize(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
         char* start = *pointer;

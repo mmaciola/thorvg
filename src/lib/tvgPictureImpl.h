@@ -207,10 +207,12 @@ struct Picture::Impl
 
     void serialize(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
         //NGS - reconsider
         if (!pixels && loader) {
+cout << "pixele nie byly zaladowane" << endl;
             pixels = const_cast<uint32_t*>(loader->pixels());
             w = loader->vw;
             h = loader->vh;
