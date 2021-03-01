@@ -68,13 +68,15 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, unique_
 {
    // create shape
    auto s = Shape::gen();
+   printf("tvg_read_shape\n");
 
    while (pointer < end)
       {
          tvg_block_2 block = read_tvg_block(pointer);
          if (block.block_end > end) return LoaderResult::SizeCorruption;
 
-         LoaderResult result = (*root)->tvgLoad(block);
+         LoaderResult result = s->tvgLoad(block);
+         printf("tvg_read_shape block result %s\n", (result == LoaderResult::Success) ? "Success" : ((result == LoaderResult::InvalidType) ? "InvalidType" : ((result == LoaderResult::SizeCorruption) ? "SizeCorruption" : "MemoryCorruption")));
          if (result > LoaderResult::Success) return result;
 
          pointer = block.block_end;
@@ -128,6 +130,7 @@ bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * roo
          // LOG: Header is improper
          return false;
       }
+   *root = Scene::gen();
 
    while (pointer < end)
       {

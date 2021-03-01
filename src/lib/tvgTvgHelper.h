@@ -14,7 +14,7 @@
 enum LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption };
 
 using FlagType = uint8_t;
-using ByteCounter = uint16_t;
+using ByteCounter = uint32_t;
 #define TVG_BASE_BLOCK_SIZE sizeof(FlagType) + sizeof(ByteCounter)
 
 struct tvg_block_2 {
@@ -27,8 +27,8 @@ struct tvg_block_2 {
 inline tvg_block_2 read_tvg_block(const char * pointer) {
    tvg_block_2 block;
    block.type = *pointer;
-   block.lenght = _read_tvg_16(pointer + 1);
-   block.data = pointer + 3;
+   block.lenght = _read_tvg_32(pointer + 1);
+   block.data = pointer + 5;
    block.block_end = block.data + block.lenght;
    return block;
 }
