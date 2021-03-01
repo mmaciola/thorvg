@@ -197,10 +197,10 @@ cout << __FILE__ << " " << __func__ << endl;
     void serializationStart()
     {
 cout << __FILE__ << " " << __func__ << endl;
-//        if (!saver->write()) return;// Result::Unknown; //MGS3 - jesli nei da segf to nei wiem czemu :), to daje requesta w runie
+//        if (!saver->write()) return;// Result::Unknown; //MGS3 - jesli taka glupota nei da segf to nei wiem czemu :), to daje requesta w runie
 //MGS5 - wykomentowalam na potrzeby testow
-//MGS5        auto tvgSaver = static_cast<TvgSaver*>(saver.get());
-//MGS5       serialize(&tvgSaver->pointer);
+        //MGS5 auto tvgSaver = static_cast<TvgSaver*>(saver.get());
+        //MGS5 serialize(&tvgSaver->pointer);
     }
 
 //    Result save(const std::string& path)

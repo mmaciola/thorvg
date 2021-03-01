@@ -88,7 +88,11 @@ cout << __FILE__ << " " << __func__ << endl;
 void Scene::serialize()
 {
 cout << __FILE__ << " " << __func__ << endl;
-    pImpl->serializationStart();
+        //MGS5 auto tvgSaver = static_cast<TvgSaver*>(saver.get());
+        //MGS5 serialize(&tvgSaver->pointer);
+    pImpl->serialize();
+
+//MGS5    pImpl->serializationStart();
 }
 
 // tvgTvgLoader / tvgTvgStorer
