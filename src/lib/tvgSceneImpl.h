@@ -207,37 +207,24 @@ struct Scene::Impl
 
     /*
      * Load scene from .tvg binary file
-     * Returns LoaderResult:: Success on success and moves pointer to next position,
-     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Returns LoaderResult: Success on success and moves pointer to next position,
+     * InvalidType if not applicable for paint or SizeCorruption if corrupted.
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(const char* pointer, const char* end)
+    LoaderResult tvgLoad(tvg_block_2 block)
     {
-       const tvg_block * block = (tvg_block*) pointer;
-       switch (block->type)
+       switch (block.type)
          {
           case TVG_SCENE_FLAG_RESERVEDCNT: {
-             if (block->lenght != 1) return LoaderResult::SizeCorruption;
-             uint32_t reservedCnt = (uint32_t) block->data;
+             if (block.lenght != 1) return LoaderResult::SizeCorruption;
+             uint32_t reservedCnt = _read_tvg_32(block.data);
              paints.reserve(reservedCnt);
-             break;
+             return LoaderResult::Success;
           }
-          default:
-             return LoaderResult::InvalidType;
          }
 
-       return LoaderResult::Success;
-    }
-
-
-    /*
-     * Store scene from .tvg binary file
-     * Details: see above function tvgLoad
-     */
-    bool tvgStore()
-    {
-       return true;
+       return LoaderResult::InvalidType;
     }
 };
 

@@ -11,13 +11,13 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     //Create a Scene
     auto scene = tvg::Scene::gen();
     scene->reserve(3);   //reserve 3 shape nodes (optional)
-    scene->tvgStore();
+    //scene->tvgStore();
 
     //Prepare Round Rectangle
     auto shape1 = tvg::Shape::gen();
     shape1->appendRect(0, 0, 400, 400, 50, 50);  //x, y, w, h, rx, ry
     shape1->fill(0x00, 0xba, 0xcc, 255);                //r, g, b, a
-    shape1->tvgStore();
+    //shape1->tvgStore();
     scene->push(move(shape1));
 
     //Prepare Circle
@@ -27,14 +27,14 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     shape2->stroke(255, 255, 255, 255);
     shape2->stroke(tvg::StrokeJoin::Round);
     shape2->stroke(10);
-    shape2->tvgStore();
+    //shape2->tvgStore();
     scene->push(move(shape2));
 
     //Prepare Ellipse
     auto shape3 = tvg::Shape::gen();
     shape3->appendCircle(600, 600, 150, 100);    //cx, cy, radiusW, radiusH
     shape3->fill(32, 255, 128, 255);              //r, g, b, a
-    shape3->tvgStore();
+    //shape3->tvgStore();
     scene->push(move(shape3));
 
     //Create another Scene

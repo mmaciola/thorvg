@@ -2,6 +2,7 @@
 #define _THORVG_H_
 
 #include <memory>
+#include "tvgTvgHelper.h"
 
 #ifdef TVG_BUILD
     #define TVG_EXPORT __attribute__ ((visibility ("default")))
@@ -54,8 +55,6 @@ enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
 enum class TVG_EXPORT CompositeMethod { None = 0, ClipPath, AlphaMask, InvAlphaMask };
 enum class TVG_EXPORT CanvasEngine { Sw = (1 << 1), Gl = (1 << 2)};
 
-enum LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption };
-
 struct Point
 {
     float x, y;
@@ -95,9 +94,7 @@ public:
 
     uint8_t opacity() const noexcept;
 
-    // tvgTvgLoader / tvgTvgStorer
-    LoaderResult tvgLoad(const char* pointer, const char* end) noexcept;
-    bool tvgStore() noexcept;
+    LoaderResult tvgLoad(tvg_block_2 block) noexcept;
 
     _TVG_DECLARE_ACCESSOR();
     _TVG_DECLARE_PRIVATE(Paint);

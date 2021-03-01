@@ -77,7 +77,6 @@ Result Paint::bounds(float* x, float* y, float* w, float* h) const noexcept
 
 Paint* Paint::duplicate() const noexcept
 {
-   printf("Paint::duplicate() cpp \n");
     return pImpl->duplicate();
 }
 
@@ -105,13 +104,7 @@ uint8_t Paint::opacity() const noexcept
     return pImpl->opacity;
 }
 
-// tvgTvgLoader / tvgTvgStorer
-LoaderResult Paint::tvgLoad(const char* pointer, const char* end) noexcept
+LoaderResult Paint::tvgLoad(tvg_block_2 block) noexcept
 {
-   return pImpl->tvgLoad(pointer, end);
-}
-
-bool Paint::tvgStore() noexcept
-{
-   return pImpl->tvgStore();
+   return pImpl->tvgLoad(block);
 }
