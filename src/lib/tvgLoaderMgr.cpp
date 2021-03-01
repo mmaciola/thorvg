@@ -35,6 +35,7 @@ static int initCnt = 0;
 
 static Loader* _find(FileType type)
 {
+cout << __FILE__ << " " << __func__ << endl;
     switch(type) {
         case FileType::Svg: {
 #ifdef THORVG_SVG_LOADER_SUPPORT
@@ -56,6 +57,7 @@ static Loader* _find(FileType type)
 
 static Loader* _find(const string& path)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto ext = path.substr(path.find_last_of(".") + 1);
     if (!ext.compare("svg")) return _find(FileType::Svg);
     return nullptr;
@@ -69,6 +71,7 @@ static Loader* _find(const string& path)
 
 bool LoaderMgr::init()
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (initCnt > 0) return true;
     ++initCnt;
 
@@ -80,6 +83,7 @@ bool LoaderMgr::init()
 
 bool LoaderMgr::term()
 {
+cout << __FILE__ << " " << __func__ << endl;
     --initCnt;
     if (initCnt > 0) return true;
 
@@ -91,6 +95,7 @@ bool LoaderMgr::term()
 
 unique_ptr<Loader> LoaderMgr::loader(const string& path)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (auto loader = _find(path)) {
         if (loader->open(path)) return unique_ptr<Loader>(loader);
         else delete(loader);
@@ -101,6 +106,7 @@ unique_ptr<Loader> LoaderMgr::loader(const string& path)
 
 unique_ptr<Loader> LoaderMgr::loader(const char* data, uint32_t size)
 {
+cout << __FILE__ << " " << __func__ << endl;
     for (int i = 0; i < static_cast<int>(FileType::Unknown); i++) {
         auto loader = _find(static_cast<FileType>(i));
         if (loader) {
@@ -114,6 +120,7 @@ unique_ptr<Loader> LoaderMgr::loader(const char* data, uint32_t size)
 
 unique_ptr<Loader> LoaderMgr::loader(uint32_t *data, uint32_t w, uint32_t h, bool copy)
 {
+cout << __FILE__ << " " << __func__ << endl;
     for (int i = 0; i < static_cast<int>(FileType::Unknown); i++) {
         auto loader = _find(static_cast<FileType>(i));
         if (loader) {

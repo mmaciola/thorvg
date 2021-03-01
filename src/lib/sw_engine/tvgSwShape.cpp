@@ -159,6 +159,7 @@ static void _outlineClose(SwOutline& outline)
 
 static void _initBBox(SwBBox& bbox)
 {
+cout << __FILE__ << " " << __func__ << endl;
     bbox.min.x = bbox.min.y = 0;
     bbox.max.x = bbox.max.y = 0;
 }
@@ -166,6 +167,7 @@ static void _initBBox(SwBBox& bbox)
 
 static bool _updateBBox(SwOutline* outline, SwBBox& bbox)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!outline) return false;
 
     auto pt = outline->pts;
@@ -201,6 +203,7 @@ static bool _updateBBox(SwOutline* outline, SwBBox& bbox)
 
 static bool _checkValid(const SwOutline* outline, const SwBBox& bbox, const SwSize& clip)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (outline->ptsCnt == 0 || outline->cntrsCnt <= 0) return false;
 
     //Check boundary
@@ -304,6 +307,7 @@ static void _dashCubicTo(SwDashStroke& dash, const Point* ctrl1, const Point* ct
 
 SwOutline* _genDashOutline(const Shape* sdata, const Matrix* transform)
 {
+cout << __FILE__ << " " << __func__ << endl;
     const PathCommand* cmds = nullptr;
     auto cmdCnt = sdata->pathCommands(&cmds);
 
@@ -399,6 +403,7 @@ SwOutline* _genDashOutline(const Shape* sdata, const Matrix* transform)
 
 bool _fastTrack(const SwOutline* outline)
 {
+cout << __FILE__ << " " << __func__ << endl;
     //Fast Track: Othogonal rectangle?
     if (outline->ptsCnt != 5) return false;
 
@@ -422,6 +427,7 @@ bool _fastTrack(const SwOutline* outline)
 
 bool shapePrepare(SwShape* shape, const Shape* sdata, unsigned tid, const SwSize& clip, const Matrix* transform, SwBBox& bbox)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!shapeGenOutline(shape, sdata, tid, transform)) return false;
 
     if (!_updateBBox(shape->outline, shape->bbox)) return false;
@@ -436,12 +442,14 @@ bool shapePrepare(SwShape* shape, const Shape* sdata, unsigned tid, const SwSize
 
 bool shapePrepared(SwShape* shape)
 {
+cout << __FILE__ << " " << __func__ << endl;
     return shape->rle ? true : false;
 }
 
 
 bool shapeGenRle(SwShape* shape, TVG_UNUSED const Shape* sdata, const SwSize& clip, bool antiAlias, bool hasComposite)
 {
+cout << __FILE__ << " " << __func__ << endl;
     //FIXME: Should we draw it?
     //Case: Stroke Line
     //if (shape.outline->opened) return true;
@@ -457,6 +465,7 @@ bool shapeGenRle(SwShape* shape, TVG_UNUSED const Shape* sdata, const SwSize& cl
 
 void shapeDelOutline(SwShape* shape, uint32_t tid)
 {
+cout << __FILE__ << " " << __func__ << endl;
     mpoolRetOutline(tid);
     shape->outline = nullptr;
 }
@@ -464,6 +473,7 @@ void shapeDelOutline(SwShape* shape, uint32_t tid)
 
 void shapeReset(SwShape* shape)
 {
+cout << __FILE__ << " " << __func__ << endl;
     rleReset(shape->rle);
     rleReset(shape->strokeRle);
     shape->rect = false;
@@ -473,6 +483,7 @@ void shapeReset(SwShape* shape)
 
 bool shapeGenOutline(SwShape* shape, const Shape* sdata, unsigned tid, const Matrix* transform)
 {
+cout << __FILE__ << " " << __func__ << endl;
     const PathCommand* cmds = nullptr;
     auto cmdCnt = sdata->pathCommands(&cmds);
 
@@ -560,6 +571,7 @@ bool shapeGenOutline(SwShape* shape, const Shape* sdata, unsigned tid, const Mat
 
 void shapeFree(SwShape* shape)
 {
+cout << __FILE__ << " " << __func__ << endl;
     rleFree(shape->rle);
     shapeDelFill(shape);
 
@@ -572,6 +584,7 @@ void shapeFree(SwShape* shape)
 
 void shapeDelStroke(SwShape* shape)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!shape->stroke) return;
     rleFree(shape->strokeRle);
     shape->strokeRle = nullptr;
@@ -582,6 +595,7 @@ void shapeDelStroke(SwShape* shape)
 
 void shapeResetStroke(SwShape* shape, const Shape* sdata, const Matrix* transform)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!shape->stroke) shape->stroke = static_cast<SwStroke*>(calloc(1, sizeof(SwStroke)));
     auto stroke = shape->stroke;
     if (!stroke) return;
@@ -593,6 +607,7 @@ void shapeResetStroke(SwShape* shape, const Shape* sdata, const Matrix* transfor
 
 bool shapeGenStrokeRle(SwShape* shape, const Shape* sdata, unsigned tid, const Matrix* transform, const SwSize& clip, SwBBox& bbox)
 {
+cout << __FILE__ << " " << __func__ << endl;
     SwOutline* shapeOutline = nullptr;
     SwOutline* strokeOutline = nullptr;
     bool freeOutline = false;
@@ -646,12 +661,14 @@ fail:
 
 bool shapeGenFillColors(SwShape* shape, const Fill* fill, const Matrix* transform, SwSurface* surface, uint32_t opacity, bool ctable)
 {
+cout << __FILE__ << " " << __func__ << endl;
     return fillGenColorTable(shape->fill, fill, transform, surface, opacity, ctable);
 }
 
 
 void shapeResetFill(SwShape* shape)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!shape->fill) {
         shape->fill = static_cast<SwFill*>(calloc(1, sizeof(SwFill)));
         if (!shape->fill) return;
@@ -662,6 +679,7 @@ void shapeResetFill(SwShape* shape)
 
 void shapeDelFill(SwShape* shape)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!shape->fill) return;
     fillFree(shape->fill);
     shape->fill = nullptr;

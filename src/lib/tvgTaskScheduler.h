@@ -52,7 +52,9 @@ public:
 
     void done()
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!pending) return;
+cout << __FILE__ << " " << __func__ << " po if !pending" << endl;
 
         unique_lock<mutex> lock(mtx);
         while (!ready) cv.wait(lock);
@@ -65,6 +67,7 @@ protected:
 private:
     void operator()(unsigned tid)
     {
+cout << __FILE__ << " " << __func__ << endl;
         run(tid);
 
         lock_guard<mutex> lock(mtx);
@@ -74,6 +77,7 @@ private:
 
     void prepare()
     {
+cout << __FILE__ << " " << __func__ << endl;
         ready = false;
         pending = true;
     }

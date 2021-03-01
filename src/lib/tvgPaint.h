@@ -55,6 +55,7 @@ namespace tvg
         uint8_t opacity = 255;
 
         ~Impl() {
+cout << __FILE__ << " " << __func__ << endl;
             if (cmpTarget) delete(cmpTarget);
             if (smethod) delete(smethod);
             if (rTransform) delete(rTransform);
@@ -62,11 +63,13 @@ namespace tvg
 
         void method(StrategyMethod* method)
         {
+cout << __FILE__ << " " << __func__ << endl;
             smethod = method;
         }
 
         bool rotate(float degree)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (rTransform) {
                 if (fabsf(degree - rTransform->degree) <= FLT_EPSILON) return true;
             } else {
@@ -82,6 +85,7 @@ namespace tvg
 
         bool scale(float factor)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (rTransform) {
                 if (fabsf(factor - rTransform->scale) <= FLT_EPSILON) return true;
             } else {
@@ -97,6 +101,7 @@ namespace tvg
 
         bool translate(float x, float y)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (rTransform) {
                 if (fabsf(x - rTransform->x) <= FLT_EPSILON && fabsf(y - rTransform->y) <= FLT_EPSILON) return true;
             } else {
@@ -113,6 +118,7 @@ namespace tvg
 
         bool transform(const Matrix& m)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (!rTransform) {
                 rTransform = new RenderTransform();
                 if (!rTransform) return false;
@@ -125,22 +131,26 @@ namespace tvg
 
         bool bounds(float* x, float* y, float* w, float* h) const
         {
+cout << __FILE__ << " " << __func__ << endl;
             return smethod->bounds(x, y, w, h);
         }
 
         bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const
         {
+cout << __FILE__ << " " << __func__ << endl;
             return smethod->bounds(renderer, x, y, w, h);
         }
 
         bool dispose(RenderMethod& renderer)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (cmpTarget) cmpTarget->pImpl->dispose(renderer);
             return smethod->dispose(renderer);
         }
 
         void* update(RenderMethod& renderer, const RenderTransform* pTransform, uint32_t opacity, Array<RenderData>& clips, uint32_t pFlag)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (flag & RenderUpdateFlag::Transform) {
                 if (!rTransform) return nullptr;
                 if (!rTransform->update()) {
@@ -171,11 +181,13 @@ namespace tvg
 
             if (cmpData) clips.pop();
 
+cout << "KONIEC " << __FILE__ << " " << __func__ << endl;
             return edata;
         }
 
         bool render(RenderMethod& renderer)
         {
+cout << __FILE__ << " " << __func__ << endl;
             Compositor* cmp = nullptr;
 
             /* Note: only ClipPath is processed in update() step.
@@ -194,12 +206,13 @@ namespace tvg
 
             if (cmp) renderer.endComposite(cmp);
 
+cout << "KONIEC " << __FILE__ << " " << __func__ << endl;
             return ret;
         }
 
         Paint* duplicate()
         {
-           printf("Paint* duplicate() paint h \n");
+cout << __FILE__ << " " << __func__ << endl;
             auto ret = smethod->duplicate();
             if (!ret) return nullptr;
 
@@ -223,6 +236,7 @@ namespace tvg
 
         bool composite(Paint* target, CompositeMethod method)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if ((!target && method != CompositeMethod::None) || (target && method == CompositeMethod::None)) return false;
             cmpTarget = target;
             cmpMethod = method;
@@ -231,6 +245,16 @@ namespace tvg
 
         void serialize(char** pointer)
         {
+cout << __FILE__ << " " << __func__ << endl;
+//MGS3
+if (rTransform)
+{
+  Matrix m = rTransform->m;
+  cout << "mam juz rTransform" << endl;
+  cout << m.e11 << " " << m.e12 << " " << m.e13 << endl;
+  cout << m.e21 << " " << m.e22 << " " << m.e23 << endl;
+  cout << m.e31 << " " << m.e32 << " " << m.e33 << endl;
+}
             smethod->serialize(pointer);
         }
 
@@ -243,6 +267,7 @@ namespace tvg
          */
         LoaderResult tvgLoad(const char* pointer, const char* end)
         {
+cout << __FILE__ << " " << __func__ << endl;
            LoaderResult result = smethod->tvgLoad(pointer, end);
            if (result != LoaderResult::InvalidType) return result;
 
@@ -274,6 +299,7 @@ namespace tvg
          */
         bool tvgStore()
         {
+cout << __FILE__ << " " << __func__ << endl;
            return true;
         }
     };
@@ -289,41 +315,49 @@ namespace tvg
 
         bool bounds(float* x, float* y, float* w, float* h) const override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->bounds(x, y, w, h);
         }
 
         bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->bounds(renderer, x, y, w, h);
         }
 
         bool dispose(RenderMethod& renderer) override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->dispose(renderer);
         }
 
         void* update(RenderMethod& renderer, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag flag) override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->update(renderer, transform, opacity, clips, flag);
         }
 
         bool render(RenderMethod& renderer) override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->render(renderer);
         }
 
         Paint* duplicate() override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->duplicate();
         }
 
         LoaderResult tvgLoad(const char* pointer, const char* end) override
         {
+cout << __FILE__ << " " << __func__ << endl;
              return inst->tvgLoad(pointer, end);
         }
 
         void serialize(char** pointer) override
         {
+cout << __FILE__ << " " << __func__ << endl;
              inst->serialize(pointer);
         }
     };

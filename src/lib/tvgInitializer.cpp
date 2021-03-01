@@ -43,6 +43,7 @@ static bool initialized = false;
 
 Result Initializer::init(CanvasEngine engine, uint32_t threads) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (initialized) return Result::InsufficientCondition;
 
     auto nonSupport = true;
@@ -75,6 +76,7 @@ Result Initializer::init(CanvasEngine engine, uint32_t threads) noexcept
 
 Result Initializer::term(CanvasEngine engine) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!initialized) return Result::InsufficientCondition;
 
     auto nonSupport = true;

@@ -2534,17 +2534,20 @@ static bool _svgLoaderParserForValidCheck(void* data, SimpleXMLType type, const 
 
 SvgLoader::SvgLoader()
 {
+cout << __FILE__ << " " << __func__ << endl;
 }
 
 
 SvgLoader::~SvgLoader()
 {
+cout << __FILE__ << " " << __func__ << endl;
     close();
 }
 
 
 void SvgLoader::run(unsigned tid)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!simpleXmlParse(content, size, true, _svgLoaderParser, &(loaderData))) return;
 
     if (loaderData.doc) {
@@ -2563,6 +2566,7 @@ void SvgLoader::run(unsigned tid)
 
 bool SvgLoader::header()
 {
+cout << __FILE__ << " " << __func__ << endl;
     //For valid check, only <svg> tag is parsed first.
     //If the <svg> tag is found, the loaded file is valid and stores viewbox information.
     //After that, the remaining content data is parsed in order with async.
@@ -2594,6 +2598,7 @@ bool SvgLoader::header()
 
 bool SvgLoader::open(const char* data, uint32_t size)
 {
+cout << __FILE__ << " " << __func__ << endl;
     this->content = data;
     this->size = size;
 
@@ -2603,6 +2608,7 @@ bool SvgLoader::open(const char* data, uint32_t size)
 
 bool SvgLoader::open(const string& path)
 {
+cout << __FILE__ << " " << __func__ << endl;
     ifstream f;
     f.open(path);
 
@@ -2626,6 +2632,7 @@ bool SvgLoader::open(const string& path)
 
 bool SvgLoader::read()
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!content || size == 0) return false;
 
     TaskScheduler::request(this);
@@ -2636,7 +2643,8 @@ bool SvgLoader::read()
 
 bool SvgLoader::close()
 {
-    this->done();
+cout << __FILE__ << " " << __func__ << endl;
+    this->done();  //MGS3 - nie wiem czy done powinien sie wolac skoro nie bylo request
 
     if (loaderData.svgParse) {
         free(loaderData.svgParse);
@@ -2659,6 +2667,7 @@ bool SvgLoader::close()
 
 unique_ptr<Scene> SvgLoader::scene()
 {
+cout << __FILE__ << " " << __func__ << endl;
     this->done();
     if (root) return move(root);
     else return nullptr;

@@ -27,24 +27,28 @@
 
 Scene::Scene() : pImpl(new Impl())
 {
+cout << __FILE__ << " " << __func__ << endl;
     Paint::pImpl->method(new PaintMethod<Scene::Impl>(pImpl));
 }
 
 
 Scene::~Scene()
 {
+cout << __FILE__ << " " << __func__ << endl;
     delete(pImpl);
 }
 
 
 unique_ptr<Scene> Scene::gen() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return unique_ptr<Scene>(new Scene);
 }
 
 
 Result Scene::push(unique_ptr<Paint> paint) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto p = paint.release();
     if (!p) return Result::MemoryCorruption;
     pImpl->paints.push(p);
@@ -55,6 +59,7 @@ Result Scene::push(unique_ptr<Paint> paint) noexcept
 
 Result Scene::reserve(uint32_t size) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->paints.reserve(size);
 
     return Result::Success;
@@ -63,6 +68,7 @@ Result Scene::reserve(uint32_t size) noexcept
 
 Result Scene::clear() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->paints.clear();
 
     return Result::Success;
@@ -71,6 +77,7 @@ Result Scene::clear() noexcept
 
 Result Scene::save(const std::string& path) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (path.empty()) return Result::InvalidArguments;
 
     //return pImpl->save(path);
@@ -80,18 +87,21 @@ Result Scene::save(const std::string& path) noexcept
 //MGS2 - temp solution, can't fine a better one for now
 void Scene::serialize()
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->serializationStart();
 }
 
 // tvgTvgLoader / tvgTvgStorer
 Result Scene::load(const string& path)
 {
+cout << __FILE__ << " " << __func__ << endl;
    return pImpl->load(path);
 }
 
 
 Result Scene::load(const char* data, uint32_t size)
 {
+cout << __FILE__ << " " << __func__ << endl;
    return pImpl->load(data, size);
 }
 

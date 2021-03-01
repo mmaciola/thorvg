@@ -35,6 +35,7 @@
 
 static bool _updateColorTable(SwFill* fill, const Fill* fdata, SwSurface* surface, uint32_t opacity)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!fill->ctable) {
         fill->ctable = static_cast<uint32_t*>(malloc(GRADIENT_STOP_SIZE * sizeof(uint32_t)));
         if (!fill->ctable) return false;
@@ -102,6 +103,7 @@ static bool _updateColorTable(SwFill* fill, const Fill* fdata, SwSurface* surfac
 
 bool _prepareLinear(SwFill* fill, const LinearGradient* linear, const Matrix* transform)
 {
+cout << __FILE__ << " " << __func__ << endl;
     float x1, x2, y1, y2;
     if (linear->linear(&x1, &y1, &x2, &y2) != Result::Success) return false;
 
@@ -136,6 +138,7 @@ bool _prepareLinear(SwFill* fill, const LinearGradient* linear, const Matrix* tr
 
 bool _prepareRadial(SwFill* fill, const RadialGradient* radial, const Matrix* transform)
 {
+cout << __FILE__ << " " << __func__ << endl;
     float radius;
     if (radial->radial(&fill->radial.cx, &fill->radial.cy, &radius) != Result::Success) return false;
     if (radius < FLT_EPSILON) return true;
@@ -170,6 +173,7 @@ bool _prepareRadial(SwFill* fill, const RadialGradient* radial, const Matrix* tr
 
 static inline uint32_t _clamp(const SwFill* fill, int32_t pos)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     switch (fill->spread) {
         case FillSpread::Pad: {
             if (pos >= GRADIENT_STOP_SIZE) pos = GRADIENT_STOP_SIZE - 1;
@@ -195,6 +199,7 @@ static inline uint32_t _clamp(const SwFill* fill, int32_t pos)
 
 static inline uint32_t _fixedPixel(const SwFill* fill, int32_t pos)
 {
+cout << __FILE__ << " " << __func__ << endl;
     int32_t i = (pos + (FIXPT_SIZE / 2)) >> FIXPT_BITS;
     return fill->ctable[_clamp(fill, i)];
 }
@@ -202,6 +207,7 @@ static inline uint32_t _fixedPixel(const SwFill* fill, int32_t pos)
 
 static inline uint32_t _pixel(const SwFill* fill, float pos)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     auto i = static_cast<int32_t>(pos * (GRADIENT_STOP_SIZE - 1) + 0.5f);
     return fill->ctable[_clamp(fill, i)];
 }
@@ -213,6 +219,7 @@ static inline uint32_t _pixel(const SwFill* fill, float pos)
 
 void fillFetchRadial(const SwFill* fill, uint32_t* dst, uint32_t y, uint32_t x, uint32_t len)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     //Rotation
     auto rx = (x + 0.5f - fill->radial.cx) * fill->sy;
     auto ry = (y + 0.5f - fill->radial.cy) * fill->sx;
@@ -234,6 +241,7 @@ void fillFetchRadial(const SwFill* fill, uint32_t* dst, uint32_t y, uint32_t x, 
 
 void fillFetchLinear(const SwFill* fill, uint32_t* dst, uint32_t y, uint32_t x, uint32_t offset, uint32_t len)
 {
+cout << __FILE__ << " " << __func__ << endl;
     //Rotation
     float rx = x + 0.5f;
     float ry = y + 0.5f;
@@ -264,6 +272,7 @@ void fillFetchLinear(const SwFill* fill, uint32_t* dst, uint32_t y, uint32_t x, 
     //we have to fallback to float math
     } else {
         while (dst < dst + len) {
+cout << "BLLAAAAAAAD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
             *dst = _pixel(fill, t / GRADIENT_STOP_SIZE);
             ++dst;
             t += inc;
@@ -274,6 +283,7 @@ void fillFetchLinear(const SwFill* fill, uint32_t* dst, uint32_t y, uint32_t x, 
 
 bool fillGenColorTable(SwFill* fill, const Fill* fdata, const Matrix* transform, SwSurface* surface, uint32_t opacity, bool ctable)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!fill) return false;
 
     fill->spread = fdata->spread();
@@ -296,6 +306,7 @@ bool fillGenColorTable(SwFill* fill, const Fill* fdata, const Matrix* transform,
 
 void fillReset(SwFill* fill)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (fill->ctable) {
         free(fill->ctable);
         fill->ctable = nullptr;
@@ -306,6 +317,7 @@ void fillReset(SwFill* fill)
 
 void fillFree(SwFill* fill)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!fill) return;
 
     if (fill->ctable) free(fill->ctable);

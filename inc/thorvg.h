@@ -43,7 +43,7 @@ class RenderMethod;
 class Scene;
 class Picture;
 class Canvas;
-//class Saver;  //MGS2
+class Saver;  //MGS2
 
 enum class TVG_EXPORT Result { Success = 0, InvalidArguments, InsufficientCondition, FailedAllocation, MemoryCorruption, NonSupport, Unknown };
 enum class TVG_EXPORT PathCommand { Close = 0, MoveTo, LineTo, CubicTo };
@@ -323,8 +323,12 @@ public:
     static std::unique_ptr<Scene> gen() noexcept;
 
 // MGS2 to mi nic nie daje
-//    friend Saver;
+    friend Saver;
+
     _TVG_DECLARE_PRIVATE(Scene);
+//MGS5 
+private:
+    int val = 20;
 };
 
 

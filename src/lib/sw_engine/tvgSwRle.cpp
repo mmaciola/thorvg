@@ -137,6 +137,7 @@ static inline SwCoord HYPOT(SwPoint pt)
 
 static void _genSpan(SwRleData* rle, SwSpan* spans, uint32_t count)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto newSize = rle->size + count;
 
     /* allocate enough memory for new spans */
@@ -241,6 +242,7 @@ static void _horizLine(RleWorker& rw, SwCoord x, SwCoord y, SwCoord area, SwCoor
 
 static void _sweep(RleWorker& rw)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (rw.cellsCnt == 0) return;
 
     rw.spansCnt = 0;
@@ -271,6 +273,7 @@ static void _sweep(RleWorker& rw)
 
 static Cell* _findCell(RleWorker& rw)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     auto x = rw.cellPos.x;
     if (x > rw.cellXCnt) x = rw.cellXCnt;
 
@@ -298,6 +301,7 @@ static Cell* _findCell(RleWorker& rw)
 
 static void _recordCell(RleWorker& rw)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     if (rw.area | rw.cover) {
         auto cell = _findCell(rw);
         cell->area += rw.area;
@@ -308,6 +312,7 @@ static void _recordCell(RleWorker& rw)
 
 static void _setCell(RleWorker& rw, SwPoint pos)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     /* Move the cell pointer to a new position.  We set the `invalid'      */
     /* flag to indicate that the cell isn't part of those we're interested */
     /* in during the render phase.  This means that:                       */
@@ -341,6 +346,7 @@ static void _setCell(RleWorker& rw, SwPoint pos)
 
 static void _startCell(RleWorker& rw, SwPoint pos)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     if (pos.x > rw.cellMax.x) pos.x = rw.cellMax.x;
     if (pos.x < rw.cellMin.x) pos.x = rw.cellMin.x;
     //if (pos.x < rw.cellMin.x) pos.x = (rw.cellMin.x - 1);
@@ -550,6 +556,7 @@ static void _cubicTo(RleWorker& rw, const SwPoint& ctrl1, const SwPoint& ctrl2, 
 
 static bool _decomposeOutline(RleWorker& rw)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto outline = rw.outline;
     auto first = 0;  //index of first point in contour
 
@@ -603,6 +610,7 @@ invalid_outline:
 
 static int _genRle(RleWorker& rw)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (setjmp(rw.jmpBuf) == 0) {
         auto ret = _decomposeOutline(rw);
         if (!rw.invalid) _recordCell(rw);
@@ -615,6 +623,7 @@ static int _genRle(RleWorker& rw)
 
 SwSpan* _intersectSpansRegion(const SwRleData *clip, const SwRleData *targetRle, SwSpan *outSpans, uint32_t spanCnt)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto out = outSpans;
     auto spans = targetRle->spans;
     auto end = targetRle->spans + targetRle->size;
@@ -667,6 +676,7 @@ SwSpan* _intersectSpansRegion(const SwRleData *clip, const SwRleData *targetRle,
 
 SwSpan* _intersectMaskRegion(const SwRleData *clip, const SwRleData *targetRle, SwSpan *outSpans, uint32_t spanCnt)
 {
+cout << __FILE__ << " " << __func__ << endl;
 
     auto out = outSpans;
     auto spans = targetRle->spans;
@@ -736,6 +746,7 @@ SwSpan* _intersectMaskRegion(const SwRleData *clip, const SwRleData *targetRle, 
 
 SwSpan* _intersectSpansRect(const SwBBox *bbox, const SwRleData *targetRle, SwSpan *outSpans, uint32_t spanCnt)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto out = outSpans;
     auto spans = targetRle->spans;
     auto end = targetRle->spans + targetRle->size;
@@ -778,6 +789,7 @@ SwSpan* _intersectSpansRect(const SwBBox *bbox, const SwRleData *targetRle, SwSp
 
 SwRleData* rleRender(SwRleData* rle, const SwOutline* outline, const SwBBox& bbox, const SwSize& clip, bool antiAlias)
 {
+cout << __FILE__ << " " << __func__ << endl;
     constexpr auto RENDER_POOL_SIZE = 16384L;
     constexpr auto BAND_SIZE = 40;
 
@@ -903,6 +915,7 @@ error:
 
 void rleReset(SwRleData* rle)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!rle) return;
     rle->size = 0;
 }
@@ -910,6 +923,7 @@ void rleReset(SwRleData* rle)
 
 void rleFree(SwRleData* rle)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!rle) return;
     if (rle->spans) free(rle->spans);
     free(rle);
@@ -917,6 +931,7 @@ void rleFree(SwRleData* rle)
 
 void updateRleSpans(SwRleData *rle, SwSpan* curSpans, uint32_t size)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!rle->spans || !curSpans || size == 0) return;
     rle->size = size;
     rle->spans = static_cast<SwSpan*>(realloc(rle->spans, rle->size * sizeof(SwSpan)));
@@ -934,6 +949,7 @@ void updateRleSpans(SwRleData *rle, SwSpan* curSpans, uint32_t size)
 
 void rleClipPath(SwRleData *rle, const SwRleData *clip)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (rle->size == 0 || clip->size == 0) return;
     auto spanCnt = rle->size > clip->size ? rle->size : clip->size;
     auto spans = static_cast<SwSpan*>(malloc(sizeof(SwSpan) * (spanCnt)));
@@ -952,6 +968,7 @@ void rleClipPath(SwRleData *rle, const SwRleData *clip)
 
 void rleClipRect(SwRleData *rle, const SwBBox* clip)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (rle->size == 0) return;
     auto spans = static_cast<SwSpan*>(malloc(sizeof(SwSpan) * (rle->size)));
     if (!spans) return;
@@ -970,6 +987,7 @@ void rleClipRect(SwRleData *rle, const SwBBox* clip)
 
 void rleAlphaMask(SwRleData *rle, const SwRleData *clip)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (rle->size == 0 || clip->size == 0) return;
     auto spanCnt = rle->size + clip->size;
 

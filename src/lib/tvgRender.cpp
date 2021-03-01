@@ -34,6 +34,7 @@
 
 void RenderTransform::override(const Matrix& m)
 {
+cout << __FILE__ << " " << __func__ << endl;
     this->m = m;
 
     if (m.e11 == 0.0f && m.e12 == 0.0f && m.e13 == 0.0f &&
@@ -46,6 +47,7 @@ void RenderTransform::override(const Matrix& m)
 
 bool RenderTransform::update()
 {
+cout << __FILE__ << " " << __func__ << endl;
     constexpr auto PI = 3.141592f;
 
     if (overriding) return true;
@@ -101,11 +103,13 @@ bool RenderTransform::update()
 
 RenderTransform::RenderTransform()
 {
+cout << __FILE__ << " " << __func__ << endl;
 }
 
 
 RenderTransform::RenderTransform(const RenderTransform* lhs, const RenderTransform* rhs)
 {
+cout << __FILE__ << " " << __func__ << endl;
     m.e11 = lhs->m.e11 * rhs->m.e11 + lhs->m.e12 * rhs->m.e21 + lhs->m.e13 * rhs->m.e31;
     m.e12 = lhs->m.e11 * rhs->m.e12 + lhs->m.e12 * rhs->m.e22 + lhs->m.e13 * rhs->m.e32;
     m.e13 = lhs->m.e11 * rhs->m.e13 + lhs->m.e12 * rhs->m.e23 + lhs->m.e13 * rhs->m.e33;

@@ -43,6 +43,7 @@ struct FillDup : DuplicateMethod<Fill>
 
     Fill* duplicate() override
     {
+cout << __FILE__ << " " << __func__ << endl;
         return inst->duplicate();
     }
 };
@@ -56,17 +57,20 @@ struct Fill::Impl
 
     ~Impl()
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (dup) delete(dup);
         if (colorStops) free(colorStops);
     }
 
     void method(DuplicateMethod<Fill>* dup)
     {
+cout << __FILE__ << " " << __func__ << endl;
         this->dup = dup;
     }
 
     Fill* duplicate()
     {
+cout << __FILE__ << " " << __func__ << endl;
         auto ret = dup->duplicate();
         if (!ret) return nullptr;
 

@@ -42,6 +42,7 @@ struct SwTask : Task
 
     void bounds(uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
     {
+cout << __FILE__ << " " << __func__ << endl;
         //Range over?
         auto xx = bbox.min.x > 0 ? bbox.min.x : 0;
         auto yy = bbox.min.y > 0 ? bbox.min.y : 0;
@@ -64,6 +65,7 @@ struct SwShapeTask : SwTask
 
     void run(unsigned tid) override
     {
+cout << __FILE__ << " " << __func__ << " (struct SwShapeTask)" << endl;
         if (opacity == 0) return;  //Invisible
 
         /* Valid filling & stroking each increases the value by 1.
@@ -149,10 +151,12 @@ struct SwShapeTask : SwTask
         shapeDelOutline(&shape, tid);
         if (addStroking > 1 && opacity < 255) cmpStroking = true;
         else cmpStroking = false;
+cout << "KONIEC " << __FILE__ << " " << __func__ << " (struct SwShapeTask)" << endl;
     }
 
     bool dispose() override
     {
+cout << __FILE__ << " " << __func__ << endl;
        shapeFree(&shape);
        return true;
     }
@@ -166,6 +170,7 @@ struct SwImageTask : SwTask
 
     void run(unsigned tid) override
     {
+cout << __FILE__ << " " << __func__ << " (struct SwImageTask)" << endl;
         SwSize clip = {static_cast<SwCoord>(surface->w), static_cast<SwCoord>(surface->h)};
 
         //Invisible shape turned to visible by alpha.
@@ -191,10 +196,12 @@ struct SwImageTask : SwTask
         image.data = const_cast<uint32_t*>(pdata->data());
     end:
         imageDelOutline(&image, tid);
+cout << "KONIEC " << __FILE__ << " " << __func__ << " (struct SwImageTask)" << endl;
     }
 
     bool dispose() override
     {
+cout << __FILE__ << " " << __func__ << endl;
        imageFree(&image);
        return true;
     }
@@ -203,6 +210,7 @@ struct SwImageTask : SwTask
 
 static void _termEngine()
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (rendererCnt > 0) return;
 
     mpoolTerm();
@@ -215,6 +223,7 @@ static void _termEngine()
 
 SwRenderer::~SwRenderer()
 {
+cout << __FILE__ << " " << __func__ << endl;
     clear();
 
     if (surface) delete(surface);
@@ -226,6 +235,7 @@ SwRenderer::~SwRenderer()
 
 bool SwRenderer::clear()
 {
+cout << __FILE__ << " " << __func__ << endl;
     for (auto task = tasks.data; task < (tasks.data + tasks.count); ++task) (*task)->done();
     tasks.clear();
 
@@ -235,12 +245,14 @@ bool SwRenderer::clear()
 
 bool SwRenderer::sync()
 {
+cout << __FILE__ << " " << __func__ << endl;
     return true;
 }
 
 
 bool SwRenderer::target(uint32_t* buffer, uint32_t stride, uint32_t w, uint32_t h, uint32_t cs)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!buffer || stride == 0 || w == 0 || h == 0) return false;
 
     if (!surface) {
@@ -260,12 +272,14 @@ bool SwRenderer::target(uint32_t* buffer, uint32_t stride, uint32_t w, uint32_t 
 
 bool SwRenderer::preRender()
 {
+cout << __FILE__ << " " << __func__ << endl;
     return rasterClear(surface);
 }
 
 
 bool SwRenderer::postRender()
 {
+cout << __FILE__ << " " << __func__ << endl;
     tasks.clear();
 
     //Free Composite Caches
@@ -282,6 +296,7 @@ bool SwRenderer::postRender()
 
 bool SwRenderer::renderImage(RenderData data)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto task = static_cast<SwImageTask*>(data);
     task->done();
 
@@ -293,6 +308,7 @@ bool SwRenderer::renderImage(RenderData data)
 
 bool SwRenderer::renderShape(RenderData data)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto task = static_cast<SwShapeTask*>(data);
     task->done();
 
@@ -336,6 +352,7 @@ bool SwRenderer::renderShape(RenderData data)
 
 bool SwRenderer::region(RenderData data, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
 {
+cout << __FILE__ << " " << __func__ << endl;
     static_cast<SwTask*>(data)->bounds(x, y, w, h);
 
     return true;
@@ -344,6 +361,7 @@ bool SwRenderer::region(RenderData data, uint32_t* x, uint32_t* y, uint32_t* w, 
 
 bool SwRenderer::beginComposite(Compositor* cmp, CompositeMethod method, uint32_t opacity)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!cmp) return false;
     auto p = static_cast<SwCompositor*>(cmp);
 
@@ -362,6 +380,7 @@ bool SwRenderer::beginComposite(Compositor* cmp, CompositeMethod method, uint32_
 
 Compositor* SwRenderer::target(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
+cout << __FILE__ << " " << __func__ << endl;
     SwSurface* cmp = nullptr;
 
     //Use cached data
@@ -436,6 +455,7 @@ err:
 
 bool SwRenderer::endComposite(Compositor* cmp)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!cmp) return false;
 
     auto p = static_cast<SwCompositor*>(cmp);
@@ -456,6 +476,7 @@ bool SwRenderer::endComposite(Compositor* cmp)
 
 bool SwRenderer::dispose(RenderData data)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto task = static_cast<SwTask*>(data);
     if (!task) return true;
 
@@ -470,6 +491,7 @@ bool SwRenderer::dispose(RenderData data)
 
 void* SwRenderer::prepareCommon(SwTask* task, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag flags)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (flags == RenderUpdateFlag::None) return task;
 
     //Finish previous task if it has duplicated request.
@@ -504,6 +526,7 @@ void* SwRenderer::prepareCommon(SwTask* task, const RenderTransform* transform, 
 
 RenderData SwRenderer::prepare(const Picture& pdata, RenderData data, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag flags)
 {
+cout << __FILE__ << " " << __func__ << endl;
     //prepare task
     auto task = static_cast<SwImageTask*>(data);
     if (!task) {
@@ -517,6 +540,7 @@ RenderData SwRenderer::prepare(const Picture& pdata, RenderData data, const Rend
 
 RenderData SwRenderer::prepare(const Shape& sdata, RenderData data, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag flags)
 {
+cout << __FILE__ << " " << __func__ << endl;
     //prepare task
     auto task = static_cast<SwShapeTask*>(data);
     if (!task) {
@@ -530,6 +554,7 @@ RenderData SwRenderer::prepare(const Shape& sdata, RenderData data, const Render
 
 bool SwRenderer::init(uint32_t threads)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (rendererCnt > 0) return false;
     if (initEngine) return true;
 
@@ -543,6 +568,7 @@ bool SwRenderer::init(uint32_t threads)
 
 bool SwRenderer::term()
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!initEngine) return true;
 
     initEngine = false;
@@ -554,6 +580,7 @@ bool SwRenderer::term()
 
 SwRenderer* SwRenderer::gen()
 {
+cout << __FILE__ << " " << __func__ << endl;
     ++rendererCnt;
     return new SwRenderer();
 }

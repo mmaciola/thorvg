@@ -34,6 +34,7 @@ struct RadialGradient::Impl
 
     Fill* duplicate()
     {
+cout << __FILE__ << " " << __func__ << endl;
         auto ret = RadialGradient::gen();
         if (!ret) return nullptr;
 
@@ -52,6 +53,7 @@ struct RadialGradient::Impl
 
 RadialGradient::RadialGradient():pImpl(new Impl())
 {
+cout << __FILE__ << " " << __func__ << endl;
     _id = FILL_ID_RADIAL;
     Fill::pImpl->method(new FillDup<RadialGradient::Impl>(pImpl));
 }
@@ -59,12 +61,14 @@ RadialGradient::RadialGradient():pImpl(new Impl())
 
 RadialGradient::~RadialGradient()
 {
+cout << __FILE__ << " " << __func__ << endl;
     delete(pImpl);
 }
 
 
 Result RadialGradient::radial(float cx, float cy, float radius) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (radius < 0) return Result::InvalidArguments;
 
     pImpl->cx = cx;
@@ -77,6 +81,7 @@ Result RadialGradient::radial(float cx, float cy, float radius) noexcept
 
 Result RadialGradient::radial(float* cx, float* cy, float* radius) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (cx) *cx = pImpl->cx;
     if (cy) *cy = pImpl->cy;
     if (radius) *radius = pImpl->radius;
@@ -87,5 +92,6 @@ Result RadialGradient::radial(float* cx, float* cy, float* radius) const noexcep
 
 unique_ptr<RadialGradient> RadialGradient::gen() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return unique_ptr<RadialGradient>(new RadialGradient);
 }

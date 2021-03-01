@@ -26,6 +26,7 @@
 #else
     class SwRenderer : public RenderMethod
     {
+cout << __FILE__ << " " << __func__ << endl;
         //Non Supported. Dummy Class */
     };
 #endif
@@ -49,23 +50,29 @@ SwCanvas::SwCanvas() : Canvas(SwRenderer::gen()), pImpl(new Impl)
 SwCanvas::SwCanvas() : Canvas(nullptr), pImpl(new Impl)
 #endif
 {
+cout << __FILE__ << " " << __func__ << endl;
 }
 
 
 SwCanvas::~SwCanvas()
 {
+cout << __FILE__ << " " << __func__ << endl;
     delete(pImpl);
 }
 
 
 Result SwCanvas::target(uint32_t* buffer, uint32_t stride, uint32_t w, uint32_t h, Colorspace cs) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
 #ifdef THORVG_SW_RASTER_SUPPORT
     //We know renderer type, avoid dynamic_cast for performance.
     auto renderer = static_cast<SwRenderer*>(Canvas::pImpl->renderer);
     if (!renderer) return Result::MemoryCorruption;
 
     if (!renderer->target(buffer, stride, w, h, cs)) return Result::InvalidArguments;
+
+    Canvas::pImpl->needRefresh();
+//    Canvas::pImpl->refresh = true;
 
     return Result::Success;
 #endif
@@ -75,6 +82,7 @@ Result SwCanvas::target(uint32_t* buffer, uint32_t stride, uint32_t w, uint32_t 
 
 unique_ptr<SwCanvas> SwCanvas::gen() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
 #ifdef THORVG_SW_RASTER_SUPPORT
     return unique_ptr<SwCanvas>(new SwCanvas);
 #endif

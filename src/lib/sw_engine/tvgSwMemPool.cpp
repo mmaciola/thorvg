@@ -37,12 +37,14 @@ static unsigned allocSize = 0;
 
 SwOutline* mpoolReqOutline(unsigned idx)
 {
+cout << __FILE__ << " " << __func__ << endl;
     return &outline[idx];
 }
 
 
 void mpoolRetOutline(unsigned idx)
 {
+cout << __FILE__ << " " << __func__ << endl;
     outline[idx].cntrsCnt = 0;
     outline[idx].ptsCnt = 0;
 }
@@ -50,12 +52,14 @@ void mpoolRetOutline(unsigned idx)
 
 SwOutline* mpoolReqStrokeOutline(unsigned idx)
 {
+cout << __FILE__ << " " << __func__ << endl;
     return &strokeOutline[idx];
 }
 
 
 void mpoolRetStrokeOutline(unsigned idx)
 {
+cout << __FILE__ << " " << __func__ << endl;
     strokeOutline[idx].cntrsCnt = 0;
     strokeOutline[idx].ptsCnt = 0;
 }
@@ -63,6 +67,7 @@ void mpoolRetStrokeOutline(unsigned idx)
 
 bool mpoolInit(unsigned threads)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (outline || strokeOutline) return false;
     if (threads == 0) threads = 1;
 
@@ -92,6 +97,7 @@ err:
 
 bool mpoolClear()
 {
+cout << __FILE__ << " " << __func__ << endl;
     SwOutline* p;
 
     for (unsigned i = 0; i < allocSize; ++i) {
@@ -137,6 +143,7 @@ bool mpoolClear()
 
 bool mpoolTerm()
 {
+cout << __FILE__ << " " << __func__ << endl;
     mpoolClear();
 
     if (outline) {

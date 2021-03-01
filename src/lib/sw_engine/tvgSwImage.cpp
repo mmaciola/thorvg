@@ -29,6 +29,7 @@
 
 static void _initBBox(SwBBox& bbox)
 {
+cout << __FILE__ << " " << __func__ << endl;
     bbox.min.x = bbox.min.y = 0;
     bbox.max.x = bbox.max.y = 0;
 }
@@ -36,6 +37,7 @@ static void _initBBox(SwBBox& bbox)
 
 static bool _updateBBox(SwOutline* outline, SwBBox& bbox, const SwSize& clip)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!outline) return false;
 
     auto pt = outline->pts;
@@ -76,6 +78,7 @@ static bool _updateBBox(SwOutline* outline, SwBBox& bbox, const SwSize& clip)
 
 static bool _checkValid(const SwOutline* outline, const SwBBox& bbox, const SwSize& clip)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (outline->ptsCnt == 0 || outline->cntrsCnt <= 0) return false;
 
     //Check boundary
@@ -92,6 +95,7 @@ static bool _checkValid(const SwOutline* outline, const SwBBox& bbox, const SwSi
 
 bool imagePrepare(SwImage* image, const Picture* pdata, unsigned tid, const SwSize& clip, const Matrix* transform, SwBBox& bbox)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!imageGenOutline(image, pdata, tid, transform)) return false;
 
     if (!_updateBBox(image->outline, bbox, clip))  return false;
@@ -104,12 +108,14 @@ bool imagePrepare(SwImage* image, const Picture* pdata, unsigned tid, const SwSi
 
 bool imagePrepared(SwImage* image)
 {
+cout << __FILE__ << " " << __func__ << endl;
     return image->rle ? true : false;
 }
 
 
 bool imageGenRle(SwImage* image, TVG_UNUSED const Picture* pdata, const SwSize& clip, SwBBox& bbox, bool antiAlias, bool hasComposite)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if ((image->rle = rleRender(image->rle, image->outline, bbox, clip, antiAlias))) return true;
 
     return false;
@@ -118,6 +124,7 @@ bool imageGenRle(SwImage* image, TVG_UNUSED const Picture* pdata, const SwSize& 
 
 void imageDelOutline(SwImage* image, uint32_t tid)
 {
+cout << __FILE__ << " " << __func__ << endl;
     mpoolRetOutline(tid);
     image->outline = nullptr;
 }
@@ -125,6 +132,7 @@ void imageDelOutline(SwImage* image, uint32_t tid)
 
 void imageReset(SwImage* image)
 {
+cout << __FILE__ << " " << __func__ << endl;
     rleReset(image->rle);
     image->rle = nullptr;
 }
@@ -132,6 +140,7 @@ void imageReset(SwImage* image)
 
 bool imageGenOutline(SwImage* image, const Picture* pdata, unsigned tid, const Matrix* transform)
 {
+cout << __FILE__ << " " << __func__ << endl;
     float w, h;
     pdata->viewbox(nullptr, nullptr, &w, &h);
     if (w == 0 || h == 0) return false;
@@ -171,5 +180,6 @@ bool imageGenOutline(SwImage* image, const Picture* pdata, unsigned tid, const M
 
 void imageFree(SwImage* image)
 {
+cout << __FILE__ << " " << __func__ << endl;
     rleFree(image->rle);
 }

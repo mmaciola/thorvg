@@ -32,8 +32,15 @@
 /* External Class Implementation                                        */
 /************************************************************************/
 
+// MGS
+RawLoader::RawLoader()
+{
+cout << __FILE__ << " " << __func__ << endl;
+}
+
 RawLoader::~RawLoader()
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (copy && content) {
         free((void*)content);
         content = nullptr;
@@ -43,6 +50,7 @@ RawLoader::~RawLoader()
 
 bool RawLoader::open(const uint32_t* data, uint32_t w, uint32_t h, bool copy)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!data || w == 0 || h == 0) return false;
 
     vw = w;
@@ -62,17 +70,20 @@ bool RawLoader::open(const uint32_t* data, uint32_t w, uint32_t h, bool copy)
 
 bool RawLoader::read()
 {
+cout << __FILE__ << " " << __func__ << endl;
     return true;
 }
 
 
 bool RawLoader::close()
 {
+cout << __FILE__ << " " << __func__ << endl;
     return true;
 }
 
 
 const uint32_t* RawLoader::pixels()
 {
+cout << __FILE__ << " " << __func__ << endl;
     return this->content;
 }

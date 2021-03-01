@@ -22,6 +22,14 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     if (image->load(data, 200, 300, true) != tvg::Result::Success) return;
     image->translate(500, 400);
 
+/*
+float hh = 50, ww = 200;
+image->size(ww, hh);
+float hh1, ww1;
+image->size(&ww1, &hh1);
+cout << "RRRRRRRRRRRRRRRR " << hh << " " << ww << " " << hh1 << " " << ww1 << endl;
+*/
+
     //Create a Scene
     auto scene = tvg::Scene::gen();
 

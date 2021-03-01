@@ -28,6 +28,7 @@ public:
     const uint32_t* content = nullptr;
     bool copy = false;
 
+    RawLoader();  //MGS - us
     ~RawLoader();
 
     using Loader::open;

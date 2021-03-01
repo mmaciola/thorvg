@@ -40,6 +40,7 @@ struct TaskQueue {
 
     bool tryPop(Task** task)
     {
+cout << __FILE__ << " " << __func__ << endl;
         unique_lock<mutex> lock{mtx, try_to_lock};
         if (!lock || taskDeque.empty()) return false;
         *task = taskDeque.front();
@@ -50,6 +51,7 @@ struct TaskQueue {
 
     bool tryPush(Task* task)
     {
+cout << __FILE__ << " " << __func__ << endl;
         {
             unique_lock<mutex> lock{mtx, try_to_lock};
             if (!lock) return false;
@@ -63,6 +65,7 @@ struct TaskQueue {
 
     void complete()
     {
+cout << __FILE__ << " " << __func__ << endl;
         {
             unique_lock<mutex> lock{mtx};
             done = true;
@@ -72,6 +75,7 @@ struct TaskQueue {
 
     bool pop(Task** task)
     {
+cout << __FILE__ << " " << __func__ << endl;
         unique_lock<mutex> lock{mtx};
 
         while (taskDeque.empty() && !done) {
@@ -88,6 +92,7 @@ struct TaskQueue {
 
     void push(Task* task)
     {
+cout << __FILE__ << " " << __func__ << endl;
         {
             unique_lock<mutex> lock{mtx};
             taskDeque.push_back(task);

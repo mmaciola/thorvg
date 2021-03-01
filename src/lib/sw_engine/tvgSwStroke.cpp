@@ -48,6 +48,7 @@ static inline void SCALE(SwStroke& stroke, SwPoint& pt)
 
 static void _growBorder(SwStrokeBorder* border, uint32_t newPts)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     auto maxOld = border->maxPts;
     auto maxNew = border->ptsCnt + newPts;
 
@@ -66,6 +67,7 @@ static void _growBorder(SwStrokeBorder* border, uint32_t newPts)
 
 static void _borderClose(SwStrokeBorder* border, bool reverse)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     auto start = border->start;
     auto count = border->ptsCnt;
 
@@ -115,6 +117,7 @@ static void _borderClose(SwStrokeBorder* border, bool reverse)
 
 static void _borderCubicTo(SwStrokeBorder* border, SwPoint& ctrl1, SwPoint& ctrl2, SwPoint& to)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     _growBorder(border, 3);
 
     auto pt = border->pts + border->ptsCnt;
@@ -136,6 +139,7 @@ static void _borderCubicTo(SwStrokeBorder* border, SwPoint& ctrl1, SwPoint& ctrl
 
 static void _borderArcTo(SwStrokeBorder* border, SwPoint& center, SwFixed radius, SwFixed angleStart, SwFixed angleDiff, SwStroke& stroke)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     constexpr SwFixed ARC_CUBIC_ANGLE = SW_ANGLE_PI / 2;
     SwPoint a = {static_cast<SwCoord>(radius), 0};
     mathRotate(a, angleStart);
@@ -189,6 +193,7 @@ static void _borderArcTo(SwStrokeBorder* border, SwPoint& center, SwFixed radius
 
 static void _borderLineTo(SwStrokeBorder* border, SwPoint& to, bool movable)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     if (border->movable) {
         //move last point
         border->pts[border->ptsCnt - 1] = to;
@@ -209,6 +214,7 @@ static void _borderLineTo(SwStrokeBorder* border, SwPoint& to, bool movable)
 
 static void _borderMoveTo(SwStrokeBorder* border, SwPoint& to)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     //close current open path if any?
     if (border->start >= 0) _borderClose(border, false);
 
@@ -221,6 +227,7 @@ static void _borderMoveTo(SwStrokeBorder* border, SwPoint& to)
 
 static void _arcTo(SwStroke& stroke, int32_t side)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     auto border = stroke.borders + side;
     auto rotate = SIDE_TO_ROTATE(side);
     auto total = mathDiff(stroke.angleIn, stroke.angleOut);
@@ -233,6 +240,7 @@ static void _arcTo(SwStroke& stroke, int32_t side)
 
 static void _outside(SwStroke& stroke, int32_t side, SwFixed lineLength)
 {
+cout << __FILE__ << " " << __func__ << endl;
     constexpr SwFixed MITER_LIMIT = 4 * (1 << 16);
 
     auto border = stroke.borders + side;
@@ -296,6 +304,7 @@ static void _outside(SwStroke& stroke, int32_t side, SwFixed lineLength)
 
 static void _inside(SwStroke& stroke, int32_t side, SwFixed lineLength)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto border = stroke.borders + side;
     auto theta = mathDiff(stroke.angleIn, stroke.angleOut) / 2;
     SwPoint delta;
@@ -333,6 +342,7 @@ static void _inside(SwStroke& stroke, int32_t side, SwFixed lineLength)
 
 void _processCorner(SwStroke& stroke, SwFixed lineLength)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto turn = mathDiff(stroke.angleIn, stroke.angleOut);
 
     //no specific corner processing is required if the turn is 0
@@ -354,6 +364,7 @@ void _processCorner(SwStroke& stroke, SwFixed lineLength)
 
 void _firstSubPath(SwStroke& stroke, SwFixed startAngle, SwFixed lineLength)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     SwPoint delta = {static_cast<SwCoord>(stroke.width), 0};
     mathRotate(delta, startAngle + SW_ANGLE_PI2);
     SCALE(stroke, delta);
@@ -565,6 +576,7 @@ static void _cubicTo(SwStroke& stroke, const SwPoint& ctrl1, const SwPoint& ctrl
 
 static void _addCap(SwStroke& stroke, SwFixed angle, int32_t side)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     if (stroke.cap == StrokeCap::Square) {
         auto rotate = SIDE_TO_ROTATE(side);
         auto border = stroke.borders + side;
@@ -621,6 +633,7 @@ static void _addCap(SwStroke& stroke, SwFixed angle, int32_t side)
 
 static void _addReverseLeft(SwStroke& stroke, bool opened)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     auto right = stroke.borders + 0;
     auto left = stroke.borders + 1;
     auto newPts = left->ptsCnt - left->start;
@@ -662,6 +675,7 @@ static void _addReverseLeft(SwStroke& stroke, bool opened)
 
 static void _beginSubPath(SwStroke& stroke, SwPoint& to, bool opened)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     /* We cannot process the first point because there is not enough
        information regarding its corner/cap. Later, it will be processed
        in the _endSubPath() */
@@ -687,6 +701,7 @@ static void _beginSubPath(SwStroke& stroke, SwPoint& to, bool opened)
 
 static void _endSubPath(SwStroke& stroke)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     if (stroke.openSubPath) {
         auto right = stroke.borders;
 
@@ -736,6 +751,7 @@ static void _endSubPath(SwStroke& stroke)
 
 static void _getCounts(SwStrokeBorder* border, uint32_t& ptsCnt, uint32_t& cntrsCnt)
 {
+//cout << __FILE__ << " " << __func__ << endl;
     auto count = border->ptsCnt;
     auto tags = border->tags;
     uint32_t _ptsCnt = 0;
@@ -773,6 +789,7 @@ fail:
 
 static void _exportBorderOutline(SwStroke& stroke, SwOutline* outline, uint32_t side)
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto border = stroke.borders + side;
 
     if (!border->valid) return;
@@ -813,6 +830,7 @@ static void _exportBorderOutline(SwStroke& stroke, SwOutline* outline, uint32_t 
 
 void strokeFree(SwStroke* stroke)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!stroke) return;
 
     //free borders
@@ -827,6 +845,7 @@ void strokeFree(SwStroke* stroke)
 
 void strokeReset(SwStroke* stroke, const Shape* sdata, const Matrix* transform)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (transform) {
         stroke->sx = sqrt(pow(transform->e11, 2) + pow(transform->e21, 2));
         stroke->sy = sqrt(pow(transform->e12, 2) + pow(transform->e22, 2));
@@ -852,6 +871,7 @@ void strokeReset(SwStroke* stroke, const Shape* sdata, const Matrix* transform)
 
 bool strokeParseOutline(SwStroke* stroke, const SwOutline& outline)
 {
+cout << __FILE__ << " " << __func__ << endl;
     uint32_t first = 0;
 
     for (uint32_t i = 0; i < outline.cntrsCnt; ++i) {
@@ -907,6 +927,7 @@ bool strokeParseOutline(SwStroke* stroke, const SwOutline& outline)
 
 SwOutline* strokeExportOutline(SwStroke* stroke, unsigned tid)
 {
+cout << __FILE__ << " " << __func__ << endl;
     uint32_t count1, count2, count3, count4;
 
     _getCounts(stroke->borders + 0, count1, count2);

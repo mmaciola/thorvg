@@ -29,6 +29,7 @@
 
 bool header(char** pointer)
 {
+cout << __FILE__ << " " << __func__ << endl;
     // MGS - hardcoded for now
     const char *tvg = "TVG";
     memcpy(*pointer, tvg, 3);
@@ -45,6 +46,7 @@ bool header(char** pointer)
 /*
 bool saveScene()
 {
+cout << __FILE__ << " " << __func__ << endl;
     // MGS TODO 
     return true;
 }
@@ -57,15 +59,21 @@ bool saveScene()
 //TvgSaver::TvgSaver()
 TvgSaver::TvgSaver(Scene* scene) : root(scene)  //MGS2
 {
+cout << __FILE__ << " " << __func__ << endl;
 }
 
 TvgSaver::~TvgSaver()
 {
+cout << __FILE__ << " " << __func__ << endl;
     close();
 }
 
 void TvgSaver::run(unsigned tid)
 {
+cout << __FILE__ << " " << __func__ << endl;
+//MGS5
+    Saver::nic();
+
     root->serialize();  //MGS temp bo nie moge tego obejsc
 
 // MGS2
@@ -90,6 +98,7 @@ void TvgSaver::resizeBuffer()
 
 bool TvgSaver::open(const string& path)
 {
+cout << __FILE__ << " " << __func__ << endl;
     // MGS - open the file here? 
     outFile.open(path, ios::out | ios::trunc | ios::binary);
     if (!outFile.is_open())
@@ -105,7 +114,7 @@ bool TvgSaver::open(const string& path)
         // MGS - close the file or move it from here
         return false;
     }
-    memset(buffer, '\0', size);
+    memset(buffer, '\0', size);  //MGS3
     pointer = buffer;
 
     return header(&pointer);
@@ -113,6 +122,7 @@ bool TvgSaver::open(const string& path)
 
 bool TvgSaver::write()
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!buffer || size == 0) return false;
 
     TaskScheduler::request(this);
@@ -123,6 +133,7 @@ bool TvgSaver::write()
 
 bool TvgSaver::close()
 {
+cout << __FILE__ << " " << __func__ << endl;
     this->done();
 
     // MGS - temp sollution ?

@@ -24,6 +24,7 @@
 
 #include "tvgCommon.h"
 #include "tvgRender.h"
+#include <iostream> //MGS3
 
 #ifdef THORVG_AVX_VECTOR_SUPPORT
     #include <immintrin.h>

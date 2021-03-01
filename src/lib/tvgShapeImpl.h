@@ -40,10 +40,13 @@ struct ShapeStroke
     StrokeCap cap = StrokeCap::Square;
     StrokeJoin join = StrokeJoin::Bevel;
 
-    ShapeStroke() {}
+    ShapeStroke() {
+cout << __FILE__ << " " << __func__ << endl;
+}
 
     ShapeStroke(const ShapeStroke* src)
     {
+cout << __FILE__ << " " << __func__ << endl;
         width = src->width;
         dashCnt = src->dashCnt;
         cap = src->cap;
@@ -55,6 +58,7 @@ struct ShapeStroke
 
     ~ShapeStroke()
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (dashPattern) free(dashPattern);
     }
 };
@@ -72,17 +76,19 @@ struct ShapePath
 
     ~ShapePath()
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (cmds) free(cmds);
         if (pts) free(pts);
     }
 
     ShapePath()
     {
+cout << __FILE__ << " " << __func__ << endl;
     }
 
     void duplicate(const ShapePath* src)
     {
-       printf("void duplicate(const ShapePath* src) shape h \n");
+cout << __FILE__ << " " << __func__ << endl;
         cmdCnt = src->cmdCnt;
         reservedCmdCnt = src->reservedCmdCnt;
         ptsCnt = src->ptsCnt;
@@ -102,6 +108,7 @@ struct ShapePath
 
     void reserveCmd(uint32_t cmdCnt)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (cmdCnt <= reservedCmdCnt) return;
         reservedCmdCnt = cmdCnt;
         cmds = static_cast<PathCommand*>(realloc(cmds, sizeof(PathCommand) * reservedCmdCnt));
@@ -109,6 +116,7 @@ struct ShapePath
 
     void reservePts(uint32_t ptsCnt)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (ptsCnt <= reservedPtsCnt) return;
         reservedPtsCnt = ptsCnt;
         pts = static_cast<Point*>(realloc(pts, sizeof(Point) * reservedPtsCnt));
@@ -116,18 +124,21 @@ struct ShapePath
 
     void grow(uint32_t cmdCnt, uint32_t ptsCnt)
     {
+cout << __FILE__ << " " << __func__ << endl;
         reserveCmd(this->cmdCnt + cmdCnt);
         reservePts(this->ptsCnt + ptsCnt);
     }
 
     void reset()
     {
+cout << __FILE__ << " " << __func__ << endl;
         cmdCnt = 0;
         ptsCnt = 0;
     }
 
     void append(const PathCommand* cmds, uint32_t cmdCnt, const Point* pts, uint32_t ptsCnt)
     {
+cout << __FILE__ << " " << __func__ << endl;
         memcpy(this->cmds + this->cmdCnt, cmds, sizeof(PathCommand) * cmdCnt);
         memcpy(this->pts + this->ptsCnt, pts, sizeof(Point) * ptsCnt);
         this->cmdCnt += cmdCnt;
@@ -136,6 +147,7 @@ struct ShapePath
 
     void moveTo(float x, float y)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (cmdCnt + 1 > reservedCmdCnt) reserveCmd((cmdCnt + 1) * 2);
         if (ptsCnt + 2 > reservedPtsCnt) reservePts((ptsCnt + 2) * 2);
 
@@ -145,6 +157,7 @@ struct ShapePath
 
     void lineTo(float x, float y)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (cmdCnt + 1 > reservedCmdCnt) reserveCmd((cmdCnt + 1) * 2);
         if (ptsCnt + 2 > reservedPtsCnt) reservePts((ptsCnt + 2) * 2);
 
@@ -154,6 +167,7 @@ struct ShapePath
 
     void cubicTo(float cx1, float cy1, float cx2, float cy2, float x, float y)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (cmdCnt + 1 > reservedCmdCnt) reserveCmd((cmdCnt + 1) * 2);
         if (ptsCnt + 3 > reservedPtsCnt) reservePts((ptsCnt + 3) * 2);
 
@@ -165,6 +179,7 @@ struct ShapePath
 
     void close()
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (cmdCnt > 0 && cmds[cmdCnt - 1] == PathCommand::Close) return;
 
         if (cmdCnt + 1 > reservedCmdCnt) reserveCmd((cmdCnt + 1) * 2);
@@ -173,6 +188,7 @@ struct ShapePath
 
     bool bounds(float* x, float* y, float* w, float* h)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (ptsCnt == 0) return false;
 
         Point min = { pts[0].x, pts[0].y };
@@ -195,6 +211,7 @@ struct ShapePath
 
     bool tvgStore(char ** buffer, uint32_t * size)
     {
+cout << __FILE__ << " " << __func__ << endl;
        *size = 8 + sizeof(PathCommand) * cmdCnt + sizeof(Point) * ptsCnt;
        *buffer = (char *) malloc(*size);
        if (!*buffer) return false;
@@ -225,16 +242,19 @@ struct Shape::Impl
 
     Impl(Shape* s) : shape(s)
     {
+cout << __FILE__ << " " << __func__ << endl;
     }
 
     ~Impl()
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (fill) delete(fill);
         if (stroke) delete(stroke);
     }
 
     bool dispose(RenderMethod& renderer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         auto ret = renderer.dispose(rdata);
         rdata = nullptr;
         return ret;
@@ -242,11 +262,13 @@ struct Shape::Impl
 
     bool render(RenderMethod& renderer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         return renderer.renderShape(rdata);
     }
 
     void* update(RenderMethod& renderer, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag pFlag)
     {
+cout << __FILE__ << " " << __func__ << endl;
         this->rdata = renderer.prepare(*shape, this->rdata, transform, opacity, clips, static_cast<RenderUpdateFlag>(pFlag | flag));
         flag = RenderUpdateFlag::None;
         return this->rdata;
@@ -254,11 +276,13 @@ struct Shape::Impl
 
     bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
     {
+cout << __FILE__ << " " << __func__ << endl;
         return renderer.region(rdata, x, y, w, h);
     }
 
     bool bounds(float* x, float* y, float* w, float* h)
     {
+cout << __FILE__ << " " << __func__ << endl;
         auto ret = path.bounds(x, y, w, h);
 
         //Stroke feathering
@@ -273,6 +297,7 @@ struct Shape::Impl
 
     bool strokeWidth(float width)
     {
+cout << __FILE__ << " " << __func__ << endl;
         //TODO: Size Exception?
 
         if (!stroke) stroke = new ShapeStroke();
@@ -286,6 +311,7 @@ struct Shape::Impl
 
     bool strokeCap(StrokeCap cap)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!stroke) stroke = new ShapeStroke();
         if (!stroke) return false;
 
@@ -297,6 +323,7 @@ struct Shape::Impl
 
     bool strokeJoin(StrokeJoin join)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!stroke) stroke = new ShapeStroke();
         if (!stroke) return false;
 
@@ -308,6 +335,7 @@ struct Shape::Impl
 
     bool strokeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!stroke) stroke = new ShapeStroke();
         if (!stroke) return false;
 
@@ -323,6 +351,7 @@ struct Shape::Impl
 
     bool strokeDash(const float* pattern, uint32_t cnt)
     {
+cout << __FILE__ << " " << __func__ << endl;
        if (!stroke) stroke = new ShapeStroke();
        if (!stroke) return false;
 
@@ -347,6 +376,7 @@ struct Shape::Impl
 
     void reset()
     {
+cout << __FILE__ << " " << __func__ << endl;
         path.reset();
 
         if (fill) {
@@ -365,6 +395,7 @@ struct Shape::Impl
 
     Paint* duplicate()
     {
+cout << __FILE__ << " " << __func__ << endl;
        printf("Paint* duplicate() shape h \n");
         auto ret = Shape::gen();
         if (!ret) return nullptr;
@@ -797,6 +828,7 @@ cout << __FILE__ << " " << __func__ << endl;
      */
     LoaderResult tvgLoadPath(const char* pointer, const char* end)
     {
+cout << __FILE__ << " " << __func__ << endl;
          // ShapePath
          const uint32_t cmdCnt = (uint32_t) *pointer;
          pointer += sizeof(uint32_t);
@@ -822,6 +854,7 @@ cout << __FILE__ << " " << __func__ << endl;
 
     LoaderResult tvgLoadStrokeDashptrn(const char* pointer, const char* end)
     {
+cout << __FILE__ << " " << __func__ << endl;
        const uint32_t dashPatternCnt = (uint32_t) *pointer;
        pointer += sizeof(uint32_t);
        const float * dashPattern = (float *) pointer;
@@ -849,6 +882,7 @@ cout << __FILE__ << " " << __func__ << endl;
      */
     LoaderResult tvgLoadStroke(const char* pointer, const char* end)
     {
+cout << __FILE__ << " " << __func__ << endl;
        while (pointer < end)
           {
              const tvg_block * block = (tvg_block*) pointer;
@@ -926,6 +960,7 @@ cout << __FILE__ << " " << __func__ << endl;
      */
     LoaderResult tvgLoad(const char* pointer, const char* end)
     {
+cout << __FILE__ << " " << __func__ << endl;
        const tvg_block * block = (tvg_block*) pointer;
        const char * block_end = (char *) &block->data + block->lenght;
 
@@ -981,6 +1016,7 @@ cout << __FILE__ << " " << __func__ << endl;
      */
     bool tvgStore()
     {
+cout << __FILE__ << " " << __func__ << endl;
        return true;
     }
 };

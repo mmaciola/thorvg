@@ -36,6 +36,7 @@ struct LinearGradient::Impl
 
     Fill* duplicate()
     {
+cout << __FILE__ << " " << __func__ << endl;
         auto ret = LinearGradient::gen();
         if (!ret) return nullptr;
 
@@ -54,6 +55,7 @@ struct LinearGradient::Impl
 
 LinearGradient::LinearGradient():pImpl(new Impl())
 {
+cout << __FILE__ << " " << __func__ << endl;
     _id = FILL_ID_LINEAR;
     Fill::pImpl->method(new FillDup<LinearGradient::Impl>(pImpl));
 }
@@ -61,12 +63,14 @@ LinearGradient::LinearGradient():pImpl(new Impl())
 
 LinearGradient::~LinearGradient()
 {
+cout << __FILE__ << " " << __func__ << endl;
     delete(pImpl);
 }
 
 
 Result LinearGradient::linear(float x1, float y1, float x2, float y2) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (fabsf(x2 - x1) < FLT_EPSILON && fabsf(y2 - y1) < FLT_EPSILON)
         return Result::InvalidArguments;
 
@@ -81,6 +85,7 @@ Result LinearGradient::linear(float x1, float y1, float x2, float y2) noexcept
 
 Result LinearGradient::linear(float* x1, float* y1, float* x2, float* y2) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (x1) *x1 = pImpl->x1;
     if (x2) *x2 = pImpl->x2;
     if (y1) *y1 = pImpl->y1;
@@ -92,5 +97,6 @@ Result LinearGradient::linear(float* x1, float* y1, float* x2, float* y2) const 
 
 unique_ptr<LinearGradient> LinearGradient::gen() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return unique_ptr<LinearGradient>(new LinearGradient);
 }

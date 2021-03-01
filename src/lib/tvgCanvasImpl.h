@@ -35,19 +35,23 @@ struct Canvas::Impl
     Array<Paint*> paints;
     RenderMethod* renderer;
     unique_ptr<TvgLoader> loader = nullptr;
+    bool refresh;
 
     Impl(RenderMethod* pRenderer):renderer(pRenderer)
     {
+cout << __FILE__ << " " << __func__ << endl;
     }
 
     ~Impl()
     {
+cout << __FILE__ << " " << __func__ << endl;
         clear(true);
         delete(renderer);
     }
 
     Result push(unique_ptr<Paint> paint)
     {
+cout << __FILE__ << " " << __func__ << endl;
         auto p = paint.release();
         if (!p) return Result::MemoryCorruption;
         paints.push(p);
@@ -57,6 +61,7 @@ struct Canvas::Impl
 
     Result clear(bool free)
     {
+cout << __FILE__ << " " << __func__ << endl;
         //Clear render target before drawing
         if (!renderer || !renderer->clear()) return Result::InsufficientCondition;
 
@@ -73,12 +78,25 @@ struct Canvas::Impl
         return Result::Success;
     }
 
+    void needRefresh()
+    {
+        cout << "!!!!!!!!!!!!!!!!!! zawolana refresh" << endl;
+        refresh = true;
+    }
+
     Result update(Paint* paint, bool force)
     {
+cout << __FILE__ << " " << __func__ << endl;
+        cout << "!!!!!!!!!!!!!!!!!! zawolana update" << endl;
         if (!renderer) return Result::InsufficientCondition;
 
+            cout << "!!!!!!!!!!!!!!!!!! refresh " << refresh << " force " << force << endl;
         Array<RenderData> clips;
-        auto flag = force ? RenderUpdateFlag::All : RenderUpdateFlag::None;
+        auto flag = RenderUpdateFlag::None;
+        if (refresh | force) {
+            cout << "!!!!!!!!!!!!!!!!!! w petli " << endl;
+            flag = RenderUpdateFlag::All;
+        }
 
         //Update single paint node
         if (paint) {
@@ -89,11 +107,16 @@ struct Canvas::Impl
                 (*paint)->pImpl->update(*renderer, nullptr, 255, clips, flag);
             }
         }
+
+        refresh = false;
+
         return Result::Success;
     }
 
+
     Result draw()
     {
+cout << __FILE__ << " " << __func__ << endl;
 
         if (!renderer || !renderer->preRender()) return Result::InsufficientCondition;
 
@@ -117,6 +140,7 @@ struct Canvas::Impl
 
     Result load(const string& path)
     {
+cout << __FILE__ << " " << __func__ << endl;
        // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
        loader = unique_ptr<TvgLoader>(new TvgLoader());
        if (!loader->open(path)) return Result::Unknown;
@@ -126,6 +150,7 @@ struct Canvas::Impl
 
     Result load(const char* data, uint32_t size)
     {
+cout << __FILE__ << " " << __func__ << endl;
        loader = unique_ptr<TvgLoader>(new TvgLoader());
        if (!loader->open(data, size)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;

@@ -32,17 +32,20 @@
 
 Fill::Fill():pImpl(new Impl())
 {
+cout << __FILE__ << " " << __func__ << endl;
 }
 
 
 Fill::~Fill()
 {
+cout << __FILE__ << " " << __func__ << endl;
     delete(pImpl);
 }
 
 
 Result Fill::colorStops(const ColorStop* colorStops, uint32_t cnt) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (cnt == 0) {
         if (pImpl->colorStops) {
             free(pImpl->colorStops);
@@ -65,6 +68,7 @@ Result Fill::colorStops(const ColorStop* colorStops, uint32_t cnt) noexcept
 
 uint32_t Fill::colorStops(const ColorStop** colorStops) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (colorStops) *colorStops = pImpl->colorStops;
 
     return pImpl->cnt;
@@ -73,6 +77,7 @@ uint32_t Fill::colorStops(const ColorStop** colorStops) const noexcept
 
 Result Fill::spread(FillSpread s) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->spread = s;
 
     return Result::Success;
@@ -81,11 +86,13 @@ Result Fill::spread(FillSpread s) noexcept
 
 FillSpread Fill::spread() const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return pImpl->spread;
 }
 
 
 Fill* Fill::duplicate() const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return pImpl->duplicate();
 }
