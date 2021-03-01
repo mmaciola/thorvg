@@ -24,7 +24,6 @@ source_file = [
    'tvgSceneImpl.h',
    'tvgShapeImpl.h',
    'tvgTaskScheduler.h',
-   'tvgTvgHelper.h',
    'tvgBezier.cpp',
    'tvgCanvas.cpp',
    'tvgFill.cpp',

@@ -106,9 +106,9 @@ uint8_t Paint::opacity() const noexcept
 }
 
 // tvgTvgLoader / tvgTvgStorer
-LoaderResult Paint::tvgLoad(const char* pointer, const char* end) noexcept
+LoaderResult Paint::tvgLoad(tvg_block_2 block) noexcept
 {
-   return pImpl->tvgLoad(pointer, end);
+   return pImpl->tvgLoad(block);
 }
 
 bool Paint::tvgStore() noexcept

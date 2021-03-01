@@ -247,20 +247,17 @@ struct Picture::Impl
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(const char* pointer, const char* end)
+    LoaderResult tvgLoad(tvg_block_2 block)
     {
-       const tvg_block * block = (tvg_block*) pointer;
-       switch (block->type)
+       switch (block.type)
          {
           case 0: {
              // TODO
-             break;
+             return LoaderResult::Success;
           }
-          default:
-             return LoaderResult::InvalidType;
          }
 
-       return LoaderResult::Success;
+       return LoaderResult::InvalidType;
     }
 };
 

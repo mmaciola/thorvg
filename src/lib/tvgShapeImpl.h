@@ -827,15 +827,14 @@ struct Shape::Impl
     {
        while (pointer < end)
           {
-             const tvg_block * block = (tvg_block*) pointer;
-             const char * block_end = (char *) &block->data + block->lenght;
-             if (block_end > end) return LoaderResult::SizeCorruption;
+             tvg_block_2 block = read_tvg_block(pointer);
+             if (block.block_end > end) return LoaderResult::SizeCorruption;
 
-             switch (block->type)
+             switch (block.type)
                 {
                    case TVG_SHAPE_STROKE_FLAG_CAP: { // stroke cap
-                      if (block->lenght != 1) return LoaderResult::SizeCorruption;
-                      switch (block->data) {
+                      if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                      switch (*block.data) {
                          case TVG_SHAPE_STROKE_FLAG_CAP_SQUARE:
                             stroke->cap = StrokeCap::Square;
                             break;
@@ -849,8 +848,8 @@ struct Shape::Impl
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_JOIN: { // stroke join
-                      if (block->lenght != 1) return LoaderResult::SizeCorruption;
-                      switch (block->data) {
+                      if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                      switch (*block.data) {
                          case TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL:
                             stroke->join = StrokeJoin::Bevel;
                             break;
@@ -864,13 +863,13 @@ struct Shape::Impl
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_WIDTH: { // stroke width
-                      if (block->lenght != sizeof(float)) return LoaderResult::SizeCorruption;
-                      stroke->width = (float) block->data; // TODO check conversion
+                      if (block.lenght != sizeof(float)) return LoaderResult::SizeCorruption;
+                      stroke->width = _read_tvg_32(block.data);// TODO check conversion *******
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_COLOR: { // stroke color
-                      if (block->lenght != sizeof(stroke->color)) return LoaderResult::SizeCorruption;
-                      memcpy(stroke->color, &block->data, sizeof(stroke->color));
+                      if (block.lenght != sizeof(stroke->color)) return LoaderResult::SizeCorruption;
+                      memcpy(stroke->color, &block.data, sizeof(stroke->color));
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_HAS_FILL: { // stroke fill
@@ -878,7 +877,7 @@ struct Shape::Impl
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN: { // dashed stroke
-                      LoaderResult result = tvgLoadStrokeDashptrn(&block->data, block_end);
+                      LoaderResult result = tvgLoadStrokeDashptrn(block.data, block.block_end);
                       if (result != LoaderResult::Success) return result;
                       break;
                    }
@@ -887,7 +886,7 @@ struct Shape::Impl
                    }
                 }
 
-             pointer = block_end;
+             pointer = block.block_end;
           }
 
        return LoaderResult::Success;
@@ -900,20 +899,17 @@ struct Shape::Impl
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(const char* pointer, const char* end)
+    LoaderResult tvgLoad(tvg_block_2 block)
     {
-       const tvg_block * block = (tvg_block*) pointer;
-       const char * block_end = (char *) &block->data + block->lenght;
-
-       switch (block->type)
+       switch (block.type)
           {
              case TVG_SHAPE_FLAG_HAS_PATH: { // path
-                LoaderResult result = tvgLoadPath(&block->data, block_end);
+                LoaderResult result = tvgLoadPath(block.data, block.block_end);
                 if (result != LoaderResult::Success) return result;
                 break;
              }
              case TVG_SHAPE_FLAG_HAS_STROKE: { // stroke section
-                LoaderResult result = tvgLoadStroke(&block->data, block_end);
+                LoaderResult result = tvgLoadStroke(block.data, block.block_end);
                 if (result != LoaderResult::Success) return result;
                 break;
              }
@@ -923,14 +919,14 @@ struct Shape::Impl
                 break;
              }
              case TVG_SHAPE_FLAG_COLOR: { // color
-                if (block->lenght != sizeof(color)) return LoaderResult::SizeCorruption;
-                memcpy(&color, &block->data, sizeof(color)); // TODO: przetestowac
+                if (block.lenght != sizeof(color)) return LoaderResult::SizeCorruption;
+                memcpy(&color, &block.data, sizeof(color)); // TODO: przetestowac
                 flag = RenderUpdateFlag::Color;
                 break;
              }
              case TVG_SHAPE_FLAG_FILLRULE: { // fill rule
-                if (block->lenght != sizeof(uint8_t)) return LoaderResult::SizeCorruption;
-                switch (block->data)
+                if (block.lenght != sizeof(uint8_t)) return LoaderResult::SizeCorruption;
+                switch (*block.data)
                 {
                    case TVG_SHAPE_FLAG_FILLRULE_WINDING:
                       rule = FillRule::Winding;
