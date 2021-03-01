@@ -26,6 +26,22 @@
 /************************************************************************/
 /* Internal Class Implementation                                        */
 /************************************************************************/
+
+bool header(char** pointer)
+{
+    // MGS - hardcoded for now
+    const char *tvg = "TVG";
+    memcpy(*pointer, tvg, 3);
+    *pointer += 3;
+    const char *version = "000";
+    memcpy(*pointer, version, 3);
+    *pointer += 3;
+    // metadata
+    *pointer += 2;
+
+    return true;
+}
+
 bool saveScene()
 {
     // MGS TODO 
@@ -57,12 +73,8 @@ void TvgSaver::resizeBuffer()
     size *= 2;
     buffer = static_cast<char*>(realloc(buffer, size));
 }
-
-bool TvgSaver::headerWriter()
-{
-    return true;
-}
 */
+
 
 bool TvgSaver::open(const string& path)
 {
@@ -81,9 +93,10 @@ bool TvgSaver::open(const string& path)
         // MGS - close the file or move it from here
         return false;
     }
+    memset(buffer, '\0', size);
     pointer = buffer;
 
-    return true; //headerWriter();
+    return header(&pointer);
 }
 
 bool TvgSaver::write()

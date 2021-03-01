@@ -1,38 +1,64 @@
 #include "Common.h"
+#include <fstream>
 
 /************************************************************************/
 /* Drawing Commands                                                     */
 /************************************************************************/
 
+uint32_t *data = nullptr;
+
 void tvgDrawCmds(tvg::Canvas* canvas)
 {
     if (!canvas) return;
 
-    // Load Scene
-    //canvas->load(EXAMPLE_DIR"/canvas.tvg");
-    canvas->load(EXAMPLE_DIR"/pliczek.tvg");
+    //Image
+    ifstream file(EXAMPLE_DIR"/rawimage_200x300.raw");
+    if (!file.is_open()) return;
+    data = (uint32_t*) malloc(sizeof(uint32_t) * (200 * 300));
+    file.read(reinterpret_cast<char *>(data), sizeof (data) * 200 * 300);
+    file.close();
 
-    // Load Scene
-    /*auto scene = tvg::Scene::gen();
-    scene->load(EXAMPLE_DIR"/canvas.tvg");
+    auto image = tvg::Picture::gen();
+    if (image->load(data, 200, 300, true) != tvg::Result::Success) return;
+    image->translate(500, 400);
 
-    // Draw the Scene onto the Canvas
-    canvas->push(move(scene));*/
+    //Create a Scene
+    auto scene = tvg::Scene::gen();
 
+    //RadialGradient
+    auto fill = tvg::RadialGradient::gen();
+    fill->radial(201, 199, 200);
+    //Gradient Color Stops
+    tvg::Fill::ColorStop colorStops[2];
+    colorStops[0] = {0, 255, 203, 255, 255};
+    colorStops[1] = {1, 0, 24, 0, 255};
+    fill->colorStops(colorStops, 2);
 
-    /*tvg::Matrix m = {};
-    m.e11 = m.e22 = m.e33 = 1;
-    printf("Matrix \n");
-    printf("%f %f %f \n", m.e11, m.e12, m.e13);
-    printf("%f %f %f \n", m.e21, m.e22, m.e23);
-    printf("%f %f %f \n", m.e31, m.e32, m.e33);
+    //Round Rectangle
+    auto shape1 = tvg::Shape::gen();
+    shape1->appendRect(2, 9, 401, 404, 49, 51);
+    shape1->fill(91, 92, 93, 94);
+    shape1->stroke(5);
+    shape1->stroke(255,0,0,200); 
+    float dashPattern[3] = {20, 10, 17.98};
+    shape1->stroke(dashPattern, 3);
+    shape1->fill(move(fill));
 
-    uint8_t * p = (uint8_t *) &m;
+    //Scene - child
+    auto scene2 = tvg::Scene::gen();
+    auto shape2 = tvg::Shape::gen();
+    shape2->appendRect(30, 40, 100, 100, 0, 0);
+    shape2->fill(41, 42, 43, 125);
+    scene2->push(move(shape2));
 
-    for (int i = 0; i < sizeof(tvg::Matrix); i++) {
-          printf("%02X ", p[i]);
-    }
-    printf("\n");*/
+    scene->push(move(shape1));
+    scene->push(move(image));
+    scene->push(move(scene2));
+
+    if (scene->save("./pliczek.tvg") != tvg::Result::Success) return;
+
+    //Draw the Scene onto the Canvas
+    canvas->push(move(scene));
 }
 
 
@@ -116,11 +142,10 @@ int main(int argc, char **argv)
     }
 
     //Threads Count
-    auto threads = std::thread::hardware_concurrency();
+    auto threads = 0; //std::thread::hardware_concurrency();
 
     //Initialize ThorVG Engine
     if (tvg::Initializer::init(tvgEngine, threads) == tvg::Result::Success) {
-
 
         elm_init(argc, argv);
 
@@ -134,7 +159,9 @@ int main(int argc, char **argv)
         elm_shutdown();
 
         //Terminate ThorVG Engine
-        tvg::Initializer::term(tvgEngine);
+        tvg::Initializer::term(tvg::CanvasEngine::Sw);
+
+        if (data) free(data);
 
     } else {
         cout << "engine is not supported" << endl;

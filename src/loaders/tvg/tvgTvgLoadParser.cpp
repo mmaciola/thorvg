@@ -66,6 +66,7 @@ static bool tvg_read_header(const char** pointer)
  */
 static LoaderResult tvg_read_shape(const char* pointer, const char* end, unique_ptr<Scene> * root)
 {
+cout << __FILE__ << " " << __func__ << endl;
    // create shape
    auto s = Shape::gen();
 
@@ -73,7 +74,11 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, unique_
       {
          const tvg_block * block = (tvg_block*) pointer;
          const char * block_end = (char *) &block->data + block->lenght;
+
          if (block_end > end) return LoaderResult::SizeCorruption;
+
+if (!*root) cout << "no root" << endl;
+else cout << "ok" << endl;
 
          LoaderResult result = (*root)->tvgLoad(pointer, block_end);
          if (result > LoaderResult::Success) return result;
