@@ -27,8 +27,8 @@ struct tvg_block_2 {
 inline tvg_block_2 read_tvg_block(const char * pointer) {
    tvg_block_2 block;
    block.type = *pointer;
-   block.lenght = _read_tvg_16(pointer + 1);
-   block.data = pointer + 3;
+   block.lenght = _read_tvg_32(pointer + 1);
+   block.data = pointer + 5;
    block.block_end = block.data + block.lenght;
    return block;
 }

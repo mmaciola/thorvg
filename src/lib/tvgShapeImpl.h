@@ -82,7 +82,6 @@ struct ShapePath
 
     void duplicate(const ShapePath* src)
     {
-       printf("void duplicate(const ShapePath* src) shape h \n");
         cmdCnt = src->cmdCnt;
         reservedCmdCnt = src->reservedCmdCnt;
         ptsCnt = src->ptsCnt;
@@ -365,7 +364,6 @@ struct Shape::Impl
 
     Paint* duplicate()
     {
-       printf("Paint* duplicate() shape h \n");
         auto ret = Shape::gen();
         if (!ret) return nullptr;
 
@@ -845,6 +843,9 @@ struct Shape::Impl
      */
     LoaderResult tvgLoadStroke(const char* pointer, const char* end)
     {
+       if (!stroke) stroke = new ShapeStroke();
+       if (!stroke) return LoaderResult::MemoryCorruption;
+
        while (pointer < end)
           {
              tvg_block_2 block = read_tvg_block(pointer);
@@ -925,11 +926,13 @@ struct Shape::Impl
           {
              case TVG_SHAPE_FLAG_HAS_PATH: { // path
                 LoaderResult result = tvgLoadPath(block.data, block.block_end);
+                printf("TVG_SHAPE_FLAG_HAS_PATH result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 break;
              }
              case TVG_SHAPE_FLAG_HAS_STROKE: { // stroke section
                 LoaderResult result = tvgLoadStroke(block.data, block.block_end);
+                printf("TVG_SHAPE_FLAG_HAS_STROKE result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 break;
              }
