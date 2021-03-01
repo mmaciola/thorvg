@@ -15,7 +15,6 @@ endif
 subdir('lib')
 subdir('loaders')
 subdir('savers')
-subdir('storers')
 subdir('bindings')
 
 thread_dep = meson.get_compiler('cpp').find_library('pthread')
