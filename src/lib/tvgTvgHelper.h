@@ -4,7 +4,7 @@
 #include "thorvg.h"
 
 using FlagType = uint8_t;
-using ByteCounter = uint16_t;
+using ByteCounter = uint32_t;
 #define TVG_BASE_BLOCK_SIZE sizeof(FlagType) + sizeof(ByteCounter)
 
 

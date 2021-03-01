@@ -169,9 +169,28 @@ struct Scene::Impl
 
     void serialize(char** pointer)
     {
+        if (!*pointer) return;// false;
+
+        char* start = *pointer;
+        FlagType flag;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // scene indicator
+        flag = TVG_SCENE_BEGIN_INDICATOR;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with scene - empty for now
+        *pointer += byteCntSize;
+
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             (*paint)->pImpl->serialize(pointer);
         }
+
+        // number of bytes associated with scene - filled
+        byteCnt = *pointer - start - flagSize - byteCntSize;
+        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
     }
 
     Result save(const std::string& path)
@@ -181,7 +200,7 @@ struct Scene::Impl
         if (!saver) return Result::NonSupport;
         if (!saver->write()) return Result::Unknown;
 
-        // MGS - temp solution
+        // MGS - temp solution - absolutnie poprawic
         auto tvgSaver = static_cast<TvgSaver*>(saver.get());
         serialize(&tvgSaver->pointer);
 
