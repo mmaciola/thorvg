@@ -153,7 +153,6 @@ struct Scene::Impl
 
     Paint* duplicate()
     {
-       printf("Paint* duplicate() scene h \n");
         auto ret = Scene::gen();
         if (!ret) return nullptr;
         auto dup = ret.get()->pImpl;
@@ -212,7 +211,7 @@ struct Scene::Impl
        // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(path)) return Result::Unknown;
-       if (!loader->read()) return Result::Unknown;
+       if (!loader->read(this)) return Result::Unknown;
        return Result::Success;
     }
 
@@ -220,7 +219,7 @@ struct Scene::Impl
     {
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(data, size)) return Result::Unknown;
-       if (!loader->read()) return Result::Unknown;
+       if (!loader->read(this)) return Result::Unknown;
        return Result::Success;
     }
 

@@ -4,11 +4,11 @@
 #ifdef __LITTLE_ENDIAN__
 // little endian
 #define _read_tvg_16(data) (((data)[0] << 8) | (data)[1])
-#define _read_tvg_32(data) (((data)[0] << 24) | ((data)[1] << 16) | ((data)[2] << 2) | (data)[3])
+#define _read_tvg_32(data) (((data)[0] << 24) | ((data)[1] << 16) | ((data)[2] << 8) | (data)[3])
 #else
 // big endian
 #define _read_tvg_16(data) (((data)[1] << 8) | (data)[0])
-#define _read_tvg_32(data) (((data)[3] << 24) | ((data)[2] << 16) | ((data)[1] << 2) | (data)[0])
+#define _read_tvg_32(data) (((data)[3] << 24) | ((data)[2] << 16) | ((data)[1] << 8) | (data)[0])
 #endif
 
 enum LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption };
@@ -30,6 +30,11 @@ inline tvg_block_2 read_tvg_block(const char * pointer) {
    block.lenght = _read_tvg_32(pointer + 1);
    block.data = pointer + 5;
    block.block_end = block.data + block.lenght;
+
+   //printf("type %02X \n", block.type);
+   //printf("lenght %ld \n", block.lenght);
+   //printf("data %02X \n", *block.data);
+
    return block;
 }
 

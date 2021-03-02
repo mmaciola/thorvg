@@ -153,9 +153,6 @@ public:
     virtual Result draw() noexcept;
     virtual Result sync() noexcept;
 
-    virtual Result load(const std::string& path);
-    virtual Result load(const char* data, uint32_t size);
-
     _TVG_DECLARE_PRIVATE(Canvas);
 };
 
@@ -308,11 +305,10 @@ public:
     Result push(std::unique_ptr<Paint> paint) noexcept;
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
-    Result save(const std::string& path) noexcept;
 
-    // TODO: NOW IN CANVAS!
-    virtual Result load(const std::string& path);
-    virtual Result load(const char* data, uint32_t size);
+    Result save(const std::string& path) noexcept;
+    Result load(const std::string& path) noexcept;
+    Result load(const char* data, uint32_t size) noexcept;
 
     static std::unique_ptr<Scene> gen() noexcept;
 

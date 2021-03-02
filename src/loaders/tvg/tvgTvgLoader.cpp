@@ -90,9 +90,10 @@ bool TvgLoader::open(const char* data, uint32_t size)
    return true;
 }
 
-bool TvgLoader::read()
+bool TvgLoader::read(Scene * scene)
 {
    if (!this->pointer || this->size == 0) return false;
+   this->root = scene;
    TaskScheduler::request(this);
    return true;
 }
@@ -117,7 +118,8 @@ void TvgLoader::run(unsigned tid)
 unique_ptr<Scene> TvgLoader::scene()
 {
     this->done();
-    if (root) return move(root);
+    //if (root) return move(root);
+    // TODO...
     return nullptr;
 }
 
