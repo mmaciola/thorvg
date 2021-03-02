@@ -2,7 +2,8 @@
 #define _THORVG_H_
 
 #include <memory>
-#include "tvgTvgHelper.h"
+
+//#include "tvgTvgHelper.h"
 
 #ifdef TVG_BUILD
     #define TVG_EXPORT __attribute__ ((visibility ("default")))
@@ -55,6 +56,7 @@ enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
 enum class TVG_EXPORT CompositeMethod { None = 0, ClipPath, AlphaMask, InvAlphaMask };
 enum class TVG_EXPORT CanvasEngine { Sw = (1 << 1), Gl = (1 << 2)};
 
+
 struct Point
 {
     float x, y;
@@ -68,6 +70,42 @@ struct Matrix
     float e31, e32, e33;
 };
 
+#ifdef __LITTLE_ENDIAN__
+// little endian
+#define _read_tvg_16(data) (((data)[0] << 8) | (data)[1])
+#define _read_tvg_32(data) (((data)[0] << 24) | ((data)[1] << 16) | ((data)[2] << 8) | (data)[3])
+#else
+// big endian
+#define _read_tvg_16(data) (((data)[1] << 8) | (data)[0])
+#define _read_tvg_32(data) (((data)[3] << 24) | ((data)[2] << 16) | ((data)[1] << 8) | (data)[0])
+#endif
+
+enum LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption };
+
+using FlagType = uint8_t;
+using ByteCounter = uint32_t;
+#define TVG_BASE_BLOCK_SIZE sizeof(FlagType) + sizeof(ByteCounter)
+
+struct tvg_block_2 {
+   FlagType type;
+   ByteCounter lenght;
+   const char * data;
+   const char * block_end;
+};
+
+inline tvg_block_2 read_tvg_block(const char * pointer) {
+   tvg_block_2 block;
+   block.type = *pointer;
+   block.lenght = _read_tvg_32(pointer + 1);
+   block.data = pointer + 5;
+   block.block_end = block.data + block.lenght;
+
+   //printf("type %02X \n", block.type);
+   //printf("lenght %ld \n", block.lenght);
+   //printf("data %02X \n", *block.data);
+
+   return block;
+}
 
 /**
  * @class Paint
@@ -389,6 +427,8 @@ public:
 
     _TVG_DISABLE_CTOR(Initializer);
 };
+
+
 
 } //namespace
 

@@ -10,7 +10,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
 
     // Load Scene
     //canvas->load(EXAMPLE_DIR"/canvas.tvg");
-    canvas->load(EXAMPLE_DIR"/pliczek.tvg");
+    //canvas->load(EXAMPLE_DIR"/pliczek.tvg");
 
     // Load Scene
     /*auto scene = tvg::Scene::gen();

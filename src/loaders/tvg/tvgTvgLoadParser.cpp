@@ -23,8 +23,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <map>
-#include "tvgTvgHelper.h"
 #include "tvgTvgLoadParser.h"
+#include "tvgTvgHelper.h"
 
 #define TVG_LOADER_LOG_ENABLED 1
 
@@ -64,7 +64,7 @@ static bool tvg_read_header(const char** pointer)
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details: see tvgLoad() in tvgShapeImpl.h
  */
-static LoaderResult tvg_read_shape(const char* pointer, const char* end, unique_ptr<Scene> * root)
+static LoaderResult tvg_read_shape(const char* pointer, const char* end, Scene * scene)
 {
    // create shape
    auto s = Shape::gen();
@@ -82,7 +82,7 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, unique_
          pointer = block.block_end;
       }
 
-   (*root)->push(move(s));
+   scene->push(move(s));
    return LoaderResult::Success;
 }
 
@@ -91,22 +91,27 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, unique_
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details:
  */
-static LoaderResult tvg_read_scene(const char* pointer, const char* end, unique_ptr<Scene> * root)
+static LoaderResult tvg_read_scene(const char* pointer, const char* end, Scene * scene)
 {
-   // create scene - TODO for mutliple scenes
-   *root = Scene::gen();
+   // create scene
+   auto s = Scene::gen();
 
    while (pointer < end)
       {
          tvg_block_2 block = read_tvg_block(pointer);
          if (block.block_end > end) return LoaderResult::SizeCorruption;
 
-         LoaderResult result = (*root)->tvgLoad(block);
+         LoaderResult result = s->tvgLoad(block);
 
          if (result == LoaderResult::InvalidType)
             {
-               if (block.type == TVG_SHAPE_BEGIN_INDICATOR) {
-                  result = tvg_read_shape(block.data, block.block_end, root);
+               switch (block.type) {
+                  case TVG_SHAPE_BEGIN_INDICATOR:
+                  result = tvg_read_shape(block.data, block.block_end, s.get());
+                  break;
+                  case TVG_SCENE_BEGIN_INDICATOR:
+                  result = tvg_read_scene(block.data, block.block_end, s.get());
+                  break;
                }
             }
 
@@ -115,14 +120,11 @@ static LoaderResult tvg_read_scene(const char* pointer, const char* end, unique_
          pointer = block.block_end;
       }
 
+   scene->push(move(s));
    return LoaderResult::Success;
 }
 
-
-
-
-
-bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * root)
+bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
 {
    const char* end = pointer + size;
    if (!tvg_read_header(&pointer) || pointer >= end)
@@ -130,7 +132,8 @@ bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * roo
          // LOG: Header is improper
          return false;
       }
-   *root = Scene::gen();
+
+   if (scene == NULL) return false;
 
    while (pointer < end)
       {
@@ -140,11 +143,10 @@ bool tvg_file_parse(const char * pointer, uint32_t size, unique_ptr<Scene> * roo
          switch (block.type)
             {
             case TVG_SCENE_BEGIN_INDICATOR:
-               if (tvg_read_scene(block.data, block.block_end, root) > LoaderResult::Success) return false;
+               if (tvg_read_scene(block.data, block.block_end, scene) > LoaderResult::Success) return false;
                break;
             case TVG_SHAPE_BEGIN_INDICATOR:
-               if (*root == NULL) return false;
-               if (tvg_read_shape(block.data, block.block_end, root) > LoaderResult::Success) return false;
+               if (tvg_read_shape(block.data, block.block_end, scene) > LoaderResult::Success) return false;
                break;
             default:
                // LOG: Invalid type

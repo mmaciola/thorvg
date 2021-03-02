@@ -23,9 +23,10 @@
 #define _TVG_PICTURE_IMPL_H_
 
 #include <string>
+
+#include "tvgTvgHelper.h"
 #include "tvgPaint.h"
 #include "tvgLoaderMgr.h"
-#include "tvgTvgHelper.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */

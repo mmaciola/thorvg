@@ -42,12 +42,12 @@ public:
     bool open(const string& path) override;
     bool open(const char* data, uint32_t size) override;
 
-    bool read(Scene * scene);
+    bool read();
     bool close() override;
 
     void run(unsigned tid) override;
-    unique_ptr<Scene> scene() override;
 
+    bool paints(Scene * scene);
     void tvg_clean_buffer();
 };
 

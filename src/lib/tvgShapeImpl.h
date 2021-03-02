@@ -24,8 +24,8 @@
 
 #include <memory.h>
 #include "tvgPaint.h"
-#include "tvgTvgHelper.h"
 #include <iostream> // MGS - temp
+#include "tvgTvgHelper.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */

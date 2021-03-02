@@ -78,12 +78,12 @@ Result Scene::save(const std::string& path) noexcept
 
 Result Scene::load(const string& path) noexcept
 {
-   return pImpl->load(path);
+   return pImpl->load(path, this);
 }
 
 Result Scene::load(const char* data, uint32_t size) noexcept
 {
-   return pImpl->load(data, size);
+   return pImpl->load(data, size, this);
 }
 
 

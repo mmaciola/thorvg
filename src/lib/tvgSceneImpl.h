@@ -206,20 +206,22 @@ struct Scene::Impl
         return Result::Success;
     }
 
-    Result load(const string& path)
+    Result load(const string& path, Scene * scene)
     {
        // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(path)) return Result::Unknown;
-       if (!loader->read(this)) return Result::Unknown;
+       if (!loader->paints(scene)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
        return Result::Success;
     }
 
-    Result load(const char* data, uint32_t size)
+    Result load(const char* data, uint32_t size, Scene * scene)
     {
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(data, size)) return Result::Unknown;
-       if (!loader->read(this)) return Result::Unknown;
+       if (!loader->paints(scene)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
        return Result::Success;
     }
 
