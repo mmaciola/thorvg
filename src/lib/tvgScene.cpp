@@ -84,15 +84,13 @@ cout << __FILE__ << " " << __func__ << endl;
     return pImpl->save(path, this); //MGS2
 }
 
-//MGS2 - temp solution, can't fine a better one for now
+//MGS2 - temp solution, can't find a better one for now
 void Scene::serialize()
 {
 cout << __FILE__ << " " << __func__ << endl;
-        //MGS5 auto tvgSaver = static_cast<TvgSaver*>(saver.get());
-        //MGS5 serialize(&tvgSaver->pointer);
-    pImpl->serialize();
-
-//MGS5    pImpl->serializationStart();
+        auto tvgSaver = static_cast<TvgSaver*>(pImpl->saver.get());  // chyba nie chce release MGS
+        //pImpl->serialize(&tvgSaver->pointer);
+        Paint::pImpl->serialize(&tvgSaver->pointer); //MGS9 - na pewno z Paint?
 }
 
 // tvgTvgLoader / tvgTvgStorer

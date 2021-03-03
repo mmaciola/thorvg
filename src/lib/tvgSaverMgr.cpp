@@ -38,7 +38,7 @@ cout << __FILE__ << " " << __func__ << endl;
     //auto saver = new TvgSaver(); //MGS2
     auto saver = new TvgSaver(scene);
 //MGS5
-    saver->sc = scene;
+//    saver->sc = scene;
     if (saver->open(path)) return unique_ptr<Saver>(saver);
     else delete(saver);
 

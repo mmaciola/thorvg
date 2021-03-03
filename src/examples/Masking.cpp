@@ -20,9 +20,10 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     auto mask = tvg::Shape::gen();
     mask->appendCircle(200, 200, 125, 125);
     mask->fill(255, 0, 0, 255);
+mask->translate(1,0);
     shape->composite(move(mask), tvg::CompositeMethod::AlphaMask);
     canvas->push(move(shape));
-
+/*
     //SVG
     auto svg = tvg::Picture::gen();
     if (svg->load(EXAMPLE_DIR"/cartman.svg") != tvg::Result::Success) return;
@@ -89,6 +90,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     mask4->fill(255, 255, 255, 70);
     image->composite(move(mask4), tvg::CompositeMethod::AlphaMask);
     if (canvas->push(move(image)) != tvg::Result::Success) return;
+*/
 }
 
 
@@ -172,7 +174,7 @@ int main(int argc, char **argv)
     }
 
     //Threads Count
-    auto threads = std::thread::hardware_concurrency();
+    auto threads = 0;//std::thread::hardware_concurrency();
 
     //Initialize ThorVG Engine
     if (tvg::Initializer::init(tvgEngine, threads) == tvg::Result::Success) {

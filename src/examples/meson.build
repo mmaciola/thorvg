@@ -1,6 +1,7 @@
 examples_dep = dependency('elementary', required : true)
 
 source_file = [
+'Masking.cpp',
     'TvgStorerLoader.cpp',
     'Tvg.cpp',
 ]

@@ -72,7 +72,7 @@ void TvgSaver::run(unsigned tid)
 {
 cout << __FILE__ << " " << __func__ << endl;
 //MGS5
-    Saver::nic();
+//    Saver::nic();
 
     root->serialize();  //MGS temp bo nie moge tego obejsc
 
@@ -87,13 +87,12 @@ cout << __FILE__ << " " << __func__ << endl;
 //    if (!saveScene()) return; 
 };
 
-/*
 void TvgSaver::resizeBuffer()
 {
-    size *= 2;
-    buffer = static_cast<char*>(realloc(buffer, size));
+    reserved *= 2;
+    buffer = static_cast<char*>(realloc(buffer, reserved));
+// MGS8 - obsluga bledy realloca dodac
 }
-*/
 
 
 bool TvgSaver::open(const string& path)
@@ -107,14 +106,14 @@ cout << __FILE__ << " " << __func__ << endl;
         return false;
     }
 
-    size = 250000;//1024;
-    buffer = static_cast<char*>(malloc(size));
+    reserved = 250000;//1024;
+    buffer = static_cast<char*>(malloc(reserved));
     if (!buffer) {
-        size = 0;
+        reserved = 0;
         // MGS - close the file or move it from here
         return false;
     }
-    memset(buffer, '\0', size);  //MGS3
+    memset(buffer, '\0', reserved);  //MGS3
     pointer = buffer;
 
     return header(&pointer);
@@ -123,7 +122,7 @@ cout << __FILE__ << " " << __func__ << endl;
 bool TvgSaver::write()
 {
 cout << __FILE__ << " " << __func__ << endl;
-    if (!buffer || size == 0) return false;
+    if (!buffer || reserved == 0) return false;
 
     TaskScheduler::request(this);
 
@@ -137,11 +136,13 @@ cout << __FILE__ << " " << __func__ << endl;
     this->done();
 
     // MGS - temp sollution ?
-    outFile.write(buffer,size);
+    outFile.write(buffer,reserved);
+    //outFile.write(buffer,size);  //MGS - na razie nei zmieniam size!!! MGS8
     outFile.close();
 
     if (buffer) free(buffer);
     size = 0;
+    reserved = 0;
 
     return true;
 }

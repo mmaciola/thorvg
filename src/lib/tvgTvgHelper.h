@@ -4,7 +4,7 @@
 #include "thorvg.h"
 
 using FlagType = uint8_t;
-using ByteCounter = uint16_t;
+using ByteCounter = uint32_t;
 #define TVG_BASE_BLOCK_SIZE sizeof(FlagType) + sizeof(ByteCounter)
 
 
@@ -25,9 +25,12 @@ struct tvg_block {
 #define TVG_SCENE_BEGIN_INDICATOR (FlagType)0xfe
 #define TVG_SHAPE_BEGIN_INDICATOR (FlagType)0xfd
 #define TVG_PICTURE_BEGIN_INDICATOR (FlagType)0xfc
+#define TVG_RAW_IMAGE_BEGIN_INDICATOR (FlagType)0xfd  // ??
 
 #define TVG_PAINT_FLAG_HAS_OPACITY (FlagType)0x01
 #define TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX (FlagType)0x02
+#define TVG_PAINT_FLAG_HAS_CMP_TARGET (FlagType)0x03  //MGS9
+#define TVG_PAINT_FLAG_HAS_CMP_METHOD (FlagType)0x04  //MGS9
 
 #define TVG_SCENE_FLAG_RESERVEDCNT (FlagType)0x03
 
@@ -68,6 +71,5 @@ struct tvg_block {
 #define TVG_PATH_FLAG_CMDS (FlagType)0b00000001 // path's commands flag
 #define TVG_PATH_FLAG_PTS  (FlagType)0b00000010 // path's points flag
 
-#define TVG_RAW_IMAGE_BEGIN_INDICATOR (FlagType)0xfd
 
 #endif //_TVG_STANDARD_HELPER_H_

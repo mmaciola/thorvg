@@ -40,14 +40,14 @@ public:
 //MGS5
     //void nic(Scene* scene) {cout << "UDALO SIE " << (int)scene->pImpl->opacity << endl;};
     //void nic(Scene* scene) {cout << "UDALO SIE " << (int)scene->val << endl;};
-    void nic() {
-       cout << "UDALO SIE " << (int)sc->val << endl;
-       auto scI = sc->Scene::pImpl;
+//    void nic() {
+//       cout << "UDALO SIE " << (int)sc->val << endl;
+//       auto scI = sc->Scene::pImpl;
 //       scI->wypisz();
        //sc->pImpl->wypisz();
        //cout << "UDALO SIE " << (int)(sc->pImpl->opacity) << endl;
-    };
-    Scene* sc = nullptr;
+//    };
+//    Scene* sc = nullptr;
 };
 
 }

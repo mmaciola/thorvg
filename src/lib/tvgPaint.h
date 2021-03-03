@@ -109,9 +109,15 @@ cout << __FILE__ << " " << __func__ << endl;
                 rTransform = new RenderTransform();
                 if (!rTransform) return false;
             }
+cout << rTransform->x << " " << rTransform->y << endl;
             rTransform->x = x;
             rTransform->y = y;
-            if (!rTransform->overriding) flag |= RenderUpdateFlag::Transform;
+cout << rTransform->x << " " << rTransform->y << endl;
+
+            if (!rTransform->overriding) {
+                cout << "ustawie falge" << endl;
+                flag |= RenderUpdateFlag::Transform;
+            }
 
             return true;
         }
@@ -243,10 +249,70 @@ cout << __FILE__ << " " << __func__ << endl;
             return true;
         }
 
+
+        void serializePaint(char** pointer)
+        {
+cout << __FILE__ << " " << __func__ << " Paint" << endl;
+            char* start = *pointer;
+            FlagType flag;
+            size_t flagSize = sizeof(FlagType);
+            ByteCounter byteCnt = flagSize;
+            size_t byteCntSize = sizeof(ByteCounter);
+
+            // transform
+            if (rTransform) {
+                Matrix m = rTransform->m;
+
+  cout << "mam juz rTransform" << endl;
+  cout << m.e11 << " " << m.e12 << " " << m.e13 << endl;
+  cout << m.e21 << " " << m.e22 << " " << m.e23 << endl;
+  cout << m.e31 << " " << m.e32 << " " << m.e33 << endl;
+                // transform matrix flag
+                flag = TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with transf matrix
+                byteCnt = sizeof(m); //MGS9 - check
+                memcpy(*pointer, &byteCnt, byteCntSize);
+                *pointer += byteCntSize;
+                // bytes associated with transf matrix
+                memcpy(*pointer, &m, byteCnt);
+                *pointer += byteCnt;
+            }
+
+            // cmpTarget
+            if (cmpTarget) {
+                // cmpTarget flag
+                flag = TVG_PAINT_FLAG_HAS_CMP_TARGET;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with cmpTarget - empty
+                *pointer += byteCntSize;
+                // bytes associated with cmpTrget
+cout << "########################################### przed target" << endl;
+                cmpTarget->pImpl->serialize(pointer);
+cout << "########################################### po target" << endl;
+                // number of bytes associated with shape - filled
+                byteCnt = *pointer - start - flagSize - byteCntSize;
+                memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+            }
+        }
+
         void serialize(char** pointer)
         {
-cout << __FILE__ << " " << __func__ << endl;
+cout << __FILE__ << " " << __func__ << " Paint" << endl;
+/*
+printf("P.h %p \n", *pointer);
+            char* start = *pointer;
+            FlagType flag;
+            size_t flagSize = sizeof(FlagType);
+            ByteCounter byteCnt = flagSize;
+            size_t byteCntSize = sizeof(ByteCounter);
+*/
+            smethod->serialize(pointer);
+
 //MGS3
+/*
 if (rTransform)
 {
   Matrix m = rTransform->m;
@@ -254,8 +320,32 @@ if (rTransform)
   cout << m.e11 << " " << m.e12 << " " << m.e13 << endl;
   cout << m.e21 << " " << m.e22 << " " << m.e23 << endl;
   cout << m.e31 << " " << m.e32 << " " << m.e33 << endl;
+*/
+/*
+            flag = TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with stroke - empty
+            *pointer += byteCntSize;
+            // bytes associated with stroke
+            byteCnt = serializeStroke(pointer);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= flagSize + byteCntSize;
+               return;
+            }
+*/
+/*
 }
-            smethod->serialize(pointer);
+else cout << "NIE MA MAC TRANSF" << endl;  // np jesli przesuwam maske to nei ma
+
+if (cmpTarget) {
+  cout << "SERI - jest target" << endl;
+  if (cmpTarget->pImpl->rTransform) 
+    cout << "SERI - jest target->rTransf" << endl;
+}
+else cout << "SERI - nie ma targ" << endl;
+*/
         }
 
         /*
@@ -357,7 +447,7 @@ cout << __FILE__ << " " << __func__ << endl;
 
         void serialize(char** pointer) override
         {
-cout << __FILE__ << " " << __func__ << endl;
+cout << __FILE__ << " " << __func__ << " smeth" << endl;
              inst->serialize(pointer);
         }
     };

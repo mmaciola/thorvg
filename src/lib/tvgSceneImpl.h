@@ -41,10 +41,12 @@ struct Scene::Impl
     unique_ptr<Saver> saver = nullptr;
 
 //MGS5
+/*
     void wypisz()
     {
         cout << "HAHAHA " << (int)opacity << endl;
     }
+*/
 
     bool dispose(RenderMethod& renderer)
     {
@@ -188,19 +190,28 @@ cout << __FILE__ << " " << __func__ << endl;
     void serialize(char** pointer)
     {
 cout << __FILE__ << " " << __func__ << endl;
+        if (!*pointer) return;// false;
+
+        char* start = *pointer;
+        FlagType flag;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // scene indicator
+        flag = TVG_SCENE_BEGIN_INDICATOR;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with scene - empty for now
+        *pointer += byteCntSize;
+
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             (*paint)->pImpl->serialize(pointer);
         }
-    }
 
-//MGS2 - temp solution
-    void serializationStart()
-    {
-cout << __FILE__ << " " << __func__ << endl;
-//        if (!saver->write()) return;// Result::Unknown; //MGS3 - jesli taka glupota nei da segf to nei wiem czemu :), to daje requesta w runie
-//MGS5 - wykomentowalam na potrzeby testow
-        //MGS5 auto tvgSaver = static_cast<TvgSaver*>(saver.get());
-        //MGS5 serialize(&tvgSaver->pointer);
+        // number of bytes associated with scene - filled
+        byteCnt = *pointer - start - flagSize - byteCntSize;
+        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
     }
 
 //    Result save(const std::string& path)

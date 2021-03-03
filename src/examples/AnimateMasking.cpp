@@ -1,98 +1,47 @@
 #include "Common.h"
-#include <fstream>
 
 /************************************************************************/
 /* Drawing Commands                                                     */
 /************************************************************************/
 
-uint32_t *data = nullptr;
+tvg::Shape *pMaskShape = nullptr;
+tvg::Shape *pMask = nullptr;
+
 
 void tvgDrawCmds(tvg::Canvas* canvas)
 {
     if (!canvas) return;
 
-/*
-    //Image
-    ifstream file(EXAMPLE_DIR"/rawimage_200x300.raw");
-    if (!file.is_open()) return;
-    data = (uint32_t*) malloc(sizeof(uint32_t) * (200 * 300));
-    file.read(reinterpret_cast<char *>(data), sizeof (data) * 200 * 300);
-    file.close();
+    // background
+    auto bg = tvg::Shape::gen();
+    bg->appendRect(0,0,WIDTH, HEIGHT,0, 0);
+    bg->fill(255, 255, 255, 255);
+    canvas->push(move(bg));
 
-    auto image = tvg::Picture::gen();
-    if (image->load(data, 200, 300, true) != tvg::Result::Success) return;
-    image->translate(500, 400);
-*/
+    // image
+    auto picture1 = tvg::Picture::gen();
+    picture1->load(EXAMPLE_DIR"/human.svg");
+    auto picture2 = tvg::Picture::gen();
+    picture2->load(EXAMPLE_DIR"/bones.svg");
+    canvas->push(move(picture1));
 
-/*
-float hh = 50, ww = 200;
-image->size(ww, hh);
-float hh1, ww1;
-image->size(&ww1, &hh1);
-cout << "RRRRRRRRRRRRRRRR " << hh << " " << ww << " " << hh1 << " " << ww1 << endl;
-*/
+    //mask
+    auto maskShape = tvg::Shape::gen();
+    pMaskShape = maskShape.get();
+    maskShape->appendCircle(100, 180, 125, 125);
+    maskShape->fill(0, 0, 0, 125);
+    maskShape->stroke(25, 25, 25, 255);
+    maskShape->stroke(tvg::StrokeJoin::Round);
+    maskShape->stroke(10);
+    canvas->push(move(maskShape));
 
-    //Create a Scene
-    auto scene = tvg::Scene::gen();
+    auto mask = tvg::Shape::gen();
+    pMask = mask.get();
+    mask->appendCircle(100, 180, 125, 125);
+    mask->fill(255, 0, 0, 255);
 
-/*
-    //RadialGradient
-    auto fill = tvg::RadialGradient::gen();
-    fill->radial(201, 199, 200);
-    //Gradient Color Stops
-    tvg::Fill::ColorStop colorStops[2];
-    colorStops[0] = {0, 255, 203, 255, 255};
-    colorStops[1] = {1, 0, 24, 0, 255};
-    fill->colorStops(colorStops, 2);
-
-    //Round Rectangle
-    auto shape1 = tvg::Shape::gen();
-    shape1->appendRect(2, 9, 401, 404, 49, 51);
-    shape1->fill(91, 92, 93, 94);
-    shape1->stroke(5);
-    shape1->stroke(255,0,0,200); 
-    float dashPattern[3] = {20, 10, 17.98};
-    shape1->stroke(dashPattern, 3);
-    shape1->fill(move(fill));
-
-    //Scene - child
-    auto scene2 = tvg::Scene::gen();
-    auto shape2 = tvg::Shape::gen();
-    shape2->appendRect(30, 40, 100, 100, 0, 0);
-    shape2->fill(41, 42, 43, 125);
-    scene2->push(move(shape2));
-*/
-
-    //scene - child with mask
-    auto scene3 = tvg::Scene::gen();
-
-    auto shape3 = tvg::Shape::gen();
-    shape3->appendRect(400, 400, 100, 100, 0, 0);
-    shape3->fill(0, 0, 255, 255);
-    shape3->translate(0, 30);
-
-    //Mask
-    auto mask3 = tvg::Shape::gen();
-    mask3->appendRect(450, 450, 20, 20, 0, 0);
-    mask3->fill(255, 0, 0, 255);
-    mask3->translate(40, 0);
-    //shape3->composite(move(mask3), tvg::CompositeMethod::AlphaMask);
-    shape3->composite(move(mask3), tvg::CompositeMethod::ClipPath);
-
-//    scene3->push(move(mask3));
-    scene3->push(move(shape3));
-
-scene3->translate(0, -300);
-
-    //scene->push(move(shape1));
-    //scene->push(move(image));
-    //scene->push(move(scene2));
-    scene->push(move(scene3));
-
-    if (scene->save("./pliczek.tvg") != tvg::Result::Success) return;
-
-    //Draw the Scene onto the Canvas
-    canvas->push(move(scene));
+    picture2->composite(move(mask), tvg::CompositeMethod::AlphaMask);
+    if (canvas->push(move(picture2)) != tvg::Result::Success) return;
 }
 
 
@@ -122,6 +71,31 @@ void drawSwView(void* data, Eo* obj)
     }
 }
 
+void tvgUpdateCmds(tvg::Canvas* canvas, float progress)
+{
+    if (!canvas) return;
+
+    /* Update shape directly.
+       You can update only necessary properties of this shape,
+       while retaining other properties. */
+
+    // Translate mask object with its stroke & update 
+/*
+    pMaskShape->translate(0 , progress * 300);
+    pMask->translate(0 , progress * 300);
+    canvas->update(pMaskShape);
+    canvas->update(pMask);
+*/
+}
+
+void transitSwCb(Elm_Transit_Effect *effect, Elm_Transit* transit, double progress)
+{
+    tvgUpdateCmds(swCanvas.get(), progress);
+
+    Eo* img = (Eo*) effect;
+    evas_object_image_data_update_add(img, 0, 0, WIDTH, HEIGHT);
+    evas_object_image_pixels_dirty_set(img, EINA_TRUE);
+}
 
 /************************************************************************/
 /* GL Engine Test Code                                                  */
@@ -155,6 +129,9 @@ void drawGLview(Evas_Object *obj)
     }
 }
 
+void transitGlCb(Elm_Transit_Effect *effect, Elm_Transit* transit, double progress)
+{
+}
 
 /************************************************************************/
 /* Main Code                                                            */
@@ -176,26 +153,33 @@ int main(int argc, char **argv)
     }
 
     //Threads Count
-    auto threads = 0; //std::thread::hardware_concurrency();
+    auto threads = std::thread::hardware_concurrency();
 
     //Initialize ThorVG Engine
     if (tvg::Initializer::init(tvgEngine, threads) == tvg::Result::Success) {
 
         elm_init(argc, argv);
 
+        Elm_Transit *transit = elm_transit_add();
+
         if (tvgEngine == tvg::CanvasEngine::Sw) {
-            createSwView();
+            auto view = createSwView();
+            elm_transit_effect_add(transit, transitSwCb, view, nullptr);
         } else {
-            createGlView();
+            auto view = createGlView();
+            elm_transit_effect_add(transit, transitGlCb, view, nullptr);
         }
+
+        elm_transit_duration_set(transit, 5);
+        elm_transit_repeat_times_set(transit, -1);
+        elm_transit_auto_reverse_set(transit, EINA_TRUE);
+        elm_transit_go(transit);
 
         elm_run();
         elm_shutdown();
 
         //Terminate ThorVG Engine
-        tvg::Initializer::term(tvg::CanvasEngine::Sw);
-
-        if (data) free(data);
+        tvg::Initializer::term(tvgEngine);
 
     } else {
         cout << "engine is not supported" << endl;
