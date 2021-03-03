@@ -29,6 +29,7 @@
 
 bool header(char** pointer)
 {
+cout << __FILE__ << " " << __func__ << endl;
     // MGS - hardcoded for now
     const char *tvg = "TVG";
     memcpy(*pointer, tvg, 3);
@@ -36,48 +37,45 @@ bool header(char** pointer)
     const char *version = "000";
     memcpy(*pointer, version, 3);
     *pointer += 3;
-    // metadata
+    // metadata MGS
     *pointer += 2;
 
     return true;
 }
 
-bool saveScene()
-{
-    // MGS TODO 
-    return true;
-}
-
-
 /************************************************************************/
 /* External Class Implementation                                        */
 /************************************************************************/
 
-TvgSaver::TvgSaver()
+TvgSaver::TvgSaver(Scene* scene) : root(scene)
 {
+cout << __FILE__ << " " << __func__ << endl;
 }
 
 TvgSaver::~TvgSaver()
 {
+cout << __FILE__ << " " << __func__ << endl;
     close();
 }
 
 void TvgSaver::run(unsigned tid)
 {
-    if (!saveScene()) return; 
+cout << __FILE__ << " " << __func__ << endl;
+
+    root->serialize();  //MGS temp bo nie moge tego obejsc
 };
 
-/*
 void TvgSaver::resizeBuffer()
 {
-    size *= 2;
-    buffer = static_cast<char*>(realloc(buffer, size));
+    reserved *= 2;
+    buffer = static_cast<char*>(realloc(buffer, reserved));
+// MGS - obsluga bledy realloca dodac
 }
-*/
 
 
 bool TvgSaver::open(const string& path)
 {
+cout << __FILE__ << " " << __func__ << endl;
     // MGS - open the file here? 
     outFile.open(path, ios::out | ios::trunc | ios::binary);
     if (!outFile.is_open())
@@ -86,14 +84,14 @@ bool TvgSaver::open(const string& path)
         return false;
     }
 
-    size = 250000;//1024;
-    buffer = static_cast<char*>(malloc(size));
+    reserved = 250000;
+    buffer = static_cast<char*>(malloc(reserved));
     if (!buffer) {
-        size = 0;
+        reserved = 0;
         // MGS - close the file or move it from here
         return false;
     }
-    memset(buffer, '\0', size);
+    memset(buffer, '\0', reserved);  //MGS
     pointer = buffer;
 
     return header(&pointer);
@@ -101,7 +99,8 @@ bool TvgSaver::open(const string& path)
 
 bool TvgSaver::write()
 {
-    if (!buffer || size == 0) return false;
+cout << __FILE__ << " " << __func__ << endl;
+    if (!buffer || reserved == 0) return false;
 
     TaskScheduler::request(this);
 
@@ -111,14 +110,16 @@ bool TvgSaver::write()
 
 bool TvgSaver::close()
 {
+cout << __FILE__ << " " << __func__ << endl;
     this->done();
 
-    // MGS - temp sollution ?
-    outFile.write(buffer,size);
+    outFile.write(buffer,reserved);
+    //outFile.write(buffer,size);  //MGS - na razie nei zmieniam size !!
     outFile.close();
 
     if (buffer) free(buffer);
     size = 0;
+    reserved = 0;
 
     return true;
 }

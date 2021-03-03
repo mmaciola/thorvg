@@ -35,12 +35,13 @@
 struct Scene::Impl
 {
     Array<Paint*> paints;
-    uint8_t opacity;            //for composition
+    uint8_t opacity = 255;            //for composition
 
     unique_ptr<Saver> saver = nullptr;
 
     bool dispose(RenderMethod& renderer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             (*paint)->pImpl->dispose(renderer);
             delete(*paint);
@@ -52,6 +53,7 @@ struct Scene::Impl
 
     void* update(RenderMethod &renderer, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag flag)
     {
+cout << __FILE__ << " " << __func__ << endl;
         /* Overriding opacity value. If this scene is half-translucent,
            It must do intermeidate composition with that opacity value. */
         this->opacity = static_cast<uint8_t>(opacity);
@@ -61,6 +63,10 @@ struct Scene::Impl
             (*paint)->pImpl->update(renderer, transform, opacity, clips, static_cast<uint32_t>(flag));
         }
 
+// mam mieszane uczucia czy to tu powinno byc. 
+// musi byc po updateach
+        if (saver && !saver->write()) return nullptr;
+
         /* FXIME: it requires to return list of children engine data
            This is necessary for scene composition */
         return nullptr;
@@ -68,6 +74,7 @@ struct Scene::Impl
 
     bool render(RenderMethod& renderer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         Compositor* cmp = nullptr;
 
         //Half translucent. This condition requires intermediate composition.
@@ -89,6 +96,7 @@ struct Scene::Impl
 
     bool bounds(RenderMethod& renderer, uint32_t* px, uint32_t* py, uint32_t* pw, uint32_t* ph)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (paints.count == 0) return false;
 
         uint32_t x1 = UINT32_MAX;
@@ -121,6 +129,7 @@ struct Scene::Impl
 
     bool bounds(float* px, float* py, float* pw, float* ph)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (paints.count == 0) return false;
 
         auto x1 = FLT_MAX;
@@ -153,6 +162,7 @@ struct Scene::Impl
 
     Paint* duplicate()
     {
+cout << __FILE__ << " " << __func__ << endl;
        printf("Paint* duplicate() scene h \n");
         auto ret = Scene::gen();
         if (!ret) return nullptr;
@@ -169,6 +179,7 @@ struct Scene::Impl
 
     void serialize(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
         char* start = *pointer;
@@ -193,22 +204,19 @@ struct Scene::Impl
         memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
     }
 
-    Result save(const std::string& path)
+    Result save(const std::string& path, Scene *scene)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (saver) saver->close();
-        saver = SaverMgr::saver(path);
+        saver = SaverMgr::saver(path, scene);
         if (!saver) return Result::NonSupport;
-        if (!saver->write()) return Result::Unknown;
-
-        // MGS - temp solution - absolutnie poprawic
-        auto tvgSaver = static_cast<TvgSaver*>(saver.get());
-        serialize(&tvgSaver->pointer);
 
         return Result::Success;
     }
 
     Result load(const string& path)
     {
+cout << __FILE__ << " " << __func__ << endl;
        // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(path)) return Result::Unknown;
@@ -218,6 +226,7 @@ struct Scene::Impl
 
     Result load(const char* data, uint32_t size)
     {
+cout << __FILE__ << " " << __func__ << endl;
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(data, size)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
@@ -226,24 +235,39 @@ struct Scene::Impl
 
     /*
      * Load scene from .tvg binary file
-     * Returns LoaderResult: Success on success and moves pointer to next position,
-     * InvalidType if not applicable for paint or SizeCorruption if corrupted.
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(tvg_block_2 block)
+    LoaderResult tvgLoad(const char* pointer, const char* end)
     {
-       switch (block.type)
+cout << __FILE__ << " " << __func__ << endl;
+       const tvg_block * block = (tvg_block*) pointer;
+       switch (block->type)
          {
           case TVG_SCENE_FLAG_RESERVEDCNT: {
-             if (block.lenght != 1) return LoaderResult::SizeCorruption;
-             uint32_t reservedCnt = _read_tvg_32(block.data);
+             if (block->lenght != 1) return LoaderResult::SizeCorruption;
+             uint32_t reservedCnt = (uint32_t) block->data;
              paints.reserve(reservedCnt);
-             return LoaderResult::Success;
+             break;
           }
+          default:
+             return LoaderResult::InvalidType;
          }
 
-       return LoaderResult::InvalidType;
+       return LoaderResult::Success;
+    }
+
+
+    /*
+     * Store scene from .tvg binary file
+     * Details: see above function tvgLoad
+     */
+    bool tvgStore()
+    {
+cout << __FILE__ << " " << __func__ << endl;
+       return true;
     }
 };
 

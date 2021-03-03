@@ -33,24 +33,28 @@ constexpr auto PATH_KAPPA = 0.552284f;
 
 Shape :: Shape() : pImpl(new Impl(this))
 {
+cout << __FILE__ << " " << __func__ << endl;
     Paint::pImpl->method(new PaintMethod<Shape::Impl>(pImpl));
 }
 
 
 Shape :: ~Shape()
 {
+cout << __FILE__ << " " << __func__ << endl;
     delete(pImpl);
 }
 
 
 unique_ptr<Shape> Shape::gen() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return unique_ptr<Shape>(new Shape);
 }
 
 
 Result Shape::reset() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->reset();
 
     return Result::Success;
@@ -59,6 +63,7 @@ Result Shape::reset() noexcept
 
 uint32_t Shape::pathCommands(const PathCommand** cmds) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!cmds) return 0;
 
     *cmds = pImpl->path.cmds;
@@ -69,6 +74,7 @@ uint32_t Shape::pathCommands(const PathCommand** cmds) const noexcept
 
 uint32_t Shape::pathCoords(const Point** pts) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pts) return 0;
 
     *pts = pImpl->path.pts;
@@ -79,6 +85,7 @@ uint32_t Shape::pathCoords(const Point** pts) const noexcept
 
 Result Shape::appendPath(const PathCommand *cmds, uint32_t cmdCnt, const Point* pts, uint32_t ptsCnt) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (cmdCnt == 0 || ptsCnt == 0 || !pts || !ptsCnt) return Result::InvalidArguments;
 
     pImpl->path.grow(cmdCnt, ptsCnt);
@@ -92,6 +99,7 @@ Result Shape::appendPath(const PathCommand *cmds, uint32_t cmdCnt, const Point* 
 
 Result Shape::moveTo(float x, float y) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->path.moveTo(x, y);
 
     pImpl->flag |= RenderUpdateFlag::Path;
@@ -102,6 +110,7 @@ Result Shape::moveTo(float x, float y) noexcept
 
 Result Shape::lineTo(float x, float y) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->path.lineTo(x, y);
 
     pImpl->flag |= RenderUpdateFlag::Path;
@@ -112,6 +121,7 @@ Result Shape::lineTo(float x, float y) noexcept
 
 Result Shape::cubicTo(float cx1, float cy1, float cx2, float cy2, float x, float y) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->path.cubicTo(cx1, cy1, cx2, cy2, x, y);
 
     pImpl->flag |= RenderUpdateFlag::Path;
@@ -122,6 +132,7 @@ Result Shape::cubicTo(float cx1, float cy1, float cx2, float cy2, float x, float
 
 Result Shape::close() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->path.close();
 
     pImpl->flag |= RenderUpdateFlag::Path;
@@ -132,6 +143,7 @@ Result Shape::close() noexcept
 
 Result Shape::appendCircle(float cx, float cy, float rx, float ry) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto rxKappa = rx * PATH_KAPPA;
     auto ryKappa = ry * PATH_KAPPA;
 
@@ -150,6 +162,7 @@ Result Shape::appendCircle(float cx, float cy, float rx, float ry) noexcept
 
 Result Shape::appendArc(float cx, float cy, float radius, float startAngle, float sweep, bool pie) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     const float M_PI_HALF = M_PI * 0.5f;
 
     //just circle
@@ -212,6 +225,7 @@ Result Shape::appendArc(float cx, float cy, float radius, float startAngle, floa
 
 Result Shape::appendRect(float x, float y, float w, float h, float rx, float ry) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto halfW = w * 0.5f;
     auto halfH = h * 0.5f;
 
@@ -254,6 +268,7 @@ Result Shape::appendRect(float x, float y, float w, float h, float rx, float ry)
 
 Result Shape::fill(uint8_t r, uint8_t g, uint8_t b, uint8_t a) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->color[0] = r;
     pImpl->color[1] = g;
     pImpl->color[2] = b;
@@ -272,6 +287,7 @@ Result Shape::fill(uint8_t r, uint8_t g, uint8_t b, uint8_t a) noexcept
 
 Result Shape::fill(unique_ptr<Fill> f) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     auto p = f.release();
     if (!p) return Result::MemoryCorruption;
 
@@ -285,6 +301,7 @@ Result Shape::fill(unique_ptr<Fill> f) noexcept
 
 Result Shape::fillColor(uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (r) *r = pImpl->color[0];
     if (g) *g = pImpl->color[1];
     if (b) *b = pImpl->color[2];
@@ -295,12 +312,14 @@ Result Shape::fillColor(uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a) const no
 
 const Fill* Shape::fill() const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return pImpl->fill;
 }
 
 
 Result Shape::stroke(float width) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->strokeWidth(width)) return Result::FailedAllocation;
 
     return Result::Success;
@@ -309,6 +328,7 @@ Result Shape::stroke(float width) noexcept
 
 float Shape::strokeWidth() const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->stroke) return 0;
     return pImpl->stroke->width;
 }
@@ -316,6 +336,7 @@ float Shape::strokeWidth() const noexcept
 
 Result Shape::stroke(uint8_t r, uint8_t g, uint8_t b, uint8_t a) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->strokeColor(r, g, b, a)) return Result::FailedAllocation;
 
     return Result::Success;
@@ -324,6 +345,7 @@ Result Shape::stroke(uint8_t r, uint8_t g, uint8_t b, uint8_t a) noexcept
 
 Result Shape::strokeColor(uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->stroke) return Result::InsufficientCondition;
 
     if (r) *r = pImpl->stroke->color[0];
@@ -337,6 +359,7 @@ Result Shape::strokeColor(uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a) const 
 
 Result Shape::stroke(const float* dashPattern, uint32_t cnt) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (cnt < 2 || !dashPattern) return Result::InvalidArguments;
 
     for (uint32_t i = 0; i < cnt; i++)
@@ -350,6 +373,7 @@ Result Shape::stroke(const float* dashPattern, uint32_t cnt) noexcept
 
 uint32_t Shape::strokeDash(const float** dashPattern) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->stroke) return 0;
 
     if (dashPattern) *dashPattern = pImpl->stroke->dashPattern;
@@ -360,6 +384,7 @@ uint32_t Shape::strokeDash(const float** dashPattern) const noexcept
 
 Result Shape::stroke(StrokeCap cap) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->strokeCap(cap)) return Result::FailedAllocation;
 
     return Result::Success;
@@ -368,6 +393,7 @@ Result Shape::stroke(StrokeCap cap) noexcept
 
 Result Shape::stroke(StrokeJoin join) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->strokeJoin(join)) return Result::FailedAllocation;
 
     return Result::Success;
@@ -376,6 +402,7 @@ Result Shape::stroke(StrokeJoin join) noexcept
 
 StrokeCap Shape::strokeCap() const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->stroke) return StrokeCap::Square;
 
     return pImpl->stroke->cap;
@@ -384,6 +411,7 @@ StrokeCap Shape::strokeCap() const noexcept
 
 StrokeJoin Shape::strokeJoin() const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!pImpl->stroke) return StrokeJoin::Bevel;
 
     return pImpl->stroke->join;
@@ -392,6 +420,7 @@ StrokeJoin Shape::strokeJoin() const noexcept
 
 Result Shape::fill(FillRule r) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     pImpl->rule = r;
 
     return Result::Success;
@@ -400,5 +429,6 @@ Result Shape::fill(FillRule r) noexcept
 
 FillRule Shape::fillRule() const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return pImpl->rule;
 }

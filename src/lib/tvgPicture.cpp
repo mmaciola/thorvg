@@ -28,24 +28,28 @@
 
 Picture::Picture() : pImpl(new Impl(this))
 {
+cout << __FILE__ << " " << __func__ << endl;
     Paint::pImpl->method(new PaintMethod<Picture::Impl>(pImpl));
 }
 
 
 Picture::~Picture()
 {
+cout << __FILE__ << " " << __func__ << endl;
     delete(pImpl);
 }
 
 
 unique_ptr<Picture> Picture::gen() noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     return unique_ptr<Picture>(new Picture);
 }
 
 
 Result Picture::load(const std::string& path) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (path.empty()) return Result::InvalidArguments;
 
     return pImpl->load(path);
@@ -54,6 +58,7 @@ Result Picture::load(const std::string& path) noexcept
 
 Result Picture::load(const char* data, uint32_t size) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!data || size <= 0) return Result::InvalidArguments;
 
     return pImpl->load(data, size);
@@ -62,6 +67,7 @@ Result Picture::load(const char* data, uint32_t size) noexcept
 
 Result Picture::load(uint32_t* data, uint32_t w, uint32_t h, bool copy) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!data || w <= 0 || h <= 0) return Result::InvalidArguments;
 
     return pImpl->load(data, w, h, copy);
@@ -70,6 +76,7 @@ Result Picture::load(uint32_t* data, uint32_t w, uint32_t h, bool copy) noexcept
 
 Result Picture::viewbox(float* x, float* y, float* w, float* h) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (pImpl->viewbox(x, y, w, h)) return Result::Success;
     return Result::InsufficientCondition;
 }
@@ -77,6 +84,7 @@ Result Picture::viewbox(float* x, float* y, float* w, float* h) const noexcept
 
 Result Picture::size(float w, float h) noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (pImpl->size(w, h)) return Result::Success;
     return Result::InsufficientCondition;
 }
@@ -84,6 +92,7 @@ Result Picture::size(float w, float h) noexcept
 
 Result Picture::size(float* w, float* h) const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (w) *w = pImpl->w;
     if (h) *h = pImpl->h;
     return Result::Success;
@@ -92,6 +101,7 @@ Result Picture::size(float* w, float* h) const noexcept
 
 const uint32_t* Picture::data() const noexcept
 {
+cout << __FILE__ << " " << __func__ << endl;
     //Try it, If not loaded yet.
     if (pImpl->loader) return pImpl->loader->pixels();
 

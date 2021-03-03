@@ -43,10 +43,12 @@ struct Picture::Impl
 
     Impl(Picture* p) : picture(p)
     {
+cout << __FILE__ << " " << __func__ << endl;
     }
 
     bool dispose(RenderMethod& renderer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         bool ret = true;
         if (paint) {
             ret = paint->pImpl->dispose(renderer);
@@ -62,6 +64,7 @@ struct Picture::Impl
 
     void resize()
     {
+cout << __FILE__ << " " << __func__ << endl;
         auto sx = w / loader->vw;
         auto sy = h / loader->vh;
 
@@ -94,6 +97,7 @@ struct Picture::Impl
 
     uint32_t reload()
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (loader) {
             if (!paint) {
                 auto scene = loader->scene();
@@ -101,7 +105,7 @@ struct Picture::Impl
                     paint = scene.release();
                     loader->close();
                     if (w != loader->w && h != loader->h) resize();
-                    if (paint) return RenderUpdateFlag::None;
+                    if (paint) return RenderUpdateFlag::None; //MGS - check
                 }
             }
             if (!pixels) {
@@ -109,11 +113,13 @@ struct Picture::Impl
                 if (pixels) return RenderUpdateFlag::Image;
             }
         }
+cout << "KONIEC " << __FILE__ << " " << __func__ << endl;
         return RenderUpdateFlag::None;
     }
 
     void* update(RenderMethod &renderer, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag pFlag)
     {
+cout << __FILE__ << " " << __func__ << endl;
         auto flag = reload();
 
         if (pixels) rdata = renderer.prepare(*picture, rdata, transform, opacity, clips, static_cast<RenderUpdateFlag>(pFlag | flag));
@@ -121,18 +127,22 @@ struct Picture::Impl
             if (resizing) resize();
             rdata = paint->pImpl->update(renderer, transform, opacity, clips, static_cast<RenderUpdateFlag>(pFlag | flag));
         }
+cout << "KONIEC " << __FILE__ << " " << __func__ << endl;
         return rdata;
     }
 
     bool render(RenderMethod &renderer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (pixels) return renderer.renderImage(rdata);
         else if (paint) return paint->pImpl->render(renderer);
+cout << "KONIEC " << __FILE__ << " " << __func__ << endl;
         return false;
     }
 
     bool viewbox(float* x, float* y, float* w, float* h)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!loader) return false;
         if (x) *x = loader->vx;
         if (y) *y = loader->vy;
@@ -143,6 +153,7 @@ struct Picture::Impl
 
     bool size(uint32_t w, uint32_t h)
     {
+cout << __FILE__ << " " << __func__ << endl;
         this->w = w;
         this->h = h;
         resizing = true;
@@ -151,12 +162,14 @@ struct Picture::Impl
 
     bool bounds(float* x, float* y, float* w, float* h)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!paint) return false;
         return paint->pImpl->bounds(x, y, w, h);
     }
 
     bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (rdata) return renderer.region(rdata, x, y, w, h);
         if (paint) return paint->pImpl->bounds(renderer, x, y, w, h);
         return false;
@@ -164,6 +177,7 @@ struct Picture::Impl
 
     Result load(const string& path)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (loader) loader->close();
         loader = LoaderMgr::loader(path);
         if (!loader) return Result::NonSupport;
@@ -175,6 +189,7 @@ struct Picture::Impl
 
     Result load(const char* data, uint32_t size)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (loader) loader->close();
         loader = LoaderMgr::loader(data, size);
         if (!loader) return Result::NonSupport;
@@ -186,6 +201,7 @@ struct Picture::Impl
 
     Result load(uint32_t* data, uint32_t w, uint32_t h, bool copy)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (loader) loader->close();
         loader = LoaderMgr::loader(data, w, h, copy);
         if (!loader) return Result::NonSupport;
@@ -194,6 +210,7 @@ struct Picture::Impl
 
     Paint* duplicate()
     {
+cout << __FILE__ << " " << __func__ << endl;
         reload();
 
         if (!paint) return nullptr;
@@ -207,11 +224,17 @@ struct Picture::Impl
 
     void serialize(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
-        //NGS - reconsider
-        if (!pixels && loader) {
-            pixels = const_cast<uint32_t*>(loader->pixels());
+        //MGS - reconsider
+        if (loader) {
+            // only a check - remove in the final ver
+            if (!pixels) {
+                cout << "pixele nie byly zaladowane - dziwne" << endl;
+                pixels = const_cast<uint32_t*>(loader->pixels());
+            }
+            // should I use local var instead of w/h ?  //MGS
             w = loader->vw;
             h = loader->vh;
         }
@@ -247,17 +270,21 @@ struct Picture::Impl
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(tvg_block_2 block)
+    LoaderResult tvgLoad(const char* pointer, const char* end)
     {
-       switch (block.type)
+cout << __FILE__ << " " << __func__ << endl;
+       const tvg_block * block = (tvg_block*) pointer;
+       switch (block->type)
          {
           case 0: {
              // TODO
-             return LoaderResult::Success;
+             break;
           }
+          default:
+             return LoaderResult::InvalidType;
          }
 
-       return LoaderResult::InvalidType;
+       return LoaderResult::Success;
     }
 };
 

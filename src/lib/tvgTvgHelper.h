@@ -63,6 +63,13 @@ struct tvg_header {
 #define TVG_PAINT_FLAG_HAS_OPACITY (FlagType)0x01
 #define TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX (FlagType)0x02
 
+#define TVG_PAINT_FLAG_HAS_CMP_TARGET (FlagType)0x03
+#define TVG_PAINT_FLAG_CMP_TARGET (FlagType)0x01
+#define TVG_PAINT_FLAG_CMP_METHOD (FlagType)0x02
+#define TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH      (FlagType)0x01
+#define TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK     (FlagType)0x02
+#define TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK (FlagType)0x03
+
 #define TVG_SCENE_FLAG_RESERVEDCNT (FlagType)0x03
 
 #define TVG_SHAPE_FLAG_HAS_PATH    (FlagType)0x03 // If set, shape has path section

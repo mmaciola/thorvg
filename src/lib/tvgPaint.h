@@ -39,9 +39,8 @@ namespace tvg
         virtual bool bounds(float* x, float* y, float* w, float* h) const = 0;
         virtual bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const = 0;
         virtual Paint* duplicate() = 0;
-
         virtual void serialize(char** pointer) = 0;
-        virtual LoaderResult tvgLoad(tvg_block_2 block) = 0;
+        virtual LoaderResult tvgLoad(const char* pointer, const char* end) = 0;
     };
 
     struct Paint::Impl
@@ -56,6 +55,7 @@ namespace tvg
         uint8_t opacity = 255;
 
         ~Impl() {
+cout << __FILE__ << " " << __func__ << endl;
             if (cmpTarget) delete(cmpTarget);
             if (smethod) delete(smethod);
             if (rTransform) delete(rTransform);
@@ -63,11 +63,13 @@ namespace tvg
 
         void method(StrategyMethod* method)
         {
+cout << __FILE__ << " " << __func__ << endl;
             smethod = method;
         }
 
         bool rotate(float degree)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (rTransform) {
                 if (fabsf(degree - rTransform->degree) <= FLT_EPSILON) return true;
             } else {
@@ -83,6 +85,7 @@ namespace tvg
 
         bool scale(float factor)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (rTransform) {
                 if (fabsf(factor - rTransform->scale) <= FLT_EPSILON) return true;
             } else {
@@ -98,6 +101,7 @@ namespace tvg
 
         bool translate(float x, float y)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (rTransform) {
                 if (fabsf(x - rTransform->x) <= FLT_EPSILON && fabsf(y - rTransform->y) <= FLT_EPSILON) return true;
             } else {
@@ -107,13 +111,17 @@ namespace tvg
             }
             rTransform->x = x;
             rTransform->y = y;
-            if (!rTransform->overriding) flag |= RenderUpdateFlag::Transform;
+
+            if (!rTransform->overriding) {
+                flag |= RenderUpdateFlag::Transform;
+            }
 
             return true;
         }
 
         bool transform(const Matrix& m)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (!rTransform) {
                 rTransform = new RenderTransform();
                 if (!rTransform) return false;
@@ -126,22 +134,26 @@ namespace tvg
 
         bool bounds(float* x, float* y, float* w, float* h) const
         {
+cout << __FILE__ << " " << __func__ << endl;
             return smethod->bounds(x, y, w, h);
         }
 
         bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const
         {
+cout << __FILE__ << " " << __func__ << endl;
             return smethod->bounds(renderer, x, y, w, h);
         }
 
         bool dispose(RenderMethod& renderer)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (cmpTarget) cmpTarget->pImpl->dispose(renderer);
             return smethod->dispose(renderer);
         }
 
         void* update(RenderMethod& renderer, const RenderTransform* pTransform, uint32_t opacity, Array<RenderData>& clips, uint32_t pFlag)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if (flag & RenderUpdateFlag::Transform) {
                 if (!rTransform) return nullptr;
                 if (!rTransform->update()) {
@@ -177,6 +189,7 @@ namespace tvg
 
         bool render(RenderMethod& renderer)
         {
+cout << __FILE__ << " " << __func__ << endl;
             Compositor* cmp = nullptr;
 
             /* Note: only ClipPath is processed in update() step.
@@ -200,7 +213,7 @@ namespace tvg
 
         Paint* duplicate()
         {
-           printf("Paint* duplicate() paint h \n");
+cout << __FILE__ << " " << __func__ << endl;
             auto ret = smethod->duplicate();
             if (!ret) return nullptr;
 
@@ -224,38 +237,139 @@ namespace tvg
 
         bool composite(Paint* target, CompositeMethod method)
         {
+cout << __FILE__ << " " << __func__ << endl;
             if ((!target && method != CompositeMethod::None) || (target && method == CompositeMethod::None)) return false;
             cmpTarget = target;
             cmpMethod = method;
             return true;
         }
 
+
+        void serializePaint(char** pointer)
+        {
+cout << __FILE__ << " " << __func__ << " Paint" << endl;
+            FlagType flag;
+            size_t flagSize = sizeof(FlagType);
+            ByteCounter byteCnt = flagSize;
+            size_t byteCntSize = sizeof(ByteCounter);
+
+            // transform
+            if (rTransform) {
+                Matrix m = rTransform->m;
+                // transform matrix flag
+                flag = TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with transf matrix
+                byteCnt = sizeof(m); //MGS - check
+                memcpy(*pointer, &byteCnt, byteCntSize);
+                *pointer += byteCntSize;
+                // bytes associated with transf matrix
+                memcpy(*pointer, &m, byteCnt);
+                *pointer += byteCnt;
+            }
+
+            // cmpTarget
+            if (cmpTarget) {
+                char* startCmp = *pointer;
+
+                // cmpTarget flag
+                flag = TVG_PAINT_FLAG_HAS_CMP_TARGET;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with cmpTarget - empty
+                *pointer += byteCntSize;
+                // bytes associated with cmpTrget: method and target
+
+                // method flag
+                flag = TVG_PAINT_FLAG_CMP_METHOD;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with method flag
+                memcpy(*pointer, &byteCnt, byteCntSize);
+                *pointer += byteCntSize;
+                // bytes associated with method flag
+                switch (cmpMethod) {
+                    case CompositeMethod::ClipPath: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH;
+                        break;
+                    }
+                    case CompositeMethod::AlphaMask: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK;
+                        break;
+                    }
+                    case CompositeMethod::InvAlphaMask: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK;
+                        break;
+                    }
+                    case CompositeMethod::None: {
+                        // obsluzyc blad MGS
+                        break;
+                    }
+                }
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+
+                //target serialization
+// to jest to zagniezdzenie
+cout << "########################################### przed target" << endl;
+                cmpTarget->pImpl->serialize(pointer);
+cout << "########################################### po target" << endl;
+                // number of bytes associated with cmpTarget - filled
+                byteCnt = *pointer - startCmp - flagSize - byteCntSize;
+                memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+            }
+        }
+
         void serialize(char** pointer)
         {
+cout << __FILE__ << " " << __func__ << " Paint" << endl;
             smethod->serialize(pointer);
         }
 
-        LoaderResult tvgLoad(tvg_block_2 block)
+        /*
+         * Load paint and derived classes from .tvg binary file
+         * Returns LoaderResult:: Success on success and moves pointer to next position,
+         * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+         * Details:
+         * TODO
+         */
+        LoaderResult tvgLoad(const char* pointer, const char* end)
         {
-           LoaderResult result = smethod->tvgLoad(block);
+cout << __FILE__ << " " << __func__ << endl;
+           LoaderResult result = smethod->tvgLoad(pointer, end);
            if (result != LoaderResult::InvalidType) return result;
 
-           switch (block.type)
+           const tvg_block * block = (tvg_block*) pointer;
+           switch (block->type)
               {
                  case TVG_PAINT_FLAG_HAS_OPACITY: {
-                    if (block.lenght != 1) return LoaderResult::SizeCorruption;
-                    opacity = *block.data;
-                    return LoaderResult::Success;
+                    if (block->lenght != 1) return LoaderResult::SizeCorruption;
+                    opacity = block->data;
+                    break;
                  }
                  case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
-                    if (block.lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
-                    const Matrix * matrix = (Matrix *) block.data;
+                    if (block->lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
+                    const Matrix * matrix = (Matrix *) &block->data;
                     transform(*matrix); // TODO: check if transformation works
-                    return LoaderResult::Success;
+                    break;
+                 }
+                 default: {
+                    return LoaderResult::InvalidType;
                  }
               }
 
-           return LoaderResult::InvalidType;
+           return LoaderResult::Success;
+        }
+
+        /*
+         * Store paint to .tvg binary file
+         * Details: see above function tvgLoad
+         */
+        bool tvgStore()
+        {
+cout << __FILE__ << " " << __func__ << endl;
+           return true;
         }
     };
 
@@ -270,42 +384,50 @@ namespace tvg
 
         bool bounds(float* x, float* y, float* w, float* h) const override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->bounds(x, y, w, h);
         }
 
         bool bounds(RenderMethod& renderer, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) const override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->bounds(renderer, x, y, w, h);
         }
 
         bool dispose(RenderMethod& renderer) override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->dispose(renderer);
         }
 
         void* update(RenderMethod& renderer, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag flag) override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->update(renderer, transform, opacity, clips, flag);
         }
 
         bool render(RenderMethod& renderer) override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->render(renderer);
         }
 
         Paint* duplicate() override
         {
+cout << __FILE__ << " " << __func__ << endl;
             return inst->duplicate();
+        }
+
+        LoaderResult tvgLoad(const char* pointer, const char* end) override
+        {
+cout << __FILE__ << " " << __func__ << endl;
+             return inst->tvgLoad(pointer, end);
         }
 
         void serialize(char** pointer) override
         {
+cout << __FILE__ << " " << __func__ << " smeth" << endl;
              inst->serialize(pointer);
-        }
-
-        LoaderResult tvgLoad(tvg_block_2 block) override
-        {
-             return inst->tvgLoad(block);
         }
     };
 }
