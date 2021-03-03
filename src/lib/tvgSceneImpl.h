@@ -24,7 +24,6 @@
 
 #include "tvgPaint.h"
 #include "tvgSaverMgr.h"
-//MGS5
 #include "tvgTvgSaver.h" // MGS - usunac
 
 #include "tvgTvgLoader.h"
@@ -36,17 +35,9 @@
 struct Scene::Impl
 {
     Array<Paint*> paints;
-    uint8_t opacity = 17;            //for composition //MGS5
+    uint8_t opacity = 255;            //for composition
 
     unique_ptr<Saver> saver = nullptr;
-
-//MGS5
-/*
-    void wypisz()
-    {
-        cout << "HAHAHA " << (int)opacity << endl;
-    }
-*/
 
     bool dispose(RenderMethod& renderer)
     {
@@ -68,14 +59,13 @@ cout << __FILE__ << " " << __func__ << endl;
         this->opacity = static_cast<uint8_t>(opacity);
         if (opacity > 0) opacity = 255;
 
-int i = 0;
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
-cout << "update sceny " << ++i << endl;
             (*paint)->pImpl->update(renderer, transform, opacity, clips, static_cast<uint32_t>(flag));
         }
-cout << "koniec update sceny" << endl;
 
-        if (saver && !saver->write()) return nullptr; //MGS3
+// mam mieszane uczucia czy to tu powinno byc. 
+// musi byc po updateach
+        if (saver && !saver->write()) return nullptr;
 
         /* FXIME: it requires to return list of children engine data
            This is necessary for scene composition */
@@ -214,19 +204,12 @@ cout << __FILE__ << " " << __func__ << endl;
         memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
     }
 
-//    Result save(const std::string& path)
-    Result save(const std::string& path, Scene *scene) //MGS2
+    Result save(const std::string& path, Scene *scene)
     {
 cout << __FILE__ << " " << __func__ << endl;
         if (saver) saver->close();
-        //saver = SaverMgr::saver(path);
-        saver = SaverMgr::saver(path, scene);  //MGS2
+        saver = SaverMgr::saver(path, scene);
         if (!saver) return Result::NonSupport;
-        //if (!saver->write()) return Result::Unknown; //MGS3 - tu za wczesnie jest to staskowac...
-
-        // MGS - temp solution
-//        auto tvgSaver = static_cast<TvgSaver*>(saver.get());  //MGS2
-//        serialize(&tvgSaver->pointer);
 
         return Result::Success;
     }

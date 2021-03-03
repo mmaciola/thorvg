@@ -33,22 +33,21 @@ public:
 
     char* buffer;
     uint32_t size = 0;   
-    uint32_t reserved = 0; //MGS8
+    uint32_t reserved = 0;
     char* pointer = nullptr;
 
-    Scene* root;  //MGS2
+    Scene* root;
 
-//    TvgSaver();
-    TvgSaver(Scene* scene);  //MGS2
+    TvgSaver(Scene* scene);
     ~TvgSaver();
 
-    using Saver::open;  // MGS
+    using Saver::open;
     bool open(const string& path) override;
     bool write() override;
     bool close() override;
     void run(unsigned tid);
 
-    void resizeBuffer(); //MGS8
+    void resizeBuffer(); //MGS
 };
 
 #endif //_TVG_TVG_SAVER_H_

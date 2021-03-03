@@ -80,17 +80,16 @@ Result Scene::save(const std::string& path) noexcept
 cout << __FILE__ << " " << __func__ << endl;
     if (path.empty()) return Result::InvalidArguments;
 
-    //return pImpl->save(path);
-    return pImpl->save(path, this); //MGS2
+    return pImpl->save(path, this);
 }
 
-//MGS2 - temp solution, can't find a better one for now
+//MGS - temp solution ?
 void Scene::serialize()
 {
 cout << __FILE__ << " " << __func__ << endl;
-        auto tvgSaver = static_cast<TvgSaver*>(pImpl->saver.get());  // chyba nie chce release MGS
+        auto tvgSaver = static_cast<TvgSaver*>(pImpl->saver.get());
         //pImpl->serialize(&tvgSaver->pointer);
-        Paint::pImpl->serialize(&tvgSaver->pointer); //MGS9 - na pewno z Paint?
+        Paint::pImpl->serialize(&tvgSaver->pointer); //MGS - na pewno z Paint?
 }
 
 // tvgTvgLoader / tvgTvgStorer

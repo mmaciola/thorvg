@@ -105,7 +105,7 @@ cout << __FILE__ << " " << __func__ << endl;
                     paint = scene.release();
                     loader->close();
                     if (w != loader->w && h != loader->h) resize();
-                    if (paint) return RenderUpdateFlag::None; //MGS4 - check
+                    if (paint) return RenderUpdateFlag::None; //MGS - check
                 }
             }
             if (!pixels) {
@@ -227,19 +227,18 @@ cout << __FILE__ << " " << __func__ << endl;
 cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
-        //NGS - reconsider
+        //MGS - reconsider
         if (loader) {
-            // remove?
+            // only a check - remove in the final ver
             if (!pixels) {
                 cout << "pixele nie byly zaladowane - dziwne" << endl;
                 pixels = const_cast<uint32_t*>(loader->pixels());
             }
-            // should I use local var instead of w/h ?  //MGS3
+            // should I use local var instead of w/h ?  //MGS
             w = loader->vw;
             h = loader->vh;
         }
         if (fabsf(w) < FLT_EPSILON || fabsf(h) < FLT_EPSILON) return; //false 
-cout << "rozmiar pict juz znany " << w << " " << h << endl;
 
         FlagType flag;
         ByteCounter byteCnt = 0;

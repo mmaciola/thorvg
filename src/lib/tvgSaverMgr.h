@@ -26,8 +26,7 @@
 
 struct SaverMgr
 {
-    //static unique_ptr<Saver> saver(const string& path);
-    static unique_ptr<Saver> saver(const string& path, Scene* scene);  //MGS2
+    static unique_ptr<Saver> saver(const string& path, Scene* scene);
 };
 
 #endif //_TVG_SAVER_MGR_H_

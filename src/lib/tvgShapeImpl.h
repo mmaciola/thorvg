@@ -270,14 +270,6 @@ cout << __FILE__ << " " << __func__ << endl;
     {
 cout << __FILE__ << " " << __func__ << endl;
 
-for (int i = 0; i < path.cmdCnt ; ++i)
-    cout << (int)path.cmds[i] << " ";
-cout << endl;
-for (int i = 0; i < path.ptsCnt ; ++i)
-    cout << path.pts[i].x << " " << path.pts[i].y << "    ";
-cout << endl;
-
-
         this->rdata = renderer.prepare(*shape, this->rdata, transform, opacity, clips, static_cast<RenderUpdateFlag>(pFlag | flag));
         flag = RenderUpdateFlag::None;
         return this->rdata;
@@ -621,6 +613,7 @@ cout << __FILE__ << " " << __func__ << endl;
         *pointer += byteCnt;
 
 /*
+// READY for stroke grad
         if (stroke->fill) {
             // fill flag
             flag = TVG_SHAPE_STROKE_FLAG_HAS_FILL;
@@ -810,14 +803,6 @@ cout << __FILE__ << " " << __func__ << endl;
             // bytes associated with path
             ByteCounter byteCnt = serializePath(pointer);
 
-for (int i = 0; i < path.cmdCnt ; ++i)
-    cout << "SER " << (int)path.cmds[i] << " ";
-cout << endl;
-for (int i = 0; i < path.ptsCnt ; ++i)
-    cout << "SER " << path.pts[i].x << " " << path.pts[i].y << "    ";
-cout << endl;
-
-
             if (!byteCnt) {
                // MGS log + change size of the buffer
                *pointer -= flagSize + byteCntSize;
@@ -828,37 +813,6 @@ cout << endl;
         }
 
         shape->Paint::pImpl->serializePaint(pointer);
-
-/*
-        // transform and target (clip/mask)
-        // MGS9 - moze sie zdarzyc ze shape == nullptr ?
-        if (auto base = shape->Paint::pImpl) {
-            if (base->rTransform) {
-                Matrix m = base->rTransform->m;
-
-                // transform matrix flag
-                flag = TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
-                memcpy(*pointer, &flag, flagSize);
-                *pointer += flagSize;
-                // number of bytes associated with transf matrix
-                byteCnt = sizeof(m); //MGS9 - check
-                memcpy(*pointer, &byteCnt, byteCntSize);
-                *pointer += byteCntSize;
-                // bytes associated with transf matrix
-                memcpy(*pointer, &m, byteCnt);
-                *pointer += byteCnt;
-
-          
-  cout << "mam juz rTransform w shapeImpl!" << endl;
-  cout << m.e11 << " " << m.e12 << " " << m.e13 << endl;
-  cout << m.e21 << " " << m.e22 << " " << m.e23 << endl;
-  cout << m.e31 << " " << m.e32 << " " << m.e33 << endl;
-            }
-            if (auto cmpTarget = base->cmpTarget) {
-cout << "mam TARGET" << endl;
-            }
-        }
-*/
 
         // number of bytes associated with shape - filled
         byteCnt = *pointer - start - flagSize - byteCntSize;

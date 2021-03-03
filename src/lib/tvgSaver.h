@@ -23,7 +23,6 @@
 #define _TVG_SAVER_H_
 
 #include "tvgCommon.h"
-//#include "tvgSceneImpl.h"
 
 namespace tvg
 {
@@ -36,18 +35,6 @@ public:
     virtual bool open(const string& path) { /* Not supported */ return false; };
     virtual bool write() = 0;
     virtual bool close() = 0;
-
-//MGS5
-    //void nic(Scene* scene) {cout << "UDALO SIE " << (int)scene->pImpl->opacity << endl;};
-    //void nic(Scene* scene) {cout << "UDALO SIE " << (int)scene->val << endl;};
-//    void nic() {
-//       cout << "UDALO SIE " << (int)sc->val << endl;
-//       auto scI = sc->Scene::pImpl;
-//       scI->wypisz();
-       //sc->pImpl->wypisz();
-       //cout << "UDALO SIE " << (int)(sc->pImpl->opacity) << endl;
-//    };
-//    Scene* sc = nullptr;
 };
 
 }

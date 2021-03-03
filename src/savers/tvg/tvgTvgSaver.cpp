@@ -37,27 +37,17 @@ cout << __FILE__ << " " << __func__ << endl;
     const char *version = "000";
     memcpy(*pointer, version, 3);
     *pointer += 3;
-    // metadata
+    // metadata MGS
     *pointer += 2;
 
     return true;
 }
 
-/*
-bool saveScene()
-{
-cout << __FILE__ << " " << __func__ << endl;
-    // MGS TODO 
-    return true;
-}
-*/
-
 /************************************************************************/
 /* External Class Implementation                                        */
 /************************************************************************/
 
-//TvgSaver::TvgSaver()
-TvgSaver::TvgSaver(Scene* scene) : root(scene)  //MGS2
+TvgSaver::TvgSaver(Scene* scene) : root(scene)
 {
 cout << __FILE__ << " " << __func__ << endl;
 }
@@ -71,27 +61,15 @@ cout << __FILE__ << " " << __func__ << endl;
 void TvgSaver::run(unsigned tid)
 {
 cout << __FILE__ << " " << __func__ << endl;
-//MGS5
-//    Saver::nic();
 
     root->serialize();  //MGS temp bo nie moge tego obejsc
-
-// MGS2
-/* 
-  ale tak sie nie da, bo nie mam dostepu do pImpla bo jest protected
-  dalam scenie friend saver, no ale to saver ma dostep a nie tvgsaver
-
-  chce tutaj wywolac fun ze sceny z pImpla serialize
-*/
-    //scene->pImpl->serialize(&pointer); 
-//    if (!saveScene()) return; 
 };
 
 void TvgSaver::resizeBuffer()
 {
     reserved *= 2;
     buffer = static_cast<char*>(realloc(buffer, reserved));
-// MGS8 - obsluga bledy realloca dodac
+// MGS - obsluga bledy realloca dodac
 }
 
 
@@ -106,14 +84,14 @@ cout << __FILE__ << " " << __func__ << endl;
         return false;
     }
 
-    reserved = 250000;//1024;
+    reserved = 250000;
     buffer = static_cast<char*>(malloc(reserved));
     if (!buffer) {
         reserved = 0;
         // MGS - close the file or move it from here
         return false;
     }
-    memset(buffer, '\0', reserved);  //MGS3
+    memset(buffer, '\0', reserved);  //MGS
     pointer = buffer;
 
     return header(&pointer);
@@ -135,9 +113,8 @@ bool TvgSaver::close()
 cout << __FILE__ << " " << __func__ << endl;
     this->done();
 
-    // MGS - temp sollution ?
     outFile.write(buffer,reserved);
-    //outFile.write(buffer,size);  //MGS - na razie nei zmieniam size!!! MGS8
+    //outFile.write(buffer,size);  //MGS - na razie nei zmieniam size !!
     outFile.close();
 
     if (buffer) free(buffer);
