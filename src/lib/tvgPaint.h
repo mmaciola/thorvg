@@ -25,7 +25,6 @@
 #include <float.h>
 #include <math.h>
 #include "tvgRender.h"
-#include "tvgTvgHelper.h"
 
 namespace tvg
 {
@@ -41,7 +40,7 @@ namespace tvg
         virtual Paint* duplicate() = 0;
 
         virtual void serialize(char** pointer) = 0;
-        virtual LoaderResult tvgLoad(tvg_block_2 block) = 0;
+        virtual LoaderResult tvgLoad(tvg_block block) = 0;
     };
 
     struct Paint::Impl
@@ -235,7 +234,7 @@ namespace tvg
             smethod->serialize(pointer);
         }
 
-        LoaderResult tvgLoad(tvg_block_2 block)
+        LoaderResult tvgLoad(tvg_block block)
         {
            LoaderResult result = smethod->tvgLoad(block);
            if (result != LoaderResult::InvalidType) return result;
@@ -303,7 +302,7 @@ namespace tvg
              inst->serialize(pointer);
         }
 
-        LoaderResult tvgLoad(tvg_block_2 block) override
+        LoaderResult tvgLoad(tvg_block block) override
         {
              return inst->tvgLoad(block);
         }

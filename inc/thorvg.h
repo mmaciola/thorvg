@@ -94,7 +94,7 @@ public:
 
     uint8_t opacity() const noexcept;
 
-    LoaderResult tvgLoad(tvg_block_2 block) noexcept;
+    LoaderResult tvgLoad(tvg_block block) noexcept;
 
     _TVG_DECLARE_ACCESSOR();
     _TVG_DECLARE_PRIVATE(Paint);
@@ -152,9 +152,6 @@ public:
     virtual Result update(Paint* paint) noexcept;
     virtual Result draw() noexcept;
     virtual Result sync() noexcept;
-
-    virtual Result load(const std::string& path);
-    virtual Result load(const char* data, uint32_t size);
 
     _TVG_DECLARE_PRIVATE(Canvas);
 };
@@ -308,11 +305,10 @@ public:
     Result push(std::unique_ptr<Paint> paint) noexcept;
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
-    Result save(const std::string& path) noexcept;
 
-    // TODO: NOW IN CANVAS!
-    virtual Result load(const std::string& path);
-    virtual Result load(const char* data, uint32_t size);
+    Result save(const std::string& path) noexcept;
+    Result load(const std::string& path);
+    Result load(const char* data, uint32_t size);
 
     static std::unique_ptr<Scene> gen() noexcept;
 

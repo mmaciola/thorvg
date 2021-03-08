@@ -8,31 +8,10 @@ void tvgDrawCmds(tvg::Canvas* canvas)
 {
     if (!canvas) return;
 
-    // Load Scene
-    //canvas->load(EXAMPLE_DIR"/canvas.tvg");
-    canvas->load(EXAMPLE_DIR"/pliczek.tvg");
-
-    // Load Scene
-    /*auto scene = tvg::Scene::gen();
-    scene->load(EXAMPLE_DIR"/canvas.tvg");
-
-    // Draw the Scene onto the Canvas
-    canvas->push(move(scene));*/
-
-
-    /*tvg::Matrix m = {};
-    m.e11 = m.e22 = m.e33 = 1;
-    printf("Matrix \n");
-    printf("%f %f %f \n", m.e11, m.e12, m.e13);
-    printf("%f %f %f \n", m.e21, m.e22, m.e23);
-    printf("%f %f %f \n", m.e31, m.e32, m.e33);
-
-    uint8_t * p = (uint8_t *) &m;
-
-    for (int i = 0; i < sizeof(tvg::Matrix); i++) {
-          printf("%02X ", p[i]);
-    }
-    printf("\n");*/
+    auto scene = tvg::Scene::gen();
+    //scene->load(EXAMPLE_DIR"/canvas.tvg");
+    scene->load("./tvg_file.tvg");
+    canvas->push(move(scene));
 }
 
 

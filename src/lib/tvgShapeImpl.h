@@ -24,7 +24,6 @@
 
 #include <memory.h>
 #include "tvgPaint.h"
-#include "tvgTvgHelper.h"
 #include <iostream> // MGS - temp
 
 /************************************************************************/
@@ -724,7 +723,7 @@ struct Shape::Impl
             memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
         }
 
-        if (fill) {
+        if (fill && false) { // *** problem: invalid size
             // fill flag
             flag = TVG_SHAPE_FLAG_HAS_FILL;
             memcpy(*pointer, &flag, flagSize);
@@ -848,7 +847,7 @@ struct Shape::Impl
 
        while (pointer < end)
           {
-             tvg_block_2 block = read_tvg_block(pointer);
+             tvg_block block = read_tvg_block(pointer);
              if (block.block_end > end) return LoaderResult::SizeCorruption;
 
              switch (block.type)
@@ -920,13 +919,13 @@ struct Shape::Impl
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(tvg_block_2 block)
+    LoaderResult tvgLoad(tvg_block block)
     {
+       printf("Shape tvgLoad type %d \n", block.type);
        switch (block.type)
           {
              case TVG_SHAPE_FLAG_HAS_PATH: { // path
                 LoaderResult result = tvgLoadPath(block.data, block.block_end);
-                printf("TVG_SHAPE_FLAG_HAS_PATH result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 break;
              }

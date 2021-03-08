@@ -55,7 +55,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     scene->push(move(image));
 //    scene->push(move(scene2));
 
-    if (scene->save("./pliczek.tvg") != tvg::Result::Success) return;
+    if (scene->save("./tvg_file.tvg") != tvg::Result::Success) return;
 
     //Draw the Scene onto the Canvas
     canvas->push(move(scene));

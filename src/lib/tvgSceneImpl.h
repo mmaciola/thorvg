@@ -153,7 +153,6 @@ struct Scene::Impl
 
     Paint* duplicate()
     {
-       printf("Paint* duplicate() scene h \n");
         auto ret = Scene::gen();
         if (!ret) return nullptr;
         auto dup = ret.get()->pImpl;
@@ -168,30 +167,11 @@ struct Scene::Impl
     }
 
     void serialize(char** pointer)
-    {
-        if (!*pointer) return;// false;
-
-        char* start = *pointer;
-        FlagType flag;
-        size_t flagSize = sizeof(FlagType);
-        ByteCounter byteCnt = flagSize;
-        size_t byteCntSize = sizeof(ByteCounter);
-
-        // scene indicator
-        flag = TVG_SCENE_BEGIN_INDICATOR;
-        memcpy(*pointer, &flag, flagSize);
-        *pointer += flagSize;
-        // number of bytes associated with scene - empty for now
-        *pointer += byteCntSize;
-
-        for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
-            (*paint)->pImpl->serialize(pointer);
-        }
-
-        // number of bytes associated with scene - filled
-        byteCnt = *pointer - start - flagSize - byteCntSize;
-        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
-    }
+     {
+         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
+             (*paint)->pImpl->serialize(pointer);
+         }
+     }
 
     Result save(const std::string& path)
     {
@@ -207,20 +187,19 @@ struct Scene::Impl
         return Result::Success;
     }
 
-    Result load(const string& path)
+    Result load(const string& path, Scene * scene)
     {
-       // TODO: [mmaciola] zadecydowac czy uzywac schematu z LoaderMgr
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(path)) return Result::Unknown;
-       if (!loader->read()) return Result::Unknown;
+       if (!loader->read(scene)) return Result::Unknown;
        return Result::Success;
     }
 
-    Result load(const char* data, uint32_t size)
+    Result load(const char* data, uint32_t size, Scene * scene)
     {
        TvgLoader * loader = new TvgLoader();
        if (!loader->open(data, size)) return Result::Unknown;
-       if (!loader->read()) return Result::Unknown;
+       if (!loader->read(scene)) return Result::Unknown;
        return Result::Success;
     }
 
@@ -231,7 +210,7 @@ struct Scene::Impl
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(tvg_block_2 block)
+    LoaderResult tvgLoad(tvg_block block)
     {
        switch (block.type)
          {
