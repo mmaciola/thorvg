@@ -91,8 +91,6 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, Scene *
          pointer = block.block_end;
       }
 
-   s->appendRect(0, 0, 200, 200, 0, 0);
-   s->fill(255, 255, 0, 255);
    scene->push(move(s));
    return LoaderResult::Success;
 }

@@ -26,7 +26,7 @@
 #include "tvgTvgLoader.h"
 #include "tvgTvgLoadParser.h"
 
-TvgLoader::TvgLoader(Scene * scene) : root(scene)
+TvgLoader::TvgLoader(Scene * scene) //: root(scene)
 {
    // TvgLoader
 }
@@ -92,7 +92,7 @@ bool TvgLoader::open(const char* data, uint32_t size)
 
 bool TvgLoader::read()
 {
-   if (!this->root) return false;
+   //if (!this->root) return false;
    if (!this->pointer || this->size == 0) return false;
    TaskScheduler::request(this);
    return true;
@@ -100,17 +100,19 @@ bool TvgLoader::read()
 
 bool TvgLoader::close()
 {
-   printf("[mmaciola] 0\n");
    this->done();
-   printf("[mmaciola] 1\n");
    tvg_clean_buffer();
-   printf("[mmaciola] closed\n");
    return true;
 }
 
 void TvgLoader::run(unsigned tid)
 {
-   if (!tvg_file_parse(this->pointer, this->size, this->root))
+   printf("run\n");
+   if (!root)
+      {
+         root = Scene::gen();
+      }
+   if (!tvg_file_parse(this->pointer, this->size, this->root.get()))
       {
          // TODO: what should I do if parsing error
          printf("[mmaciola] tvg_file_parse ERROR\n");
@@ -119,5 +121,10 @@ void TvgLoader::run(unsigned tid)
    printf("[mmaciola] fin\n");
 }
 
-
+unique_ptr<Scene> TvgLoader::scene()
+{
+    this->done();
+    if (root) return move(root);
+    return nullptr;
+}
 
