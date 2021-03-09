@@ -189,17 +189,17 @@ struct Scene::Impl
 
     Result load(const string& path, Scene * scene)
     {
-       TvgLoader * loader = new TvgLoader();
+       TvgLoader * loader = new TvgLoader(scene);
        if (!loader->open(path)) return Result::Unknown;
-       if (!loader->read(scene)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
        return Result::Success;
     }
 
     Result load(const char* data, uint32_t size, Scene * scene)
     {
-       TvgLoader * loader = new TvgLoader();
+       TvgLoader * loader = new TvgLoader(scene);
        if (!loader->open(data, size)) return Result::Unknown;
-       if (!loader->read(scene)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
        return Result::Success;
     }
 

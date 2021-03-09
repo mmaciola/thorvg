@@ -35,15 +35,14 @@ public:
 
    Scene * root;
 
-    TvgLoader();
+    TvgLoader(Scene * scene);
     ~TvgLoader();
 
     using Loader::open;
     bool open(const string& path) override;
     bool open(const char* data, uint32_t size) override;
 
-    bool read() override; // ******
-    bool read(Scene * scene);
+    bool read() override;
     bool close() override;
 
     void run(unsigned tid) override;
