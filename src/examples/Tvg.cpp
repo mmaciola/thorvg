@@ -52,7 +52,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     scene2->push(move(shape2));
 
     scene->push(move(shape1));
-    scene->push(move(image));
+    //scene->push(move(image));
 //    scene->push(move(scene2));
 
     if (scene->save("./tvg_file.tvg") != tvg::Result::Success) return;

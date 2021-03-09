@@ -80,6 +80,7 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, Scene *
    while (pointer < end)
       {
          tvg_block block = read_tvg_block(pointer);
+         printf("block.block_end %d end %d\n", block.block_end - pointer, end - pointer);
          //printf("tvg_read_shape block type %d\n", block.type);
          if (block.block_end > end) return LoaderResult::SizeCorruption;
 
@@ -90,6 +91,8 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, Scene *
          pointer = block.block_end;
       }
 
+   s->appendRect(0, 0, 200, 200, 0, 0);
+   s->fill(255, 255, 0, 255);
    scene->push(move(s));
    return LoaderResult::Success;
 }
@@ -156,6 +159,8 @@ bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
             case TVG_SHAPE_BEGIN_INDICATOR:
                if (tvg_read_shape(block.data, block.block_end, scene) > LoaderResult::Success) return false;
                break;
+            case 0: // TODO mmaciola temporery fix for buffer const lenght in saver ***********
+               return true;
             default:
                // LOG: Invalid type
                return false;
@@ -174,8 +179,10 @@ tvg_block read_tvg_block(const char * pointer) {
    tvg_block block;
    block.type = *pointer;
    block.lenght = _read_tvg_32(pointer + sizeof(FlagType));
+   //printf("TVG_LOADER: lenght %d: %02x %02x %02x %02x.\n", block.lenght, pointer[1], pointer[2], pointer[3], pointer[4]);
    block.data = pointer + sizeof(FlagType) + sizeof(ByteCounter);
    block.block_end = block.data + block.lenght;
+   //printf("TVG_LOADER: type %d, data[%d]: %02x %02x %02x.\n", block.type, block.lenght, block.data[0], block.data[1], block.data[2]);
    return block;
 }
 

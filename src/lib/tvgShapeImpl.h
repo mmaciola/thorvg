@@ -774,6 +774,7 @@ struct Shape::Impl
         // number of bytes associated with shape - filled
         byteCnt = *pointer - start - flagSize - byteCntSize;
         memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+        printf("byteCnt : %d \n", byteCnt);
 
         //return true;
     }

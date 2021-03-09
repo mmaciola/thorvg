@@ -100,8 +100,11 @@ bool TvgLoader::read()
 
 bool TvgLoader::close()
 {
+   printf("[mmaciola] 0\n");
    this->done();
+   printf("[mmaciola] 1\n");
    tvg_clean_buffer();
+   printf("[mmaciola] closed\n");
    return true;
 }
 
@@ -111,8 +114,9 @@ void TvgLoader::run(unsigned tid)
       {
          // TODO: what should I do if parsing error
          printf("[mmaciola] tvg_file_parse ERROR\n");
+         tvg_clean_buffer();
       }
-   close();
+   printf("[mmaciola] fin\n");
 }
 
 

@@ -3,15 +3,16 @@
 
 #include "tvgCommon.h"
 
-#ifdef __LITTLE_ENDIAN__
-// little endian
-#define _read_tvg_16(data) (((data)[0] << 8) | (data)[1])
-#define _read_tvg_32(data) (((data)[0] << 24) | ((data)[1] << 16) | ((data)[2] << 2) | (data)[3])
-#else
+#if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || defined(__BIG_ENDIAN__)
 // big endian
-#define _read_tvg_16(data) (((data)[1] << 8) | (data)[0])
-#define _read_tvg_32(data) (((data)[3] << 24) | ((data)[2] << 16) | ((data)[1] << 2) | (data)[0])
+#define _read_tvg_16(data) ((((data)[0] & 0xff) << 8) | ((data)[1] & 0xff))
+#define _read_tvg_32(data) ((((data)[0] & 0xff) << 24) | (((data)[1] & 0xff) << 16) | (((data)[2] & 0xff) << 8) | ((data)[3] & 0xff))
+#else
+// little endian
+#define _read_tvg_16(data) ((((data)[1] & 0xff) << 8) | ((data)[0] & 0xff))
+#define _read_tvg_32(data) ((((data)[3] & 0xff) << 24) | (((data)[2] & 0xff) << 16) | (((data)[1] & 0xff) << 8) | ((data)[0] & 0xff))
 #endif
+
 
 #define TVG_HEADER_TVG_SIGN_CODE "TVG"
 #define TVG_HEADER_TVG_VERSION_CODE "000"

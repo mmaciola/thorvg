@@ -316,8 +316,8 @@ public:
     Result clear() noexcept;
 
     Result save(const std::string& path) noexcept;
-    Result load(const std::string& path);
-    Result load(const char* data, uint32_t size);
+    Result load(const std::string& path) noexcept;
+    Result load(const char* data, uint32_t size) noexcept;
 
     static std::unique_ptr<Scene> gen() noexcept;
 
