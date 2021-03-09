@@ -46,7 +46,6 @@ public:
     bool close() override;
 
     void run(unsigned tid) override;
-    unique_ptr<Scene> scene() override;
 
     void tvg_clean_buffer();
 };

@@ -2,7 +2,6 @@
 #define _THORVG_H_
 
 #include <memory>
-#include "tvgTvgHelper.h"
 
 #ifdef TVG_BUILD
     #define TVG_EXPORT __attribute__ ((visibility ("default")))
@@ -66,6 +65,16 @@ struct Matrix
     float e11, e12, e13;
     float e21, e22, e23;
     float e31, e32, e33;
+};
+
+enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption };
+using FlagType = uint8_t;
+using ByteCounter = uint32_t;
+struct tvg_block {
+   FlagType type;
+   ByteCounter lenght;
+   const char * data;
+   const char * block_end;
 };
 
 

@@ -38,6 +38,7 @@ struct Scene::Impl
     uint8_t opacity;            //for composition
 
     unique_ptr<Saver> saver = nullptr;
+    unique_ptr<TvgLoader> loader = nullptr;
 
     bool dispose(RenderMethod& renderer)
     {
@@ -189,7 +190,8 @@ struct Scene::Impl
 
     Result load(const string& path, Scene * scene)
     {
-       TvgLoader * loader = new TvgLoader(scene);
+       if (loader) loader->close();
+       loader = unique_ptr<TvgLoader>(new TvgLoader(scene));
        if (!loader->open(path)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
        return Result::Success;
@@ -197,7 +199,8 @@ struct Scene::Impl
 
     Result load(const char* data, uint32_t size, Scene * scene)
     {
-       TvgLoader * loader = new TvgLoader(scene);
+       if (loader) loader->close();
+       loader = unique_ptr<TvgLoader>(new TvgLoader(scene));
        if (!loader->open(data, size)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
        return Result::Success;

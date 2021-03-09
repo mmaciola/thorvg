@@ -43,18 +43,26 @@
  */
 static bool tvg_read_header(const char** pointer)
 {
-   tvg_header * header = (tvg_header *) (*pointer);
-   if (memcmp(header->tvg_sign, TVG_HEADER_TVG_SIGN_CODE, 3)) return false;
-   if (memcmp(header->version, TVG_HEADER_TVG_VERSION_CODE, 3)) return false;
+   // Sign phase, always "TVG" declared in TVG_HEADER_TVG_SIGN_CODE
+   if (memcmp(*pointer, TVG_HEADER_TVG_SIGN_CODE, 3)) return false;
+   *pointer += 3; // move after sing code
+
+   // Standard version number, declared in TVG_HEADER_TVG_VERSION_CODE
+   if (memcmp(*pointer, TVG_HEADER_TVG_VERSION_CODE, 3)) return false;
+   *pointer += 3; // move after version code
+
+   // Matadata phase
+   uint16_t meta_lenght = _read_tvg_16(*pointer); // Matadata phase lenght
+   *pointer += 2; // move after lenght
 
 #ifdef TVG_LOADER_LOG_ENABLED
-   char metadata[header->meta_lenght + 1];
-   memcpy(metadata, (*pointer) + 8, header->meta_lenght);
-   metadata[header->meta_lenght] = '\0';
-   printf("TVG_LOADER: Header is valid, metadata[%d]: %s.\n", header->meta_lenght, metadata);
+   char metadata[meta_lenght + 1];
+   memcpy(metadata, *pointer, meta_lenght);
+   metadata[meta_lenght] = '\0';
+   printf("TVG_LOADER: Header is valid, metadata[%d]: %s.\n", meta_lenght, metadata);
 #endif
 
-   *pointer += 8 + header->meta_lenght;
+   *pointer += meta_lenght;
    return true;
 }
 
@@ -125,6 +133,7 @@ static LoaderResult tvg_read_scene(const char* pointer, const char* end, Scene *
    return LoaderResult::Success;
 }
 
+// Load .tvg file to pointed scene
 bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
 {
    const char* end = pointer + size;
@@ -160,6 +169,15 @@ bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
    return true;
 }
 
+// Read tvg_block from pointer location.
+tvg_block read_tvg_block(const char * pointer) {
+   tvg_block block;
+   block.type = *pointer;
+   block.lenght = _read_tvg_32(pointer + sizeof(FlagType));
+   block.data = pointer + sizeof(FlagType) + sizeof(ByteCounter);
+   block.block_end = block.data + block.lenght;
+   return block;
+}
 
 
 

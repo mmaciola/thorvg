@@ -111,15 +111,8 @@ void TvgLoader::run(unsigned tid)
       {
          // TODO: what should I do if parsing error
          printf("[mmaciola] tvg_file_parse ERROR\n");
-         tvg_clean_buffer();
       }
-}
-
-unique_ptr<Scene> TvgLoader::scene()
-{
-    this->done();
-    //if (root) return move(root);
-    return nullptr;
+   close();
 }
 
 
