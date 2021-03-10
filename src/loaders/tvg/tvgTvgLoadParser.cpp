@@ -76,12 +76,13 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, Scene *
    // create shape
    auto s = Shape::gen();
    printf("tvg_read_shape\n");
+   s->appendRect(0, 0, 200, 200, 0, 0);
+   s->fill(255, 128, 0, 255);
 
    while (pointer < end)
       {
          tvg_block block = read_tvg_block(pointer);
          printf("block.block_end %d end %d\n", block.block_end - pointer, end - pointer);
-         //printf("tvg_read_shape block type %d\n", block.type);
          if (block.block_end > end) return LoaderResult::SizeCorruption;
 
          LoaderResult result = s->tvgLoad(block);

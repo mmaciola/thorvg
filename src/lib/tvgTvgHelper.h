@@ -13,7 +13,6 @@
 #define _read_tvg_32(data) ((((data)[3] & 0xff) << 24) | (((data)[2] & 0xff) << 16) | (((data)[1] & 0xff) << 8) | ((data)[0] & 0xff))
 #endif
 
-
 #define TVG_HEADER_TVG_SIGN_CODE "TVG"
 #define TVG_HEADER_TVG_VERSION_CODE "000"
 

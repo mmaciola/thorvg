@@ -644,31 +644,14 @@ struct Shape::Impl
         auto sizeofPtsCnt = sizeof(path.ptsCnt);
         auto sizeofPts = sizeof(path.pts[0]);
 
-        // path commands flag
-        flag = TVG_PATH_FLAG_CMDS;
-        memcpy(*pointer, &flag, flagSize);
-        *pointer += flagSize;
-        // number of bytes associated with path commands
-        byteCnt = sizeofCmdCnt + path.cmdCnt * sizeofCmds;
-        memcpy(*pointer, &byteCnt, byteCntSize);
-        *pointer += byteCntSize;
-        // bytes associated with path commands: [cmdCnt][cmds]
+// ***************
         memcpy(*pointer, &path.cmdCnt, sizeofCmdCnt);
         *pointer += sizeofCmdCnt;
-        memcpy(*pointer, path.cmds, path.cmdCnt * sizeofCmds);
-        *pointer += path.cmdCnt * sizeofCmds;
-
-        // path points flag
-        flag = TVG_PATH_FLAG_PTS;
-        memcpy(*pointer, &flag, flagSize);
-        *pointer += flagSize;
-        // number of bytes associated with path points
-        byteCnt = sizeofPtsCnt + path.ptsCnt * sizeofPts;
-        memcpy(*pointer, &byteCnt, byteCntSize);
-        *pointer += byteCntSize;
-        // bytes associated with path points: [ptsCnt][pts]
         memcpy(*pointer, &path.ptsCnt, sizeofPtsCnt);
         *pointer += sizeofPtsCnt;
+
+        memcpy(*pointer, path.cmds, path.cmdCnt * sizeofCmds);
+        *pointer += path.cmdCnt * sizeofCmds;
         memcpy(*pointer, path.pts, path.ptsCnt * sizeofPts);
         *pointer += path.ptsCnt * sizeofPts;
 
@@ -801,6 +784,7 @@ struct Shape::Impl
          const Point * pts = (Point *) pointer;
          pointer += sizeof(Point) * ptsCnt;
 
+         printf("pointer %p end %p %d\n", pointer, end, end - pointer);
          if (pointer > end) return LoaderResult::SizeCorruption;
 
          path.cmdCnt = cmdCnt;
@@ -885,12 +869,13 @@ struct Shape::Impl
                    }
                    case TVG_SHAPE_STROKE_FLAG_WIDTH: { // stroke width
                       if (block.lenght != sizeof(float)) return LoaderResult::SizeCorruption;
-                      stroke->width = _read_tvg_32(block.data);// TODO check conversion *******
+                      //stroke->width = _read_tvg_float(block.data); // TODO float
+                      memcpy(&stroke->width, block.data, sizeof(float));
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_COLOR: { // stroke color
                       if (block.lenght != sizeof(stroke->color)) return LoaderResult::SizeCorruption;
-                      memcpy(stroke->color, &block.data, sizeof(stroke->color));
+                      memcpy(&stroke->color, block.data, sizeof(stroke->color));
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_HAS_FILL: { // stroke fill
@@ -943,7 +928,7 @@ struct Shape::Impl
              }
              case TVG_SHAPE_FLAG_COLOR: { // color
                 if (block.lenght != sizeof(color)) return LoaderResult::SizeCorruption;
-                memcpy(&color, &block.data, sizeof(color)); // TODO: przetestowac
+                memcpy(&color, block.data, sizeof(color));
                 flag = RenderUpdateFlag::Color;
                 break;
              }
