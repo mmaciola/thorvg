@@ -244,16 +244,31 @@ struct Picture::Impl
      * Returns LoaderResult:: Success on success and moves pointer to next position,
      * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
      * Details:
-     * TODO
+     * TVG_RAW_IMAGE_BEGIN_INDICATOR : [w][h][pixels]
      */
     LoaderResult tvgLoad(tvg_block block)
     {
+       printf("tvgLoad picture \n");
        switch (block.type)
          {
-          case 0: {
-             // TODO
-             return LoaderResult::Success;
-          }
+            case TVG_RAW_IMAGE_BEGIN_INDICATOR: {
+               if (block.lenght < 8) return LoaderResult::SizeCorruption;
+
+               float w = 0, h = 0;
+               memcpy(&w, block.data, sizeof(float)); // TODO
+               memcpy(&h, block.data + 4, sizeof(float)); // TODO
+               uint32_t size = w * h * sizeof(pixels[0]);
+
+               if (block.lenght != 8 + size) return LoaderResult::SizeCorruption;
+
+               uint32_t* pixels = (uint32_t*) malloc(size);
+               if (!pixels) return LoaderResult::MemoryCorruption;
+               memcpy(pixels, block.data + 8, size);
+
+               load(pixels, w, h, false);
+               printf("TVG_RAW_IMAGE_BEGIN_INDICATOR \n");
+               return LoaderResult::Success;
+            }
          }
 
        return LoaderResult::InvalidType;

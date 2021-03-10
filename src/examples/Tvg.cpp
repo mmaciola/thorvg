@@ -52,14 +52,14 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     shape2->fill(41, 42, 43, 125);
     scene2->push(move(shape2));
 
-    scene->push(move(shape1));
-    //scene->push(move(image));
+    //scene->push(move(shape1));
+    scene->push(move(image));
     //scene->push(move(scene2));
 
     auto shape1_ = tvg::Shape::gen();
     shape1_->appendRect(0, 0, 100, 100, 20, 20);  //x, y, w, h, rx, ry
     shape1_->fill(0x00, 0xba, 0xcc, 255);                //r, g, b, a
-    scene->push(move(shape1_));
+    //scene->push(move(shape1_));
 
     if (scene->save("./tvg_file.tvg") != tvg::Result::Success) return;
 
