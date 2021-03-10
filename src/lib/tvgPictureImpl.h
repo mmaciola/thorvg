@@ -206,7 +206,7 @@ struct Picture::Impl
 
     void serialize(char** pointer)
     {
-        if (!*pointer) return;// false;
+       if (!*pointer) return;// false;
 
         //MGS - reconsider
         if (!pixels && loader) {
@@ -219,24 +219,26 @@ struct Picture::Impl
         FlagType flag;
         ByteCounter byteCnt = 0;
         size_t byteCntSize = sizeof(ByteCounter);
-        auto sizeofW = sizeof(w);
-        auto sizeofH = sizeof(h);
+
+        uint32_t w_ = (uint32_t)w;
+        uint32_t h_ = (uint32_t)h;
+        uint32_t size = w_ * h_ * sizeof(pixels[0]);
 
         // picture indicator
         flag = TVG_RAW_IMAGE_BEGIN_INDICATOR;
         memcpy(*pointer, &flag, sizeof(FlagType));
         *pointer += sizeof(FlagType);
         // number of bytes associated with picture
-        byteCnt = sizeofW + sizeofH + w * h * sizeof(pixels[0]);
+        byteCnt = 2 * sizeof(uint32_t) + size;
         memcpy(*pointer, &byteCnt, byteCntSize);
         *pointer += byteCntSize;
         // bytes associated with picture: [w][h][pixels]
-        memcpy(*pointer, &w, sizeofW);
-        *pointer += sizeofW;
-        memcpy(*pointer, &h, sizeofH);
-        *pointer += sizeofH;
-        memcpy(*pointer, pixels, w * h * sizeof(pixels[0]));
-        *pointer += (size_t)(w * h) * sizeof(pixels[0]);
+        memcpy(*pointer, &w_, sizeof(uint32_t));
+        *pointer += sizeof(uint32_t);
+        memcpy(*pointer, &h_, sizeof(uint32_t));
+        *pointer += sizeof(uint32_t);
+        memcpy(*pointer, pixels, size);
+        *pointer += size;
     }
 
     /*
@@ -248,17 +250,14 @@ struct Picture::Impl
      */
     LoaderResult tvgLoad(tvg_block block)
     {
-       printf("tvgLoad picture \n");
        switch (block.type)
          {
             case TVG_RAW_IMAGE_BEGIN_INDICATOR: {
                if (block.lenght < 8) return LoaderResult::SizeCorruption;
 
-               float w = 0, h = 0;
-               memcpy(&w, block.data, sizeof(float)); // TODO
-               memcpy(&h, block.data + 4, sizeof(float)); // TODO
+               uint32_t w = _read_tvg_32(block.data);
+               uint32_t h = _read_tvg_32(block.data+4);
                uint32_t size = w * h * sizeof(pixels[0]);
-
                if (block.lenght != 8 + size) return LoaderResult::SizeCorruption;
 
                uint32_t* pixels = (uint32_t*) malloc(size);
@@ -266,7 +265,6 @@ struct Picture::Impl
                memcpy(pixels, block.data + 8, size);
 
                load(pixels, w, h, false);
-               printf("TVG_RAW_IMAGE_BEGIN_INDICATOR \n");
                return LoaderResult::Success;
             }
          }
