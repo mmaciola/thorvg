@@ -208,7 +208,7 @@ struct Picture::Impl
     {
         if (!*pointer) return;// false;
 
-        //NGS - reconsider
+        //MGS - reconsider
         if (!pixels && loader) {
             pixels = const_cast<uint32_t*>(loader->pixels());
             w = loader->vw;

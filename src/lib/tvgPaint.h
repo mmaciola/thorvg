@@ -230,6 +230,46 @@ namespace tvg
             return true;
         }
 
+        void serializePaint(char** pointer)
+        {
+            char* start = *pointer;
+            FlagType flag;
+            size_t flagSize = sizeof(FlagType);
+            ByteCounter byteCnt = flagSize;
+            size_t byteCntSize = sizeof(ByteCounter);
+
+            // transform
+            if (rTransform) {
+                Matrix m = rTransform->m;
+                // transform matrix flag
+                flag = TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with transf matrix
+                byteCnt = sizeof(m);
+                memcpy(*pointer, &byteCnt, byteCntSize);
+                *pointer += byteCntSize;
+                // bytes associated with transf matrix
+                memcpy(*pointer, &m, byteCnt);
+                *pointer += byteCnt;
+            }
+
+            // cmpTarget
+            if (cmpTarget) {
+                // cmpTarget flag
+                flag = TVG_PAINT_FLAG_HAS_CMP_TARGET;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with cmpTarget - empty
+                *pointer += byteCntSize;
+                // bytes associated with cmpTrget
+                cmpTarget->pImpl->serialize(pointer);
+                // number of bytes associated with shape - filled
+                byteCnt = *pointer - start - flagSize - byteCntSize;
+                memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+            }
+        }
+
         void serialize(char** pointer)
         {
             smethod->serialize(pointer);

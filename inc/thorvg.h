@@ -318,6 +318,9 @@ public:
     Result save(const std::string& path) noexcept;
     Result load(const std::string& path);
     Result load(const char* data, uint32_t size);
+//MGS2 temp solution
+    void serialize();
+
 
     static std::unique_ptr<Scene> gen() noexcept;
 

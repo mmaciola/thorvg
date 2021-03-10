@@ -72,7 +72,14 @@ Result Scene::clear() noexcept
 Result Scene::save(const std::string& path) noexcept
 {
     if (path.empty()) return Result::InvalidArguments;
-    return pImpl->save(path);
+    return pImpl->save(path, this);
+}
+
+//MGS2 - temp solution ?
+void Scene::serialize()
+{
+        auto tvgSaver = static_cast<TvgSaver*>(pImpl->saver.get());
+        Paint::pImpl->serialize(&tvgSaver->pointer);
 }
 
 Result Scene::load(const string& path)
