@@ -24,8 +24,6 @@
 
 #include <memory.h>
 #include "tvgPaint.h"
-#include "tvgTvgHelper.h"
-#include <iostream> // MGS - temp
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -511,11 +509,11 @@ struct Shape::Impl
         char* start = *pointer;
         FlagType flag;
         size_t flagSize = sizeof(FlagType);
-        ByteCounter byteCnt = flagSize;  //MGS - cast?
+        ByteCounter byteCnt = flagSize;  //MGS
         size_t byteCntSize = sizeof(ByteCounter);
 
         // cap indicator
-        flag = TVG_SHAPE_STROKE_FLAG_CAP; //MGS - flag? indic?
+        flag = TVG_SHAPE_STROKE_FLAG_CAP;
         memcpy(*pointer, &flag, flagSize);
         *pointer += flagSize;
         // number of bytes associated with cap
@@ -540,7 +538,7 @@ struct Shape::Impl
         *pointer += flagSize;
 
         // join indicator
-        flag = TVG_SHAPE_STROKE_FLAG_JOIN; //MGS - flag? indic?
+        flag = TVG_SHAPE_STROKE_FLAG_JOIN;
         memcpy(*pointer, &flag, flagSize);
         *pointer += flagSize;
         // number of bytes associated with join
@@ -694,7 +692,7 @@ struct Shape::Impl
         // number of bytes associated with shape - empty for now
         *pointer += byteCntSize;
 
-        // fillrule indicator // MGS - indicator? flag? - check all flags indicators 
+        // fillrule indicator
         flag = TVG_SHAPE_FLAG_FILLRULE;
         memcpy(*pointer, &flag, flagSize);
         *pointer += flagSize;
@@ -726,6 +724,7 @@ struct Shape::Impl
 
         if (fill) {
             // fill flag
+            cout << "check & fix" << endl;
             flag = TVG_SHAPE_FLAG_HAS_FILL;
             memcpy(*pointer, &flag, flagSize);
             *pointer += flagSize;
@@ -771,6 +770,8 @@ struct Shape::Impl
             // number of bytes associated with path - filled
             memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
         }
+
+        shape->Paint::pImpl->serializePaint(pointer);
 
         // number of bytes associated with shape - filled
         byteCnt = *pointer - start - flagSize - byteCntSize;
@@ -848,7 +849,7 @@ struct Shape::Impl
 
        while (pointer < end)
           {
-             tvg_block_2 block = read_tvg_block(pointer);
+             tvg_block block = read_tvg_block(pointer);
              if (block.block_end > end) return LoaderResult::SizeCorruption;
 
              switch (block.type)
@@ -920,13 +921,13 @@ struct Shape::Impl
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(tvg_block_2 block)
+    LoaderResult tvgLoad(tvg_block block)
     {
+       printf("Shape tvgLoad type %d \n", block.type);
        switch (block.type)
           {
              case TVG_SHAPE_FLAG_HAS_PATH: { // path
                 LoaderResult result = tvgLoadPath(block.data, block.block_end);
-                printf("TVG_SHAPE_FLAG_HAS_PATH result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 break;
              }

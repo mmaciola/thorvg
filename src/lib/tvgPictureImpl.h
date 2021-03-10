@@ -25,7 +25,6 @@
 #include <string>
 #include "tvgPaint.h"
 #include "tvgLoaderMgr.h"
-#include "tvgTvgHelper.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -209,7 +208,7 @@ struct Picture::Impl
     {
         if (!*pointer) return;// false;
 
-        //NGS - reconsider
+        //MGS - reconsider
         if (!pixels && loader) {
             pixels = const_cast<uint32_t*>(loader->pixels());
             w = loader->vw;
@@ -247,7 +246,7 @@ struct Picture::Impl
      * Details:
      * TODO
      */
-    LoaderResult tvgLoad(tvg_block_2 block)
+    LoaderResult tvgLoad(tvg_block block)
     {
        switch (block.type)
          {

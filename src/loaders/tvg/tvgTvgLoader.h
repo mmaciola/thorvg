@@ -33,9 +33,9 @@ public:
    const char * pointer = nullptr;
    uint32_t size = 0;
 
-   unique_ptr<Scene> root;
+   Scene * root;
 
-    TvgLoader();
+    TvgLoader(Scene * scene);
     ~TvgLoader();
 
     using Loader::open;
@@ -46,7 +46,6 @@ public:
     bool close() override;
 
     void run(unsigned tid) override;
-    unique_ptr<Scene> scene() override;
 
     void tvg_clean_buffer();
 };

@@ -25,7 +25,7 @@
 #include <float.h>
 #include <math.h>
 #include "tvgRender.h"
-#include "tvgTvgHelper.h"
+#include "tvgTvgLoadParser.h"
 
 namespace tvg
 {
@@ -41,7 +41,7 @@ namespace tvg
         virtual Paint* duplicate() = 0;
 
         virtual void serialize(char** pointer) = 0;
-        virtual LoaderResult tvgLoad(tvg_block_2 block) = 0;
+        virtual LoaderResult tvgLoad(tvg_block block) = 0;
     };
 
     struct Paint::Impl
@@ -230,12 +230,52 @@ namespace tvg
             return true;
         }
 
+        void serializePaint(char** pointer)
+        {
+            char* start = *pointer;
+            FlagType flag;
+            size_t flagSize = sizeof(FlagType);
+            ByteCounter byteCnt = flagSize;
+            size_t byteCntSize = sizeof(ByteCounter);
+
+            // transform
+            if (rTransform) {
+                Matrix m = rTransform->m;
+                // transform matrix flag
+                flag = TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with transf matrix
+                byteCnt = sizeof(m);
+                memcpy(*pointer, &byteCnt, byteCntSize);
+                *pointer += byteCntSize;
+                // bytes associated with transf matrix
+                memcpy(*pointer, &m, byteCnt);
+                *pointer += byteCnt;
+            }
+
+            // cmpTarget
+            if (cmpTarget) {
+                // cmpTarget flag
+                flag = TVG_PAINT_FLAG_HAS_CMP_TARGET;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with cmpTarget - empty
+                *pointer += byteCntSize;
+                // bytes associated with cmpTrget
+                cmpTarget->pImpl->serialize(pointer);
+                // number of bytes associated with shape - filled
+                byteCnt = *pointer - start - flagSize - byteCntSize;
+                memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+            }
+        }
+
         void serialize(char** pointer)
         {
             smethod->serialize(pointer);
         }
 
-        LoaderResult tvgLoad(tvg_block_2 block)
+        LoaderResult tvgLoad(tvg_block block)
         {
            LoaderResult result = smethod->tvgLoad(block);
            if (result != LoaderResult::InvalidType) return result;
@@ -303,7 +343,7 @@ namespace tvg
              inst->serialize(pointer);
         }
 
-        LoaderResult tvgLoad(tvg_block_2 block) override
+        LoaderResult tvgLoad(tvg_block block) override
         {
              return inst->tvgLoad(block);
         }

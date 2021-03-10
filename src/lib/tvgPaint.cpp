@@ -104,7 +104,7 @@ uint8_t Paint::opacity() const noexcept
     return pImpl->opacity;
 }
 
-LoaderResult Paint::tvgLoad(tvg_block_2 block) noexcept
+LoaderResult Paint::tvgLoad(tvg_block block) noexcept
 {
    return pImpl->tvgLoad(block);
 }

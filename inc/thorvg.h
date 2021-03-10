@@ -2,7 +2,6 @@
 #define _THORVG_H_
 
 #include <memory>
-#include "tvgTvgHelper.h"
 
 #ifdef TVG_BUILD
     #define TVG_EXPORT __attribute__ ((visibility ("default")))
@@ -68,6 +67,16 @@ struct Matrix
     float e31, e32, e33;
 };
 
+enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption };
+using FlagType = uint8_t;
+using ByteCounter = uint32_t;
+struct tvg_block {
+   FlagType type;
+   ByteCounter lenght;
+   const char * data;
+   const char * block_end;
+};
+
 
 /**
  * @class Paint
@@ -94,7 +103,7 @@ public:
 
     uint8_t opacity() const noexcept;
 
-    LoaderResult tvgLoad(tvg_block_2 block) noexcept;
+    LoaderResult tvgLoad(tvg_block block) noexcept;
 
     _TVG_DECLARE_ACCESSOR();
     _TVG_DECLARE_PRIVATE(Paint);
@@ -152,9 +161,6 @@ public:
     virtual Result update(Paint* paint) noexcept;
     virtual Result draw() noexcept;
     virtual Result sync() noexcept;
-
-    virtual Result load(const std::string& path);
-    virtual Result load(const char* data, uint32_t size);
 
     _TVG_DECLARE_PRIVATE(Canvas);
 };
@@ -308,11 +314,13 @@ public:
     Result push(std::unique_ptr<Paint> paint) noexcept;
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
-    Result save(const std::string& path) noexcept;
 
-    // TODO: NOW IN CANVAS!
-    virtual Result load(const std::string& path);
-    virtual Result load(const char* data, uint32_t size);
+    Result save(const std::string& path) noexcept;
+    Result load(const std::string& path);
+    Result load(const char* data, uint32_t size);
+//MGS2 temp solution
+    void serialize();
+
 
     static std::unique_ptr<Scene> gen() noexcept;
 
