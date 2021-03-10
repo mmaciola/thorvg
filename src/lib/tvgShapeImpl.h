@@ -942,10 +942,9 @@ struct Shape::Impl
                    }
                    case TVG_FILL_FLAG_COLORSTOPS: { // color stops
                       if (!fillGrad) return LoaderResult::LogicalCorruption;
-                      printf("B2 block.lenght %d \n", block.lenght );
                       if (block.lenght == 0 || block.lenght & 0x07) return LoaderResult::SizeCorruption;
-                      printf("B3\n");
                       uint32_t stopsCnt = block.lenght >> 3; // 8 bytes per ColorStop
+                      if (stopsCnt > 1023) return LoaderResult::SizeCorruption;
                       Fill::ColorStop stops [stopsCnt];
                       const char* p = block.data;
                       for (uint32_t i = 0; i < stopsCnt; i++, p += 8) {

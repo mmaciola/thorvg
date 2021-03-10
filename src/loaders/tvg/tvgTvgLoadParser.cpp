@@ -94,6 +94,32 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, Scene *
 }
 
 /*
+ * Read picture section of the .tvg binary file
+ * Returns true on success and moves pointer to next position or false if corrupted.
+ * Details:
+ */
+static LoaderResult tvg_read_picture(const char* pointer, const char* end, Scene * scene)
+{
+   // create shape
+   auto s = Picture::gen();
+   printf("tvg_read_picture \n");
+
+   while (pointer < end)
+      {
+         tvg_block block = read_tvg_block(pointer);
+         if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+         LoaderResult result = s->tvgLoad(block);
+         if (result > LoaderResult::Success) return result;
+
+         pointer = block.block_end;
+      }
+
+   scene->push(move(s));
+   return LoaderResult::Success;
+}
+
+/*
  * Read scene section of the .tvg binary file
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details:
@@ -115,6 +141,9 @@ static LoaderResult tvg_read_scene(const char* pointer, const char* end, Scene *
                switch (block.type) {
                   case TVG_SHAPE_BEGIN_INDICATOR:
                   result = tvg_read_shape(block.data, block.block_end, s.get());
+                  break;
+                  case TVG_PICTURE_BEGIN_INDICATOR:
+                  result = tvg_read_picture(block.data, block.block_end, s.get());
                   break;
                   case TVG_SCENE_BEGIN_INDICATOR:
                   result = tvg_read_scene(block.data, block.block_end, s.get());
@@ -154,6 +183,9 @@ bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
                break;
             case TVG_SHAPE_BEGIN_INDICATOR:
                if (tvg_read_shape(block.data, block.block_end, scene) > LoaderResult::Success) return false;
+               break;
+            case TVG_PICTURE_BEGIN_INDICATOR:
+               if (tvg_read_picture(block.data, block.block_end, scene) > LoaderResult::Success) return false;
                break;
             case 0: // TODO mmaciola temporery fix for buffer const lenght in saver ***********
                return true;

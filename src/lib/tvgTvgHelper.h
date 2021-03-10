@@ -61,8 +61,8 @@
 #define TVG_GRADIENT_FLAG_TYPE_LINEAR     0x01 // linear gradient flag
 #define TVG_GRADIENT_FLAG_TYPE_RADIAL     0x02 // radial gradient flag
 
-#define TVG_PATH_FLAG_CMDS (FlagType)0b00000001 // path's commands flag
-#define TVG_PATH_FLAG_PTS  (FlagType)0b00000010 // path's points flag
+//#define TVG_PATH_FLAG_CMDS (FlagType)0b00000001 // path's commands flag
+//#define TVG_PATH_FLAG_PTS  (FlagType)0b00000010 // path's points flag
 
 #define TVG_RAW_IMAGE_BEGIN_INDICATOR (FlagType)0xfd
 
