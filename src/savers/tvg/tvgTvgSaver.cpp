@@ -83,7 +83,7 @@ cout << __FILE__ << " " << __func__ << endl;
         return false;
     }
 
-    reserved = 92;//only for the current Tvg.cpp example 
+    reserved = 300000;//only for the current Tvg.cpp example
     buffer = static_cast<char*>(malloc(reserved));
     if (!buffer) {
         reserved = 0;
