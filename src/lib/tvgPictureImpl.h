@@ -206,37 +206,56 @@ struct Picture::Impl
 
     void serialize(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
-        //MGS - reconsider
-        if (!pixels && loader) {
-            pixels = const_cast<uint32_t*>(loader->pixels());
-            w = loader->vw;
-            h = loader->vh;
-        }
-        if (fabsf(w) < FLT_EPSILON || fabsf(h) < FLT_EPSILON) return; //false 
+        reload();
+	float vw = loader->vw, vh = loader->vh; //MGS - temp, waiting for merge
+        if (!paint && !pixels && vw > 0 && vh > 0) return; //false
 
+        char* start = *pointer;
         FlagType flag;
-        ByteCounter byteCnt = 0;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;
         size_t byteCntSize = sizeof(ByteCounter);
-        auto sizeofW = sizeof(w);
-        auto sizeofH = sizeof(h);
 
         // picture indicator
-        flag = TVG_RAW_IMAGE_BEGIN_INDICATOR;
+        flag = TVG_PICTURE_BEGIN_INDICATOR;
         memcpy(*pointer, &flag, sizeof(FlagType));
         *pointer += sizeof(FlagType);
-        // number of bytes associated with picture
-        byteCnt = sizeofW + sizeofH + w * h * sizeof(pixels[0]);
-        memcpy(*pointer, &byteCnt, byteCntSize);
+        // number of bytes associated with picture - empty for now
         *pointer += byteCntSize;
-        // bytes associated with picture: [w][h][pixels]
-        memcpy(*pointer, &w, sizeofW);
-        *pointer += sizeofW;
-        memcpy(*pointer, &h, sizeofH);
-        *pointer += sizeofH;
-        memcpy(*pointer, pixels, w * h * sizeof(pixels[0]));
-        *pointer += (size_t)(w * h) * sizeof(pixels[0]);
+
+        if (paint) {
+            paint->Paint::pImpl->serialize(pointer);
+        }
+        else if (pixels) {
+            auto sizeofW = sizeof(vw);
+            auto sizeofH = sizeof(vh);
+            if (fabsf(vw) < FLT_EPSILON || fabsf(vh) < FLT_EPSILON) return; //false 
+            // raw image indicator
+            flag = TVG_RAW_IMAGE_BEGIN_INDICATOR;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
+            // number of bytes associated with raw image
+            byteCnt = sizeofW + sizeofH + vw * vh * sizeof(pixels[0]);
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with raw image: [w][h][pixels]
+            memcpy(*pointer, &vw, sizeofW);
+            *pointer += sizeofW;
+            memcpy(*pointer, &vh, sizeofH);
+            *pointer += sizeofH;
+            memcpy(*pointer, pixels, vw * vh * sizeof(pixels[0]));
+            *pointer += (size_t)(vw * vh) * sizeof(pixels[0]);
+        }
+
+        picture->Paint::pImpl->serializePaint(pointer);
+
+        // number of bytes associated with picture - filled
+        byteCnt = *pointer - start - flagSize - byteCntSize;
+        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+        printf("Shape byteCnt : %d \n", byteCnt);
     }
 
     /*

@@ -11,19 +11,15 @@ void tvgDrawCmds(tvg::Canvas* canvas)
 {
     if (!canvas) return;
 
+    //Create the main scene
+    auto scene = tvg::Scene::gen();
+
     //Image
     ifstream file(EXAMPLE_DIR"/rawimage_200x300.raw");
     if (!file.is_open()) return;
     data = (uint32_t*) malloc(sizeof(uint32_t) * (200 * 300));
     file.read(reinterpret_cast<char *>(data), sizeof (data) * 200 * 300);
     file.close();
-
-    auto image = tvg::Picture::gen();
-    if (image->load(data, 200, 300, true) != tvg::Result::Success) return;
-    image->translate(500, 400);
-
-    //Create a Scene
-    auto scene = tvg::Scene::gen();
 
     //RadialGradient
     auto fill = tvg::RadialGradient::gen();
@@ -34,6 +30,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     colorStops[1] = {1, 0, 24, 0, 255};
     fill->colorStops(colorStops, 2);
 
+    /////////////////
     //Round Rectangle
     auto shape1 = tvg::Shape::gen();
     shape1->appendRect(2, 9, 401, 404, 49, 51);
@@ -44,22 +41,52 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     shape1->stroke(dashPattern, 3);
     shape1->fill(move(fill));
 
+    /////////////////
+    //Image
+    auto image = tvg::Picture::gen();
+    if (image->load(data, 200, 300, true) != tvg::Result::Success) return;
+    image->translate(500, 400);
+
+    /////////////////
     //Scene - child
     auto scene2 = tvg::Scene::gen();
     auto shape2 = tvg::Shape::gen();
-    shape2->appendRect(30, 40, 100, 100, 0, 0);
-
-    shape2->fill(41, 42, 43, 125);
+    shape2->appendRect(30, 40, 200, 200, 10, 40);
+    shape2->fill(255, 0, 255, 125);
     scene2->push(move(shape2));
+    scene2->rotate(10);
+    scene2->translate(300,0);
 
-    //scene->push(move(shape1));
-    scene->push(move(image));
-    //scene->push(move(scene2));
+    /////////////////
+    //Mask + shape
+    auto shape3 = tvg::Shape::gen();
+    shape3->appendRect(0, 400, 400, 400, 0, 0);
+    shape3->fill(0, 0, 255, 255);
+
+    auto mask = tvg::Shape::gen();
+    mask->appendCircle(200, 600, 125, 125);
+    mask->fill(255, 0, 0, 255);
+    shape3->composite(move(mask), tvg::CompositeMethod::AlphaMask);
+
+    /////////////////
+    //svg
+    auto svg = tvg::Picture::gen();
+    if (svg->load(EXAMPLE_DIR"/test.svg") != tvg::Result::Success) return;
+    svg->opacity(100);
+    svg->scale(2);
+    svg->translate(600, 100);
+
 
     auto shape1_ = tvg::Shape::gen();
     shape1_->appendRect(0, 0, 100, 100, 20, 20);  //x, y, w, h, rx, ry
     shape1_->fill(0x00, 0xba, 0xcc, 255);                //r, g, b, a
     //scene->push(move(shape1_));
+
+//    scene->push(move(shape1));
+//    scene->push(move(image));
+//    scene->push(move(scene2));
+//    scene->push(move(shape3));
+    scene->push(move(svg));
 
     if (scene->save("./tvg_file.tvg") != tvg::Result::Success) return;
 

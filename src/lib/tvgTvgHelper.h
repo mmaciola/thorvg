@@ -20,10 +20,16 @@
 #define TVG_SHAPE_BEGIN_INDICATOR (FlagType)0xfd
 #define TVG_PICTURE_BEGIN_INDICATOR (FlagType)0xfc
 
+#define TVG_RAW_IMAGE_BEGIN_INDICATOR (FlagType)0x01
+
 #define TVG_PAINT_FLAG_HAS_OPACITY (FlagType)0x01
 #define TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX (FlagType)0x02
 #define TVG_PAINT_FLAG_HAS_CMP_TARGET (FlagType)0x03
-#define TVG_PAINT_FLAG_HAS_CMP_METHOD (FlagType)0x04
+
+#define TVG_PAINT_FLAG_CMP_METHOD               (FlagType)0x01
+#define TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH      (FlagType)0x01
+#define TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK     (FlagType)0x02
+#define TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK (FlagType)0x03
 
 #define TVG_SCENE_FLAG_RESERVEDCNT (FlagType)0x03
 
@@ -64,6 +70,5 @@
 //#define TVG_PATH_FLAG_CMDS (FlagType)0b00000001 // path's commands flag
 //#define TVG_PATH_FLAG_PTS  (FlagType)0b00000010 // path's points flag
 
-#define TVG_RAW_IMAGE_BEGIN_INDICATOR (FlagType)0xfd
 
 #endif //_TVG_STANDARD_HELPER_H_
