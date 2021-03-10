@@ -48,12 +48,13 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     auto scene2 = tvg::Scene::gen();
     auto shape2 = tvg::Shape::gen();
     shape2->appendRect(30, 40, 100, 100, 0, 0);
+
     shape2->fill(41, 42, 43, 125);
     scene2->push(move(shape2));
 
     scene->push(move(shape1));
     //scene->push(move(image));
-//    scene->push(move(scene2));
+    //scene->push(move(scene2));
 
     auto shape1_ = tvg::Shape::gen();
     shape1_->appendRect(0, 0, 100, 100, 20, 20);  //x, y, w, h, rx, ry

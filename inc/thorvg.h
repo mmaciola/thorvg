@@ -322,6 +322,8 @@ public:
     Result load(const std::string& path) noexcept;
     Result load(const char* data, uint32_t size) noexcept;
 
+    void serialize();
+
     static std::unique_ptr<Scene> gen() noexcept;
 
     _TVG_DECLARE_PRIVATE(Scene);

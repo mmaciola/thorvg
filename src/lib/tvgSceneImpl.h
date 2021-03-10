@@ -24,7 +24,7 @@
 
 #include "tvgPaint.h"
 #include "tvgSaverMgr.h"
-#include "tvgTvgSaver.h" // MGS - usunac
+#include "tvgTvgSaver.h" //MGS - for temp sollution 
 
 #include "tvgTvgLoader.h"
 
@@ -61,6 +61,8 @@ struct Scene::Impl
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             (*paint)->pImpl->update(renderer, transform, opacity, clips, static_cast<uint32_t>(flag));
         }
+
+        if (saver && !saver->write()) return nullptr;
 
         /* FXIME: it requires to return list of children engine data
            This is necessary for scene composition */
@@ -168,22 +170,36 @@ struct Scene::Impl
     }
 
     void serialize(char** pointer)
-     {
-         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
-             (*paint)->pImpl->serialize(pointer);
-         }
-     }
+    {
+        if (!*pointer) return;// false;
 
-    Result save(const std::string& path)
+        char* start = *pointer;
+        FlagType flag;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // scene indicator
+        flag = TVG_SCENE_BEGIN_INDICATOR;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with scene - empty for now
+        *pointer += byteCntSize;
+
+        for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
+            (*paint)->pImpl->serialize(pointer);
+        }
+
+        // number of bytes associated with scene - filled
+        byteCnt = *pointer - start - flagSize - byteCntSize;
+        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+    }
+
+    Result save(const std::string& path, Scene *scene)
     {
         if (saver) saver->close();
-        saver = SaverMgr::saver(path);
+        saver = SaverMgr::saver(path, scene);
         if (!saver) return Result::NonSupport;
-        if (!saver->write()) return Result::Unknown;
-
-        // MGS - temp solution - absolutnie poprawic
-        auto tvgSaver = static_cast<TvgSaver*>(saver.get());
-        serialize(&tvgSaver->pointer);
 
         return Result::Success;
     }
