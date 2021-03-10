@@ -67,7 +67,7 @@ struct Matrix
     float e31, e32, e33;
 };
 
-enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption };
+enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption, LogicalCorruption };
 using FlagType = uint8_t;
 using ByteCounter = uint32_t;
 struct tvg_block {

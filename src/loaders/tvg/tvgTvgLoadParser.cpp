@@ -83,7 +83,7 @@ static LoaderResult tvg_read_shape(const char* pointer, const char* end, Scene *
          if (block.block_end > end) return LoaderResult::SizeCorruption;
 
          LoaderResult result = s->tvgLoad(block);
-         printf("tvg_read_shape block result %s\n", (result == LoaderResult::Success) ? "Success" : ((result == LoaderResult::InvalidType) ? "InvalidType" : ((result == LoaderResult::SizeCorruption) ? "SizeCorruption" : "MemoryCorruption")));
+         printf("tvg_read_shape block result %d\n", result);
          if (result > LoaderResult::Success) return result;
 
          pointer = block.block_end;
