@@ -389,57 +389,6 @@ struct Shape::Impl
         ByteCounter byteCnt = flagSize;
         size_t byteCntSize = sizeof(ByteCounter);
 
-        // fillspread indicator
-        flag = TVG_FILL_FLAG_FILLSPREAD;
-        memcpy(*pointer, &flag, flagSize);
-        *pointer += flagSize;
-        // number of bytes associated with fillspread
-        memcpy(*pointer, &byteCnt, byteCntSize);
-        *pointer += byteCntSize;
-        // fillspread flag
-        switch (f->spread()) {
-            case FillSpread::Pad: {
-                flag = TVG_FILL_FLAG_FILLSPREAD_PAD;
-                break;
-            }
-            case FillSpread::Reflect: {
-                flag = TVG_FILL_FLAG_FILLSPREAD_REFLECT;
-                break;
-            }
-            case FillSpread::Repeat: {
-                flag = TVG_FILL_FLAG_FILLSPREAD_REPEAT;
-                break;
-            }
-        }
-        memcpy(*pointer, &flag, flagSize);
-        *pointer += flagSize;
-
-        // colorStops flag
-        flag = TVG_FILL_FLAG_COLORSTOPS;
-        memcpy(*pointer, &flag, flagSize);
-        *pointer += flagSize;
-        // number of bytes associated with colorStops
-        byteCnt = sizeof(stopsCnt) + stopsCnt * (sizeof(stops->offset) + 4 * sizeof(stops->r));  
-        memcpy(*pointer, &byteCnt, byteCntSize);
-        *pointer += byteCntSize;
-        // bytes associated with colorStops: [stopsCnt][stops]
-        memcpy(*pointer, &stopsCnt, sizeof(stopsCnt));
-        *pointer += sizeof(stopsCnt);
-
-        for (uint32_t i = 0; i < stopsCnt; ++i) {  //MGS
-            memcpy(*pointer, &stops[i].offset, sizeof(stops->offset));
-            *pointer += sizeof(stops->offset);
-
-            memcpy(*pointer, &stops[i].r, sizeof(stops->r));
-            *pointer += sizeof(stops->r);
-            memcpy(*pointer, &stops[i].g, sizeof(stops->g));
-            *pointer += sizeof(stops->g);
-            memcpy(*pointer, &stops[i].b, sizeof(stops->b));
-            *pointer += sizeof(stops->b);
-            memcpy(*pointer, &stops[i].a, sizeof(stops->a));
-            *pointer += sizeof(stops->a);
-        }
-
         // radial gradient
         if (f->id() == FILL_ID_RADIAL) {
             float argRadial[3];
@@ -479,6 +428,59 @@ struct Shape::Impl
             // bytes associated with linear gradient: [x1][y1][x2][y2]
             memcpy(*pointer, argLinear, byteCnt);
             *pointer += byteCnt;
+        }
+
+        // fillspread indicator
+        flag = TVG_FILL_FLAG_FILLSPREAD;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with fillspread
+        byteCnt = flagSize;
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // fillspread flag
+        switch (f->spread()) {
+            case FillSpread::Pad: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_PAD;
+                break;
+            }
+            case FillSpread::Reflect: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_REFLECT;
+                break;
+            }
+            case FillSpread::Repeat: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_REPEAT;
+                break;
+            }
+        }
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+
+        // colorStops flag
+        flag = TVG_FILL_FLAG_COLORSTOPS;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with colorStops
+        //byteCnt = sizeof(stopsCnt) + stopsCnt * (sizeof(stops->offset) + 4 * sizeof(stops->r));
+        byteCnt = stopsCnt * (sizeof(stops->offset) + 4 * sizeof(stops->r));
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with colorStops: [stopsCnt][stops]
+        //memcpy(*pointer, &stopsCnt, sizeof(stopsCnt));
+        //*pointer += sizeof(stopsCnt);
+
+        for (uint32_t i = 0; i < stopsCnt; ++i) {  //MGS
+            memcpy(*pointer, &stops[i].offset, sizeof(stops->offset));
+            *pointer += sizeof(stops->offset);
+
+            memcpy(*pointer, &stops[i].r, sizeof(stops->r));
+            *pointer += sizeof(stops->r);
+            memcpy(*pointer, &stops[i].g, sizeof(stops->g));
+            *pointer += sizeof(stops->g);
+            memcpy(*pointer, &stops[i].b, sizeof(stops->b));
+            *pointer += sizeof(stops->b);
+            memcpy(*pointer, &stops[i].a, sizeof(stops->a));
+            *pointer += sizeof(stops->a);
         }
 
         return *pointer - start;
@@ -799,12 +801,11 @@ struct Shape::Impl
        stroke->dashCnt = dashPatternCnt;
        memcpy(stroke->dashPattern, dashPattern, sizeof(float) * dashPatternCnt);
 
-       flag |= RenderUpdateFlag::Stroke;
        return LoaderResult::Success;
     }
 
     /*
-     * Load paint and derived classes from .tvg binary file
+     * Load stroke from .tvg binary file
      * Returns LoaderResult:: Success on success and moves pointer to next position,
      * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
      * Details:
@@ -872,14 +873,97 @@ struct Shape::Impl
                       if (result != LoaderResult::Success) return result;
                       break;
                    }
-                   default: {
-                      return LoaderResult::InvalidType;
+                }
+
+             pointer = block.block_end;
+          }
+
+       return LoaderResult::Success;
+    }
+
+    /*
+     * Load fill from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoadFill(const char* pointer, const char* end)
+    {
+       unique_ptr<Fill> fillGrad;
+
+       while (pointer < end)
+          {
+             tvg_block block = read_tvg_block(pointer);
+             if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+             switch (block.type)
+                {
+                   case TVG_GRADIENT_FLAG_TYPE_RADIAL: { // radial gradient
+                      if (block.lenght != 12) return LoaderResult::SizeCorruption;
+                      float x, y, radius;
+                      memcpy(&x, block.data, sizeof(float)); // TODO
+                      memcpy(&y, block.data + 4, sizeof(float)); // TODO
+                      memcpy(&radius, block.data + 8, sizeof(float)); // TODO
+
+                      auto fillGradRadial = RadialGradient::gen();
+                      fillGradRadial->radial(x, y, radius);
+                      fillGrad = move(fillGradRadial);
+                      break;
+                   }
+                   case TVG_GRADIENT_FLAG_TYPE_LINEAR: { // linear gradient
+                      if (block.lenght != 16) return LoaderResult::SizeCorruption;
+                      float x1, y1, x2, y2;
+                      memcpy(&x1, block.data, sizeof(float)); // TODO
+                      memcpy(&y1, block.data + 4, sizeof(float)); // TODO
+                      memcpy(&x2, block.data + 8, sizeof(float)); // TODO
+                      memcpy(&y2, block.data + 12, sizeof(float)); // TODO
+
+                      auto fillGradLinear = LinearGradient::gen();
+                      fillGradLinear->linear(x1, y1, x2, y2);
+                      fillGrad = move(fillGradLinear);
+                      break;
+                   }
+                   case TVG_FILL_FLAG_FILLSPREAD: { // fill spread
+                      if (!fillGrad) return LoaderResult::LogicalCorruption;
+                      if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                      switch (*block.data) {
+                         case TVG_FILL_FLAG_FILLSPREAD_PAD:
+                            fillGrad->spread(FillSpread::Pad);
+                            break;
+                         case TVG_FILL_FLAG_FILLSPREAD_REFLECT:
+                            fillGrad->spread(FillSpread::Reflect);
+                            break;
+                         case TVG_FILL_FLAG_FILLSPREAD_REPEAT:
+                            fillGrad->spread(FillSpread::Repeat);
+                            break;
+                      }
+                      break;
+                   }
+                   case TVG_FILL_FLAG_COLORSTOPS: { // color stops
+                      if (!fillGrad) return LoaderResult::LogicalCorruption;
+                      printf("B2 block.lenght %d \n", block.lenght );
+                      if (block.lenght == 0 || block.lenght & 0x07) return LoaderResult::SizeCorruption;
+                      printf("B3\n");
+                      uint32_t stopsCnt = block.lenght >> 3; // 8 bytes per ColorStop
+                      Fill::ColorStop stops [stopsCnt];
+                      const char* p = block.data;
+                      for (uint32_t i = 0; i < stopsCnt; i++, p += 8) {
+                            memcpy(&stops[i].offset, p, sizeof(stops->offset)); // TODO
+                            stops[i].r = p[4];
+                            stops[i].g = p[5];
+                            stops[i].b = p[6];
+                            stops[i].a = p[7];
+                      }
+                      fillGrad->colorStops(stops, stopsCnt); // TODO ****
+                      break;
                    }
                 }
 
              pointer = block.block_end;
           }
 
+       fill = fillGrad.release();
        return LoaderResult::Success;
     }
 
@@ -904,10 +988,13 @@ struct Shape::Impl
                 LoaderResult result = tvgLoadStroke(block.data, block.block_end);
                 printf("TVG_SHAPE_FLAG_HAS_STROKE result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
+                flag |= RenderUpdateFlag::Stroke;
                 break;
              }
              case TVG_SHAPE_FLAG_HAS_FILL: { // fill (gradient)
-                // TODO
+                LoaderResult result = tvgLoadFill(block.data, block.block_end);
+                printf("TVG_SHAPE_FLAG_HAS_FILL result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
+                if (result != LoaderResult::Success) return result;
                 flag |= RenderUpdateFlag::Gradient;
                 break;
              }

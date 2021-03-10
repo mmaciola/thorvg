@@ -107,7 +107,6 @@ bool TvgLoader::close()
 
 void TvgLoader::run(unsigned tid)
 {
-   printf("run\n");
    if (!root)
       {
          root = Scene::gen();
@@ -118,7 +117,6 @@ void TvgLoader::run(unsigned tid)
          printf("[mmaciola] tvg_file_parse ERROR\n");
          tvg_clean_buffer();
       }
-   printf("[mmaciola] fin\n");
 }
 
 unique_ptr<Scene> TvgLoader::scene()
