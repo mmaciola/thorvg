@@ -162,6 +162,9 @@ public:
     virtual Result draw() noexcept;
     virtual Result sync() noexcept;
 
+    virtual Result load(const std::string& path);
+    virtual Result load(const char* data, uint32_t size);
+
     _TVG_DECLARE_PRIVATE(Canvas);
 };
 
@@ -316,11 +319,10 @@ public:
     Result clear() noexcept;
 
     Result save(const std::string& path) noexcept;
-    Result load(const std::string& path);
-    Result load(const char* data, uint32_t size);
-//MGS2 temp solution
-    void serialize();
+    Result load(const std::string& path) noexcept;
+    Result load(const char* data, uint32_t size) noexcept;
 
+    void serialize();
 
     static std::unique_ptr<Scene> gen() noexcept;
 
