@@ -189,23 +189,6 @@ struct ShapePath
 
         return true;
     }
-
-    bool tvgStore(char ** buffer, uint32_t * size)
-    {
-       *size = 8 + sizeof(PathCommand) * cmdCnt + sizeof(Point) * ptsCnt;
-       *buffer = (char *) malloc(*size);
-       if (!*buffer) return false;
-
-       char * pointer = *buffer;
-       memcpy(pointer, &cmdCnt, sizeof(uint32_t));
-       pointer += sizeof(uint32_t);
-       memcpy(pointer, &ptsCnt, sizeof(uint32_t));
-       pointer += sizeof(uint32_t);
-       memcpy(pointer, cmds, sizeof(PathCommand) * cmdCnt);
-       pointer += sizeof(PathCommand) * cmdCnt;
-       memcpy(pointer, pts, sizeof(Point) * ptsCnt);
-       return true;
-    }
 };
 
 
@@ -634,16 +617,17 @@ struct Shape::Impl
         if (!path.cmds || !path.pts || !path.cmdCnt || !path.ptsCnt) return 0;  // MGS - double check - needed?
 
         char* start = *pointer;
-        FlagType flag;
-        size_t flagSize = sizeof(FlagType);
-        ByteCounter byteCnt = 0;
-        size_t byteCntSize = sizeof(ByteCounter);
+        //FlagType flag;
+        //size_t flagSize = sizeof(FlagType);
+        //ByteCounter byteCnt = 0;
+        //size_t byteCntSize = sizeof(ByteCounter);
         auto sizeofCmdCnt = sizeof(path.cmdCnt);
         auto sizeofCmds = sizeof(path.cmds[0]);
         auto sizeofPtsCnt = sizeof(path.ptsCnt);
         auto sizeofPts = sizeof(path.pts[0]);
 
-// ***************
+        // ******
+        // mmaciola: zmienilem zapis cmd pts na [cmdCnt][ptsCnt][ptsCnt*cmds][ptsCnt*pts]
         memcpy(*pointer, &path.cmdCnt, sizeofCmdCnt);
         *pointer += sizeofCmdCnt;
         memcpy(*pointer, &path.ptsCnt, sizeofPtsCnt);
@@ -786,7 +770,6 @@ struct Shape::Impl
          const Point * pts = (Point *) pointer;
          pointer += sizeof(Point) * ptsCnt;
 
-         printf("pointer %p end %p %d\n", pointer, end, end - pointer);
          if (pointer > end) return LoaderResult::SizeCorruption;
 
          path.cmdCnt = cmdCnt;
