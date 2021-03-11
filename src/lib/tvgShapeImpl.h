@@ -376,6 +376,7 @@ struct Shape::Impl
 
     ByteCounter serializeFill(char** pointer, Fill* f)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return 0;
 
         const Fill::ColorStop* stops = nullptr;
@@ -489,6 +490,7 @@ struct Shape::Impl
     /* assumption: all flags of given type have the same size */
     ByteCounter serializeStroke(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return 0;
 
         char* start = *pointer;
@@ -615,6 +617,7 @@ struct Shape::Impl
 
     ByteCounter serializePath(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return 0;
         if (!path.cmds || !path.pts || !path.cmdCnt || !path.ptsCnt) return 0;  // MGS - double check - needed?
 
@@ -646,6 +649,7 @@ struct Shape::Impl
 
     void serialize(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
         char* start = *pointer;
@@ -693,7 +697,6 @@ struct Shape::Impl
 
         if (fill) {
             // fill flag
-            cout << "check & fix" << endl;
             flag = TVG_SHAPE_FLAG_HAS_FILL;
             memcpy(*pointer, &flag, flagSize);
             *pointer += flagSize;
@@ -745,7 +748,7 @@ struct Shape::Impl
         // number of bytes associated with shape - filled
         byteCnt = *pointer - start - flagSize - byteCntSize;
         memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
-        printf("byteCnt : %d \n", byteCnt);
+        printf("Shape byteCnt : %d \n", byteCnt);
 
         //return true;
     }

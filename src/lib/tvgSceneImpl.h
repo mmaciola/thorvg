@@ -36,9 +36,14 @@ struct Scene::Impl
 {
     Array<Paint*> paints;
     uint8_t opacity;            //for composition
+    Scene* scene = nullptr;
 
     unique_ptr<Saver> saver = nullptr;
     unique_ptr<TvgLoader> loader = nullptr;
+
+    Impl(Scene* s) : scene(s)
+    {
+    }
 
     bool dispose(RenderMethod& renderer)
     {
@@ -171,6 +176,7 @@ struct Scene::Impl
 
     void serialize(char** pointer)
     {
+cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
         char* start = *pointer;
@@ -189,6 +195,8 @@ struct Scene::Impl
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             (*paint)->pImpl->serialize(pointer);
         }
+
+        scene->Paint::pImpl->serializePaint(pointer);
 
         // number of bytes associated with scene - filled
         byteCnt = *pointer - start - flagSize - byteCntSize;

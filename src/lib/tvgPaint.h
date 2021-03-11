@@ -232,11 +232,24 @@ namespace tvg
 
         void serializePaint(char** pointer)
         {
-            char* start = *pointer;
+cout << __FILE__ << " " << __func__ << endl;
             FlagType flag;
             size_t flagSize = sizeof(FlagType);
             ByteCounter byteCnt = flagSize;
             size_t byteCntSize = sizeof(ByteCounter);
+
+            //MGS - only for op < 255 ?
+            // opacity flag
+            flag = TVG_PAINT_FLAG_HAS_OPACITY;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with opacity
+            byteCnt = sizeof(opacity);
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with  opacity
+            memcpy(*pointer, &opacity, byteCnt);
+            *pointer += byteCnt;
 
             // transform
             if (rTransform) {
@@ -256,12 +269,45 @@ namespace tvg
 
             // cmpTarget
             if (cmpTarget) {
+                char* start = *pointer;
+
                 // cmpTarget flag
                 flag = TVG_PAINT_FLAG_HAS_CMP_TARGET;
                 memcpy(*pointer, &flag, flagSize);
                 *pointer += flagSize;
                 // number of bytes associated with cmpTarget - empty
                 *pointer += byteCntSize;
+                // bytes associated with cmpTrget: method and target
+
+                // method flag
+                flag = TVG_PAINT_FLAG_CMP_METHOD;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with method flag
+                memcpy(*pointer, &byteCnt, byteCntSize);
+                *pointer += byteCntSize;
+                // bytes associated with method flag
+                switch (cmpMethod) {
+                    case CompositeMethod::ClipPath: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH;
+                        break;
+                    }
+                    case CompositeMethod::AlphaMask: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK;
+                        break;
+                    }
+                    case CompositeMethod::InvAlphaMask: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK;
+                        break;
+                    }
+                    case CompositeMethod::None: {
+                        // obsluzyc blad MGS
+                        break;
+                    }
+                }
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+
                 // bytes associated with cmpTrget
                 cmpTarget->pImpl->serialize(pointer);
                 // number of bytes associated with shape - filled
@@ -272,6 +318,7 @@ namespace tvg
 
         void serialize(char** pointer)
         {
+cout << __FILE__ << " " << __func__ << endl;
             smethod->serialize(pointer);
         }
 
@@ -340,6 +387,7 @@ namespace tvg
 
         void serialize(char** pointer) override
         {
+cout << __FILE__ << " " << __func__ << " sm" << endl;
              inst->serialize(pointer);
         }
 
