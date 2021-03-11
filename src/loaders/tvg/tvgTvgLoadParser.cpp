@@ -52,7 +52,8 @@ static bool tvg_read_header(const char** pointer)
    *pointer += 3; // move after version code
 
    // Matadata phase
-   uint16_t meta_lenght = _read_tvg_16(*pointer); // Matadata phase lenght
+   uint16_t meta_lenght; // Matadata phase lenght
+   _read_tvg_ui16(&meta_lenght, *pointer);
    *pointer += 2; // move after lenght
 
 #ifdef TVG_LOADER_LOG_ENABLED
@@ -206,10 +207,10 @@ bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
 tvg_block read_tvg_block(const char * pointer) {
    tvg_block block;
    block.type = *pointer;
-   block.lenght = _read_tvg_32(pointer + sizeof(FlagType));
-   //printf("TVG_LOADER: lenght %d: %02x %02x %02x %02x.\n", block.lenght, pointer[1], pointer[2], pointer[3], pointer[4]);
+   _read_tvg_ui32(&block.lenght, pointer + sizeof(FlagType));
    block.data = pointer + sizeof(FlagType) + sizeof(ByteCounter);
    block.block_end = block.data + block.lenght;
+   //printf("TVG_LOADER: lenght %d: %02x %02x %02x %02x.\n", block.lenght, pointer[1], pointer[2], pointer[3], pointer[4]);
    //printf("TVG_LOADER: type %d, data[%d]: %02x %02x %02x.\n", block.type, block.lenght, block.data[0], block.data[1], block.data[2]);
    return block;
 }
