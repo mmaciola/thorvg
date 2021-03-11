@@ -206,7 +206,7 @@ struct Picture::Impl
 
     void serialize(char** pointer)
     {
-cout << __FILE__ << " " << __func__ << endl;
+      cout << __FILE__ << " " << __func__ << endl;
         if (!*pointer) return;// false;
 
         reload();
@@ -230,7 +230,28 @@ cout << __FILE__ << " " << __func__ << endl;
             paint->Paint::pImpl->serialize(pointer);
         }
         else if (pixels) {
-            auto sizeofW = sizeof(vw);
+            uint32_t w_ = (uint32_t)w;
+            uint32_t h_ = (uint32_t)h;
+            uint32_t size = w_ * h_ * sizeof(pixels[0]);
+          
+            // raw image indicator
+            flag = TVG_RAW_IMAGE_BEGIN_INDICATOR;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
+          
+            // number of bytes associated with picture
+            byteCnt = 2 * sizeof(uint32_t) + size;
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with picture: [w][h][pixels]
+            memcpy(*pointer, &w_, sizeof(uint32_t));
+            *pointer += sizeof(uint32_t);
+            memcpy(*pointer, &h_, sizeof(uint32_t));
+            *pointer += sizeof(uint32_t);
+            memcpy(*pointer, pixels, size);
+            *pointer += size;
+          
+            /*auto sizeofW = sizeof(vw);
             auto sizeofH = sizeof(vh);
             if (fabsf(vw) < FLT_EPSILON || fabsf(vh) < FLT_EPSILON) return; //false 
             // raw image indicator
@@ -247,7 +268,7 @@ cout << __FILE__ << " " << __func__ << endl;
             memcpy(*pointer, &vh, sizeofH);
             *pointer += sizeofH;
             memcpy(*pointer, pixels, vw * vh * sizeof(pixels[0]));
-            *pointer += (size_t)(vw * vh) * sizeof(pixels[0]);
+            *pointer += (size_t)(vw * vh) * sizeof(pixels[0]);*/
         }
 
         picture->Paint::pImpl->serializePaint(pointer);
@@ -267,17 +288,14 @@ cout << __FILE__ << " " << __func__ << endl;
      */
     LoaderResult tvgLoad(tvg_block block)
     {
-       printf("tvgLoad picture \n");
        switch (block.type)
          {
             case TVG_RAW_IMAGE_BEGIN_INDICATOR: {
                if (block.lenght < 8) return LoaderResult::SizeCorruption;
 
-               float w = 0, h = 0;
-               memcpy(&w, block.data, sizeof(float)); // TODO
-               memcpy(&h, block.data + 4, sizeof(float)); // TODO
+               uint32_t w = _read_tvg_32(block.data);
+               uint32_t h = _read_tvg_32(block.data+4);
                uint32_t size = w * h * sizeof(pixels[0]);
-
                if (block.lenght != 8 + size) return LoaderResult::SizeCorruption;
 
                uint32_t* pixels = (uint32_t*) malloc(size);
@@ -285,7 +303,6 @@ cout << __FILE__ << " " << __func__ << endl;
                memcpy(pixels, block.data + 8, size);
 
                load(pixels, w, h, false);
-               printf("TVG_RAW_IMAGE_BEGIN_INDICATOR \n");
                return LoaderResult::Success;
             }
          }
