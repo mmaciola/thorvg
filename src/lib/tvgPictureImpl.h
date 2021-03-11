@@ -210,7 +210,7 @@ struct Picture::Impl
         if (!*pointer) return;// false;
 
         reload();
-	float vw = loader->vw, vh = loader->vh; //MGS - temp, waiting for merge
+        float vw = loader->vw, vh = loader->vh; //MGS - temp, waiting for merge
         if (!paint && !pixels && vw > 0 && vh > 0) return; //false
 
         char* start = *pointer;
@@ -230,8 +230,8 @@ struct Picture::Impl
             paint->Paint::pImpl->serialize(pointer);
         }
         else if (pixels) {
-            uint32_t w_ = (uint32_t)w;
-            uint32_t h_ = (uint32_t)h;
+            uint32_t w_ = (uint32_t)vw;
+            uint32_t h_ = (uint32_t)vh;
             uint32_t size = w_ * h_ * sizeof(pixels[0]);
           
             // raw image indicator
