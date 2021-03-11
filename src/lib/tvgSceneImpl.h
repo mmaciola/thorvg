@@ -243,7 +243,8 @@ cout << __FILE__ << " " << __func__ << endl;
          {
           case TVG_SCENE_FLAG_RESERVEDCNT: {
              if (block.lenght != 1) return LoaderResult::SizeCorruption;
-             uint32_t reservedCnt = _read_tvg_32(block.data);
+             uint32_t reservedCnt;
+             _read_tvg_ui32(&reservedCnt, block.data);
              paints.reserve(reservedCnt);
              return LoaderResult::Success;
           }

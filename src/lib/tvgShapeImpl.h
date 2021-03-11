@@ -858,8 +858,7 @@ cout << __FILE__ << " " << __func__ << endl;
                    }
                    case TVG_SHAPE_STROKE_FLAG_WIDTH: { // stroke width
                       if (block.lenght != sizeof(float)) return LoaderResult::SizeCorruption;
-                      //stroke->width = _read_tvg_float(block.data); // TODO float
-                      memcpy(&stroke->width, block.data, sizeof(float));
+                      _read_tvg_float(&stroke->width, block.data);
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_COLOR: { // stroke color
@@ -905,9 +904,9 @@ cout << __FILE__ << " " << __func__ << endl;
                    case TVG_GRADIENT_FLAG_TYPE_RADIAL: { // radial gradient
                       if (block.lenght != 12) return LoaderResult::SizeCorruption;
                       float x, y, radius;
-                      memcpy(&x, block.data, sizeof(float)); // TODO
-                      memcpy(&y, block.data + 4, sizeof(float)); // TODO
-                      memcpy(&radius, block.data + 8, sizeof(float)); // TODO
+                      _read_tvg_float(&x, block.data);
+                      _read_tvg_float(&y, block.data + 4);
+                      _read_tvg_float(&radius, block.data + 8);
 
                       auto fillGradRadial = RadialGradient::gen();
                       fillGradRadial->radial(x, y, radius);
@@ -917,10 +916,10 @@ cout << __FILE__ << " " << __func__ << endl;
                    case TVG_GRADIENT_FLAG_TYPE_LINEAR: { // linear gradient
                       if (block.lenght != 16) return LoaderResult::SizeCorruption;
                       float x1, y1, x2, y2;
-                      memcpy(&x1, block.data, sizeof(float)); // TODO
-                      memcpy(&y1, block.data + 4, sizeof(float)); // TODO
-                      memcpy(&x2, block.data + 8, sizeof(float)); // TODO
-                      memcpy(&y2, block.data + 12, sizeof(float)); // TODO
+                      _read_tvg_float(&x1, block.data);
+                      _read_tvg_float(&y1, block.data + 4);
+                      _read_tvg_float(&x2, block.data + 8);
+                      _read_tvg_float(&y2, block.data + 12);
 
                       auto fillGradLinear = LinearGradient::gen();
                       fillGradLinear->linear(x1, y1, x2, y2);
@@ -951,13 +950,13 @@ cout << __FILE__ << " " << __func__ << endl;
                       Fill::ColorStop stops [stopsCnt];
                       const char* p = block.data;
                       for (uint32_t i = 0; i < stopsCnt; i++, p += 8) {
-                            memcpy(&stops[i].offset, p, sizeof(stops->offset)); // TODO
+                            _read_tvg_float(&stops[i].offset, p);
                             stops[i].r = p[4];
                             stops[i].g = p[5];
                             stops[i].b = p[6];
                             stops[i].a = p[7];
                       }
-                      fillGrad->colorStops(stops, stopsCnt); // TODO ****
+                      fillGrad->colorStops(stops, stopsCnt);
                       break;
                    }
                 }

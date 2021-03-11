@@ -293,8 +293,9 @@ struct Picture::Impl
             case TVG_RAW_IMAGE_BEGIN_INDICATOR: {
                if (block.lenght < 8) return LoaderResult::SizeCorruption;
 
-               uint32_t w = _read_tvg_32(block.data);
-               uint32_t h = _read_tvg_32(block.data+4);
+               uint32_t w, h;
+               _read_tvg_ui32(&w, block.data);
+               _read_tvg_ui32(&h, block.data + 4);
                uint32_t size = w * h * sizeof(pixels[0]);
                if (block.lenght != 8 + size) return LoaderResult::SizeCorruption;
 

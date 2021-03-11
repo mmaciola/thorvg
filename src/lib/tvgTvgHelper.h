@@ -5,12 +5,14 @@
 
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || defined(__BIG_ENDIAN__)
 // big endian
-#define _read_tvg_16(data) ((((data)[0] & 0xff) << 8) | ((data)[1] & 0xff))
-#define _read_tvg_32(data) ((((data)[0] & 0xff) << 24) | (((data)[1] & 0xff) << 16) | (((data)[2] & 0xff) << 8) | ((data)[3] & 0xff))
+#define _read_tvg_ui16(dst, src) *dst = ((((src)[0] & 0xff) << 8) | ((src)[1] & 0xff))
+#define _read_tvg_ui32(dst, src) *dst = ((((src)[0] & 0xff) << 24) | (((src)[1] & 0xff) << 16) | (((src)[2] & 0xff) << 8) | ((src)[3] & 0xff))
+#define _read_tvg_float(dst, src) {char *r = (char*)dst;r[0]=src[3];r[1]=src[2];r[2]=src[1];r[3]=src[0];} // TODO
 #else
 // little endian
-#define _read_tvg_16(data) ((((data)[1] & 0xff) << 8) | ((data)[0] & 0xff))
-#define _read_tvg_32(data) ((((data)[3] & 0xff) << 24) | (((data)[2] & 0xff) << 16) | (((data)[1] & 0xff) << 8) | ((data)[0] & 0xff))
+#define _read_tvg_ui16(dst, src) memcpy(dst, (src), sizeof(uint16_t))
+#define _read_tvg_ui32(dst, src) memcpy(dst, (src), sizeof(uint32_t))
+#define _read_tvg_float(dst, src) memcpy(dst, (src), sizeof(float))
 #endif
 
 #define TVG_HEADER_TVG_SIGN_CODE "TVG"

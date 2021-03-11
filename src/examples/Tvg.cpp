@@ -82,7 +82,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     shape1_->fill(0x00, 0xba, 0xcc, 255);                //r, g, b, a
     //scene->push(move(shape1_));
 
-//    scene->push(move(shape1));
+    scene->push(move(shape1));
     scene->push(move(image));
 //    scene->push(move(scene2));
 //    scene->push(move(shape3));
