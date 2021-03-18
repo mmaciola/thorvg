@@ -322,27 +322,77 @@ cout << __FILE__ << " " << __func__ << endl;
             smethod->serialize(pointer);
         }
 
-        LoaderResult tvgLoad(tvg_block block)
+        LoaderResult tvgLoadCmpTarget(const char* pointer, const char* end)
         {
-           LoaderResult result = smethod->tvgLoad(block);
-           if (result != LoaderResult::InvalidType) return result;
+           tvg_block block = read_tvg_block(pointer);
+           if (block.block_end > end) return LoaderResult::SizeCorruption;
 
-           switch (block.type)
+           if (block.type != TVG_PAINT_FLAG_CMP_METHOD) return LoaderResult::LogicalCorruption;
+           if (block.lenght != 1) return LoaderResult::SizeCorruption;
+           switch (*block.data)
+           {
+              case TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH:
+                 cmpMethod = CompositeMethod::ClipPath;
+                 break;
+              case TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK:
+                 cmpMethod = CompositeMethod::AlphaMask;
+                 break;
+              case TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK:
+                 cmpMethod = CompositeMethod::InvAlphaMask;
+                 break;
+              default:
+                 return LoaderResult::LogicalCorruption;
+           }
+
+           pointer = block.block_end;
+           tvg_block block_paint = read_tvg_block(pointer);
+           if (block_paint.block_end > end) return LoaderResult::SizeCorruption;
+
+           LoaderResult result = tvg_read_paint(block_paint, &cmpTarget);
+           if (result > LoaderResult::Success)
+           {
+              if (cmpTarget) delete(cmpTarget);
+              return result;
+           }
+
+           return LoaderResult::Success;
+        }
+
+        LoaderResult tvgLoad(const char* pointer, const char* end)
+        {
+           while (pointer < end)
+           {
+              tvg_block block = read_tvg_block(pointer);
+              if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+              LoaderResult result = smethod->tvgLoad(block);
+              if (result == LoaderResult::InvalidType)
               {
-                 case TVG_PAINT_FLAG_HAS_OPACITY: {
-                    if (block.lenght != 1) return LoaderResult::SizeCorruption;
-                    opacity = *block.data;
-                    return LoaderResult::Success;
-                 }
-                 case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
-                    if (block.lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
-                    const Matrix * matrix = (Matrix *) block.data;
-                    transform(*matrix); // TODO: check if transformation works
-                    return LoaderResult::Success;
+                 switch (block.type) {
+                    case TVG_PAINT_FLAG_HAS_OPACITY: {
+                       if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                       opacity = *block.data;
+                       break;
+                    }
+                    case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
+                       if (block.lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
+                       const Matrix * matrix = (Matrix *) block.data;
+                       transform(*matrix); // TODO: check if transformation works
+                       break;
+                    }
+                    case TVG_PAINT_FLAG_HAS_CMP_TARGET: { // cmp target
+                       if (block.lenght < 5) return LoaderResult::SizeCorruption;
+                       LoaderResult result = tvgLoadCmpTarget(block.data, block.block_end);
+                       if (result != LoaderResult::Success) return result;
+                       break;
+                    }
                  }
               }
 
-           return LoaderResult::InvalidType;
+              if (result > LoaderResult::Success) return result;
+              pointer = block.block_end;
+           }
+           return LoaderResult::Success;
         }
     };
 
