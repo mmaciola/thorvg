@@ -68,97 +68,44 @@ static bool tvg_read_header(const char** pointer)
 }
 
 /*
- * Read shape section of the .tvg binary file
+ * Read paint section of the .tvg binary file
  * Returns true on success and moves pointer to next position or false if corrupted.
  * Details: see tvgLoad() in tvgShapeImpl.h
  */
-static LoaderResult tvg_read_shape(const char* pointer, const char* end, Scene * scene)
+LoaderResult tvg_read_paint(tvg_block block, Paint ** paint)
 {
-   // create shape
-   auto s = Shape::gen();
-
-   while (pointer < end)
-      {
-         tvg_block block = read_tvg_block(pointer);
-         //printf("block.block_end %d end %d\n", block.block_end - pointer, end - pointer);
-         if (block.block_end > end) return LoaderResult::SizeCorruption;
-
-         LoaderResult result = s->tvgLoad(block);
-         printf("tvg_read_shape block result %d\n", result);
-         if (result > LoaderResult::Success) return result;
-
-         pointer = block.block_end;
-      }
-
-   scene->push(move(s));
-   return LoaderResult::Success;
-}
-
-/*
- * Read picture section of the .tvg binary file
- * Returns true on success and moves pointer to next position or false if corrupted.
- * Details:
- */
-static LoaderResult tvg_read_picture(const char* pointer, const char* end, Scene * scene)
-{
-   // create shape
-   auto s = Picture::gen();
-   printf("tvg_read_picture \n");
-
-   while (pointer < end)
-      {
-         tvg_block block = read_tvg_block(pointer);
-         if (block.block_end > end) return LoaderResult::SizeCorruption;
-
-         LoaderResult result = s->tvgLoad(block);
-         if (result > LoaderResult::Success) return result;
-
-         pointer = block.block_end;
-      }
-
-   scene->push(move(s));
-   return LoaderResult::Success;
-}
-
-/*
- * Read scene section of the .tvg binary file
- * Returns true on success and moves pointer to next position or false if corrupted.
- * Details:
- */
-static LoaderResult tvg_read_scene(const char* pointer, const char* end, Scene * scene)
-{
-   // create scene
-   auto s = Scene::gen();
-
-   while (pointer < end)
-      {
-         tvg_block block = read_tvg_block(pointer);
-         if (block.block_end > end) return LoaderResult::SizeCorruption;
-
-         LoaderResult result = s->tvgLoad(block);
-
-         if (result == LoaderResult::InvalidType)
-            {
-               switch (block.type) {
-                  case TVG_SHAPE_BEGIN_INDICATOR:
-                  result = tvg_read_shape(block.data, block.block_end, s.get());
-                  break;
-                  case TVG_PICTURE_BEGIN_INDICATOR:
-                  result = tvg_read_picture(block.data, block.block_end, s.get());
-                  break;
-                  case TVG_SCENE_BEGIN_INDICATOR:
-                  result = tvg_read_scene(block.data, block.block_end, s.get());
-                  break;
-               }
-            }
-
-         printf("tvg_read_scene result %d \n", result);
-         if (result > LoaderResult::Success) return result;
-
-         pointer = block.block_end;
-      }
-
-   scene->push(move(s));
+   switch (block.type)
+   {
+      case TVG_SCENE_BEGIN_INDICATOR:
+         {
+            printf("TVG_SCENE_BEGIN_INDICATOR \n");
+            auto s = Scene::gen();
+            LoaderResult result = s->tvgLoad(block.data, block.block_end);
+            if (result > LoaderResult::Success) return result;
+            *paint = s.release();
+            break;
+         }
+      case TVG_SHAPE_BEGIN_INDICATOR:
+         {
+            printf("TVG_SHAPE_BEGIN_INDICATOR \n");
+            auto s = Shape::gen();
+            LoaderResult result = s->tvgLoad(block.data, block.block_end);
+            if (result > LoaderResult::Success) return result;
+            *paint = s.release();
+            break;
+         }
+      case TVG_PICTURE_BEGIN_INDICATOR:
+         {
+            printf("TVG_PICTURE_BEGIN_INDICATOR \n");
+            auto s = Picture::gen();
+            LoaderResult result = s->tvgLoad(block.data, block.block_end);
+            if (result > LoaderResult::Success) return result;
+            *paint = s.release();
+            break;
+         }
+      default:
+         return LoaderResult::InvalidType;
+   }
    return LoaderResult::Success;
 }
 
@@ -172,28 +119,16 @@ bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
          return false;
       }
 
+   Paint * paint;
    while (pointer < end)
       {
          tvg_block block = read_tvg_block(pointer);
+         if (block.type == 0) return true; // TODO mmaciola temporery fix for buffer const lenght in saver
          if (block.block_end > end) return false;
 
-         switch (block.type)
-            {
-            case TVG_SCENE_BEGIN_INDICATOR:
-               if (tvg_read_scene(block.data, block.block_end, scene) > LoaderResult::Success) return false;
-               break;
-            case TVG_SHAPE_BEGIN_INDICATOR:
-               if (tvg_read_shape(block.data, block.block_end, scene) > LoaderResult::Success) return false;
-               break;
-            case TVG_PICTURE_BEGIN_INDICATOR:
-               if (tvg_read_picture(block.data, block.block_end, scene) > LoaderResult::Success) return false;
-               break;
-            case 0: // TODO mmaciola temporery fix for buffer const lenght in saver ***********
-               return true;
-            default:
-               // LOG: Invalid type
-               return false;
-            }
+         LoaderResult result = tvg_read_paint(block, &paint);
+         if (result > LoaderResult::Success) return false;
+         if (result == LoaderResult::Success) scene->push(unique_ptr<Paint>(paint));
 
          pointer = block.block_end;
       }

@@ -308,6 +308,11 @@ struct Picture::Impl
             }
          }
 
+       Paint * paint_local;
+       LoaderResult result = tvg_read_paint(block, &paint_local);
+       if (result == LoaderResult::Success) paint = paint_local;
+
+       if (result != LoaderResult::InvalidType) return result;
        return LoaderResult::InvalidType;
     }
 };

@@ -28,5 +28,6 @@
 
 bool tvg_file_parse(const char * pointer, uint32_t size, Scene * root);
 tvg_block read_tvg_block(const char * pointer);
+LoaderResult tvg_read_paint(tvg_block block, Paint ** paint);
 
 #endif //_TVG_TVG_LOAD_PARSER_H_

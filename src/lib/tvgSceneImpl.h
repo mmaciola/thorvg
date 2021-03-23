@@ -250,6 +250,11 @@ cout << __FILE__ << " " << __func__ << endl;
           }
          }
 
+       Paint * paint;
+       LoaderResult result = tvg_read_paint(block, &paint);
+       if (result == LoaderResult::Success) paints.push(paint);
+
+       if (result != LoaderResult::InvalidType) return result;
        return LoaderResult::InvalidType;
     }
 };
