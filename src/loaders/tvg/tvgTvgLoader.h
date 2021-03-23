@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd. All rights reserved.
 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,19 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef _TVG_COMMON_H_
-#define _TVG_COMMON_H_
 
-#include "config.h"
-#include "thorvg.h"
-#include <iostream> //MGS - remove
+#ifndef _TVG_TVG_LOADER_H_
+#define _TVG_TVG_LOADER_H_
 
-using namespace std;
-using namespace tvg;
+#include "tvgLoader.h"
+#include "tvgTaskScheduler.h"
 
-#define FILL_ID_LINEAR 0
-#define FILL_ID_RADIAL 1
+class TvgLoader : public Loader, public Task
+{
+public:
+   char * buffer;
+   const char * pointer = nullptr;
+   uint32_t size = 0;
 
-#define TVG_UNUSED __attribute__ ((__unused__))
+   unique_ptr<Scene> root;
 
-#endif //_TVG_COMMON_H_
+    TvgLoader(Scene * scene);
+    ~TvgLoader();
+
+    using Loader::open;
+    bool open(const string& path) override;
+    bool open(const char* data, uint32_t size) override;
+
+    bool read() override;
+    bool close() override;
+
+    void run(unsigned tid) override;
+    unique_ptr<Scene> scene() override;
+
+    void tvg_clean_buffer();
+};
+
+#endif //_TVG_TVG_LOADER_H_

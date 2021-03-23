@@ -1,105 +1,95 @@
-/*
- * Copyright (c) 2020-2021 Samsung Electronics Co., Ltd. All rights reserved.
-
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
-
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 #include "Common.h"
+#include <fstream>
 
 /************************************************************************/
 /* Drawing Commands                                                     */
 /************************************************************************/
 
+uint32_t *data = nullptr;
+
 void tvgDrawCmds(tvg::Canvas* canvas)
 {
     if (!canvas) return;
 
-    //Create a Scene
+    //Create the main scene
     auto scene = tvg::Scene::gen();
-    scene->reserve(3);   //reserve 3 shape nodes (optional)
-    //scene->tvgStore();
 
-    //Prepare Round Rectangle
+    //Image
+    ifstream file(EXAMPLE_DIR"/rawimage_200x300.raw");
+    if (!file.is_open()) return;
+    data = (uint32_t*) malloc(sizeof(uint32_t) * (200 * 300));
+    file.read(reinterpret_cast<char *>(data), sizeof (data) * 200 * 300);
+    file.close();
+
+    //RadialGradient
+    auto fill = tvg::RadialGradient::gen();
+    fill->radial(201, 199, 200);
+    //Gradient Color Stops
+    tvg::Fill::ColorStop colorStops[2];
+    colorStops[0] = {0, 255, 203, 255, 255};
+    colorStops[1] = {1, 0, 24, 0, 255};
+    fill->colorStops(colorStops, 2);
+
+    /////////////////
+    //Round Rectangle
     auto shape1 = tvg::Shape::gen();
-    shape1->appendRect(0, 0, 400, 400, 50, 50);  //x, y, w, h, rx, ry
-    shape1->fill(0x00, 0xba, 0xcc, 255);                //r, g, b, a
-    //shape1->tvgStore();
-    scene->push(move(shape1));
+    shape1->appendRect(2, 9, 401, 404, 49, 51);
+    shape1->fill(91, 92, 93, 94);
+    shape1->stroke(5);
+    shape1->stroke(255,0,0,200);
+    float dashPattern[3] = {20, 10, 17.98};
+    shape1->stroke(dashPattern, 3);
+    shape1->fill(move(fill));
 
-    //Prepare Circle
+    /////////////////
+    //Image
+    auto image = tvg::Picture::gen();
+    if (image->load(data, 200, 300, true) != tvg::Result::Success) return;
+    image->translate(500, 400);
+
+    /////////////////
+    //Scene - child
+    auto scene2 = tvg::Scene::gen();
     auto shape2 = tvg::Shape::gen();
-    shape2->appendCircle(400, 400, 200, 200);    //cx, cy, radiusW, radiusH
-    shape2->fill(255, 255, 0, 255);              //r, g, b, a
-    shape2->stroke(255, 255, 255, 255);
-    shape2->stroke(tvg::StrokeJoin::Round);
-    shape2->stroke(10);
-    //shape2->tvgStore();
-    scene->push(move(shape2));
+    shape2->appendRect(30, 40, 200, 200, 10, 40);
+    shape2->fill(255, 0, 255, 125);
+    scene2->push(move(shape2));
+    scene2->rotate(10);
+    scene2->translate(300,0);
 
-    //Prepare Ellipse
+    /////////////////
+    //Mask + shape
     auto shape3 = tvg::Shape::gen();
-    shape3->appendCircle(600, 600, 150, 100);    //cx, cy, radiusW, radiusH
-    shape3->fill(32, 255, 128, 255);              //r, g, b, a
-    //shape3->tvgStore();
+    shape3->appendRect(0, 400, 400, 400, 0, 0);
+    shape3->fill(0, 0, 255, 255);
+
+    auto mask = tvg::Shape::gen();
+    mask->appendCircle(200, 600, 125, 125);
+    mask->fill(255, 0, 0, 255);
+    shape3->composite(move(mask), tvg::CompositeMethod::AlphaMask);
+
+    /////////////////
+    //svg
+    auto svg = tvg::Picture::gen();
+    if (svg->load(EXAMPLE_DIR"/test.svg") != tvg::Result::Success) return;
+    svg->opacity(100);
+    svg->scale(2);
+    svg->translate(600, 100);
+
+
+    auto shape1_ = tvg::Shape::gen();
+    shape1_->appendRect(0, 0, 100, 100, 20, 20);  //x, y, w, h, rx, ry
+    shape1_->fill(0x00, 0xba, 0xcc, 255);                //r, g, b, a
+    //scene->push(move(shape1_));
+
+    //scene->push(move(shape1));
+    //scene->push(move(image));
+
+//    scene->push(move(scene2));
     scene->push(move(shape3));
+//    scene->push(move(svg));
 
-    //Create another Scene
-    /*auto scene2 = tvg::Scene::gen();
-    scene2->reserve(2);   //reserve 2 shape nodes (optional)
-
-    //Star
-    auto shape4 = tvg::Shape::gen();
-
-    //Appends Paths
-    shape4->moveTo(199, 34);
-    shape4->lineTo(253, 143);
-    shape4->lineTo(374, 160);
-    shape4->lineTo(287, 244);
-    shape4->lineTo(307, 365);
-    shape4->lineTo(199, 309);
-    shape4->lineTo(97, 365);
-    shape4->lineTo(112, 245);
-    shape4->lineTo(26, 161);
-    shape4->lineTo(146, 143);
-    shape4->close();
-    shape4->fill(0, 0, 255, 255);
-    scene2->push(move(shape4));
-
-    //Circle
-    auto shape5 = tvg::Shape::gen();
-
-    auto cx = 550.0f;
-    auto cy = 550.0f;
-    auto radius = 125.0f;
-    auto halfRadius = radius * 0.552284f;
-
-    //Append Paths
-    shape5->moveTo(cx, cy - radius);
-    shape5->cubicTo(cx + halfRadius, cy - radius, cx + radius, cy - halfRadius, cx + radius, cy);
-    shape5->cubicTo(cx + radius, cy + halfRadius, cx + halfRadius, cy + radius, cx, cy+ radius);
-    shape5->cubicTo(cx - halfRadius, cy + radius, cx - radius, cy + halfRadius, cx - radius, cy);
-    shape5->cubicTo(cx - radius, cy - halfRadius, cx - halfRadius, cy - radius, cx, cy - radius);
-    shape5->fill(255, 0, 0, 255);
-    scene2->push(move(shape5));
-
-    //Push scene2 onto the scene
-    scene->push(move(scene2));*/
+    if (scene->save("./tvg_file.tvg") != tvg::Result::Success) return;
 
     //Draw the Scene onto the Canvas
     canvas->push(move(scene));
@@ -186,11 +176,10 @@ int main(int argc, char **argv)
     }
 
     //Threads Count
-    auto threads = std::thread::hardware_concurrency();
+    auto threads = 0; //std::thread::hardware_concurrency();
 
     //Initialize ThorVG Engine
     if (tvg::Initializer::init(tvgEngine, threads) == tvg::Result::Success) {
-
 
         elm_init(argc, argv);
 
@@ -204,7 +193,9 @@ int main(int argc, char **argv)
         elm_shutdown();
 
         //Terminate ThorVG Engine
-        tvg::Initializer::term(tvgEngine);
+        tvg::Initializer::term(tvg::CanvasEngine::Sw);
+
+        if (data) free(data);
 
     } else {
         cout << "engine is not supported" << endl;

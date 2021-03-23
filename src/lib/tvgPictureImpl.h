@@ -210,6 +210,118 @@ struct Picture::Impl
 
         return ret.release();
     }
+
+    void serialize(char** pointer)
+    {
+      cout << __FILE__ << " " << __func__ << endl;
+        if (!*pointer) return;// false;
+
+        reload();
+        float vw = loader->vw, vh = loader->vh; //MGS - temp, waiting for merge
+        if (!paint && !pixels && vw > 0 && vh > 0) return; //false
+
+        char* start = *pointer;
+        FlagType flag;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // picture indicator
+        flag = TVG_PICTURE_BEGIN_INDICATOR;
+        memcpy(*pointer, &flag, sizeof(FlagType));
+        *pointer += sizeof(FlagType);
+        // number of bytes associated with picture - empty for now
+        *pointer += byteCntSize;
+
+        if (paint) {
+            paint->Paint::pImpl->serialize(pointer);
+        }
+        else if (pixels) {
+            uint32_t w_ = (uint32_t)vw;
+            uint32_t h_ = (uint32_t)vh;
+            uint32_t size = w_ * h_ * sizeof(pixels[0]);
+          
+            // raw image indicator
+            flag = TVG_RAW_IMAGE_BEGIN_INDICATOR;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
+          
+            // number of bytes associated with picture
+            byteCnt = 2 * sizeof(uint32_t) + size;
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with picture: [w][h][pixels]
+            memcpy(*pointer, &w_, sizeof(uint32_t));
+            *pointer += sizeof(uint32_t);
+            memcpy(*pointer, &h_, sizeof(uint32_t));
+            *pointer += sizeof(uint32_t);
+            memcpy(*pointer, pixels, size);
+            *pointer += size;
+          
+            /*auto sizeofW = sizeof(vw);
+            auto sizeofH = sizeof(vh);
+            if (fabsf(vw) < FLT_EPSILON || fabsf(vh) < FLT_EPSILON) return; //false 
+            // raw image indicator
+            flag = TVG_RAW_IMAGE_BEGIN_INDICATOR;
+            memcpy(*pointer, &flag, sizeof(FlagType));
+            *pointer += sizeof(FlagType);
+            // number of bytes associated with raw image
+            byteCnt = sizeofW + sizeofH + vw * vh * sizeof(pixels[0]);
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with raw image: [w][h][pixels]
+            memcpy(*pointer, &vw, sizeofW);
+            *pointer += sizeofW;
+            memcpy(*pointer, &vh, sizeofH);
+            *pointer += sizeofH;
+            memcpy(*pointer, pixels, vw * vh * sizeof(pixels[0]));
+            *pointer += (size_t)(vw * vh) * sizeof(pixels[0]);*/
+        }
+
+        picture->Paint::pImpl->serializePaint(pointer);
+
+        // number of bytes associated with picture - filled
+        byteCnt = *pointer - start - flagSize - byteCntSize;
+        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+        printf("Shape byteCnt : %d \n", byteCnt);
+    }
+
+    /*
+     * Load picture from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TVG_RAW_IMAGE_BEGIN_INDICATOR : [w][h][pixels]
+     */
+    LoaderResult tvgLoad(tvg_block block)
+    {
+       switch (block.type)
+         {
+            case TVG_RAW_IMAGE_BEGIN_INDICATOR: {
+               if (block.lenght < 8) return LoaderResult::SizeCorruption;
+
+               uint32_t w, h;
+               _read_tvg_ui32(&w, block.data);
+               _read_tvg_ui32(&h, block.data + 4);
+               uint32_t size = w * h * sizeof(pixels[0]);
+               if (block.lenght != 8 + size) return LoaderResult::SizeCorruption;
+
+               uint32_t* pixels = (uint32_t*) malloc(size);
+               if (!pixels) return LoaderResult::MemoryCorruption;
+               memcpy(pixels, block.data + 8, size);
+
+               load(pixels, w, h, false);
+               return LoaderResult::Success;
+            }
+         }
+
+       Paint * paint_local;
+       LoaderResult result = tvg_read_paint(block, &paint_local);
+       if (result == LoaderResult::Success) paint = paint_local;
+
+       if (result != LoaderResult::InvalidType) return result;
+       return LoaderResult::InvalidType;
+    }
 };
 
 #endif //_TVG_PICTURE_IMPL_H_

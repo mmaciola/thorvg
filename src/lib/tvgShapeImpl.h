@@ -385,6 +385,658 @@ struct Shape::Impl
 
         return ret.release();
     }
+
+    ByteCounter serializeFill(char** pointer, Fill* f)
+    {
+cout << __FILE__ << " " << __func__ << endl;
+        if (!*pointer) return 0;
+
+        const Fill::ColorStop* stops = nullptr;
+        auto stopsCnt = f->colorStops(&stops);
+
+        if (!stops || stopsCnt == 0) return 0;
+
+        char* start = *pointer;
+        FlagType flag;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // radial gradient
+        if (f->id() == FILL_ID_RADIAL) {
+            float argRadial[3];
+            auto radGrad = static_cast<RadialGradient*>(f);
+            if (radGrad->radial(argRadial, argRadial + 1,argRadial + 2) != Result::Success) {
+                // MGS rewind pointer
+                return 0;
+            }
+            // radial gradient flag
+            flag = TVG_GRADIENT_FLAG_TYPE_RADIAL;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with radial gradinet
+            byteCnt = sizeof(argRadial);
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with radial gradient: [cx][cy][radius]
+            memcpy(*pointer, argRadial, byteCnt);
+            *pointer += byteCnt;
+        }
+        // linear gradient
+        else {
+            float argLinear[4];
+            auto linGrad = static_cast<LinearGradient*>(f);
+            if (linGrad->linear(argLinear, argLinear + 1, argLinear + 2, argLinear + 3) != Result::Success) {
+                // MGS rewind pointer
+                return 0;
+            }
+            // linear gradient flag
+            flag = TVG_GRADIENT_FLAG_TYPE_LINEAR;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with linear gradient
+            byteCnt = sizeof(argLinear);
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with linear gradient: [x1][y1][x2][y2]
+            memcpy(*pointer, argLinear, byteCnt);
+            *pointer += byteCnt;
+        }
+
+        // fillspread indicator
+        flag = TVG_FILL_FLAG_FILLSPREAD;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with fillspread
+        byteCnt = flagSize;
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // fillspread flag
+        switch (f->spread()) {
+            case FillSpread::Pad: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_PAD;
+                break;
+            }
+            case FillSpread::Reflect: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_REFLECT;
+                break;
+            }
+            case FillSpread::Repeat: {
+                flag = TVG_FILL_FLAG_FILLSPREAD_REPEAT;
+                break;
+            }
+        }
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+
+        // colorStops flag
+        flag = TVG_FILL_FLAG_COLORSTOPS;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with colorStops
+        //byteCnt = sizeof(stopsCnt) + stopsCnt * (sizeof(stops->offset) + 4 * sizeof(stops->r));
+        byteCnt = stopsCnt * (sizeof(stops->offset) + 4 * sizeof(stops->r));
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with colorStops: [stopsCnt][stops]
+        //memcpy(*pointer, &stopsCnt, sizeof(stopsCnt));
+        //*pointer += sizeof(stopsCnt);
+
+        for (uint32_t i = 0; i < stopsCnt; ++i) {  //MGS
+            memcpy(*pointer, &stops[i].offset, sizeof(stops->offset));
+            *pointer += sizeof(stops->offset);
+
+            memcpy(*pointer, &stops[i].r, sizeof(stops->r));
+            *pointer += sizeof(stops->r);
+            memcpy(*pointer, &stops[i].g, sizeof(stops->g));
+            *pointer += sizeof(stops->g);
+            memcpy(*pointer, &stops[i].b, sizeof(stops->b));
+            *pointer += sizeof(stops->b);
+            memcpy(*pointer, &stops[i].a, sizeof(stops->a));
+            *pointer += sizeof(stops->a);
+        }
+
+        return *pointer - start;
+    }
+
+    /* assumption: all flags of given type have the same size */
+    ByteCounter serializeStroke(char** pointer)
+    {
+cout << __FILE__ << " " << __func__ << endl;
+        if (!*pointer) return 0;
+
+        char* start = *pointer;
+        FlagType flag;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;  //MGS
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // cap indicator
+        flag = TVG_SHAPE_STROKE_FLAG_CAP;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with cap
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // cap flag
+        switch (stroke->cap) {
+            case StrokeCap::Square: {
+                flag = TVG_SHAPE_STROKE_FLAG_CAP_SQUARE;
+                break;
+            }
+            case StrokeCap::Round: {
+                flag = TVG_SHAPE_STROKE_FLAG_CAP_ROUND;
+                break;
+            }
+            case StrokeCap::Butt: {
+                flag = TVG_SHAPE_STROKE_FLAG_CAP_BUTT;
+                break;
+            }
+        }
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+
+        // join indicator
+        flag = TVG_SHAPE_STROKE_FLAG_JOIN;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with join
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // join flag
+        switch (stroke->join) {
+            case StrokeJoin::Bevel: {
+                flag = TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL;
+                break;
+            }
+            case StrokeJoin::Round: {
+                flag = TVG_SHAPE_STROKE_FLAG_JOIN_ROUND;
+                break;
+            }
+            case StrokeJoin::Miter: {
+                flag = TVG_SHAPE_STROKE_FLAG_JOIN_MITER;
+                break;
+            }
+        }
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+
+        // width flag
+        flag = TVG_SHAPE_STROKE_FLAG_WIDTH;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with width
+        byteCnt = sizeof(stroke->width);
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with width
+        memcpy(*pointer, &stroke->width, byteCnt);
+        *pointer += byteCnt;
+
+/*
+        if (stroke->fill) {
+            // fill flag
+            flag = TVG_SHAPE_STROKE_FLAG_HAS_FILL;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with fill - empty
+            *pointer += byteCntSize;
+            // bytes associated with fill
+            ByteCounter byteCnt = serializeFill(pointer, stroke->fill);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= flagSize + byteCntSize;
+               return;
+            }
+            // number of bytes associated with fill - filled
+            memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
+        }
+*/
+
+        // color flag
+        flag = TVG_SHAPE_STROKE_FLAG_COLOR;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with color
+        byteCnt = sizeof(stroke->color);
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with color
+        memcpy(*pointer, stroke->color, byteCnt);
+        *pointer += byteCnt;
+
+        if (stroke->dashPattern && stroke->dashCnt > 0) {
+            auto sizeofCnt = sizeof(stroke->dashCnt);
+            auto sizeofPattern = sizeof(stroke->dashPattern[0]);
+            // dash flag
+            flag = TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with dash
+            byteCnt = sizeofCnt + stroke->dashCnt * sizeofPattern;
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with dash
+            memcpy(*pointer, &stroke->dashCnt, sizeofCnt);
+            *pointer += sizeofCnt;
+            memcpy(*pointer, stroke->dashPattern, stroke->dashCnt * sizeofPattern);
+            *pointer += stroke->dashCnt * sizeofPattern;
+        }
+
+        return *pointer - start;
+    }
+
+
+    ByteCounter serializePath(char** pointer)
+    {
+cout << __FILE__ << " " << __func__ << endl;
+        if (!*pointer) return 0;
+        if (!path.cmds || !path.pts || !path.cmdCnt || !path.ptsCnt) return 0;  // MGS - double check - needed?
+
+        char* start = *pointer;
+        //FlagType flag;
+        //size_t flagSize = sizeof(FlagType);
+        //ByteCounter byteCnt = 0;
+        //size_t byteCntSize = sizeof(ByteCounter);
+        auto sizeofCmdCnt = sizeof(path.cmdCnt);
+        auto sizeofCmds = sizeof(path.cmds[0]);
+        auto sizeofPtsCnt = sizeof(path.ptsCnt);
+        auto sizeofPts = sizeof(path.pts[0]);
+
+        // ******
+        // mmaciola: zmienilem zapis cmd pts na [cmdCnt][ptsCnt][ptsCnt*cmds][ptsCnt*pts]
+        memcpy(*pointer, &path.cmdCnt, sizeofCmdCnt);
+        *pointer += sizeofCmdCnt;
+        memcpy(*pointer, &path.ptsCnt, sizeofPtsCnt);
+        *pointer += sizeofPtsCnt;
+
+        memcpy(*pointer, path.cmds, path.cmdCnt * sizeofCmds);
+        *pointer += path.cmdCnt * sizeofCmds;
+        memcpy(*pointer, path.pts, path.ptsCnt * sizeofPts);
+        *pointer += path.ptsCnt * sizeofPts;
+
+        return *pointer - start;
+    }
+
+
+    void serialize(char** pointer)
+    {
+cout << __FILE__ << " " << __func__ << endl;
+        if (!*pointer) return;// false;
+
+        char* start = *pointer;
+        FlagType flag;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // shape indicator
+        flag = TVG_SHAPE_BEGIN_INDICATOR;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with shape - empty for now
+        *pointer += byteCntSize;
+
+        // fillrule indicator
+        flag = TVG_SHAPE_FLAG_FILLRULE;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with fillrule
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with fillrule flag
+        flag = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FLAG_FILLRULE_EVENODD : TVG_SHAPE_FLAG_FILLRULE_WINDING;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+
+        if (stroke) {
+            // stroke flag
+            flag = TVG_SHAPE_FLAG_HAS_STROKE;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with stroke - empty
+            *pointer += byteCntSize;
+            // bytes associated with stroke
+            byteCnt = serializeStroke(pointer);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= flagSize + byteCntSize;
+               return;
+            }
+            // number of bytes associated with stroke - filled
+            memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
+        }
+
+        if (fill) {
+            // fill flag
+            flag = TVG_SHAPE_FLAG_HAS_FILL;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with fill - empty
+            *pointer += byteCntSize;
+            // bytes associated with fill
+            ByteCounter byteCnt = serializeFill(pointer, fill);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= flagSize + byteCntSize;
+               return;
+            }
+            // number of bytes associated with fill - filled
+            memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
+        }
+
+        // color flag
+        flag = TVG_SHAPE_FLAG_COLOR;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with color
+        byteCnt = sizeof(color);
+        memcpy(*pointer, &byteCnt, byteCntSize);
+        *pointer += byteCntSize;
+        // bytes associated with color
+        memcpy(*pointer, color, byteCnt);
+        *pointer += byteCnt;
+
+        if (path.cmds && path.pts) {
+            // path flag
+            flag = TVG_SHAPE_FLAG_HAS_PATH;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with path - empty
+            *pointer += byteCntSize;
+            // bytes associated with path
+            ByteCounter byteCnt = serializePath(pointer);
+            if (!byteCnt) {
+               // MGS log + change size of the buffer
+               *pointer -= flagSize + byteCntSize;
+               return;
+            }
+            // number of bytes associated with path - filled
+            memcpy(*pointer - byteCntSize - byteCnt, &byteCnt, byteCntSize);
+        }
+
+        shape->Paint::pImpl->serializePaint(pointer);
+
+        // number of bytes associated with shape - filled
+        byteCnt = *pointer - start - flagSize - byteCntSize;
+        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+        printf("Shape byteCnt : %d \n", byteCnt);
+
+        //return true;
+    }
+
+
+
+
+    /*
+     * Load paint and derived classes from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoadPath(const char* pointer, const char* end)
+    {
+         // ShapePath
+         const uint32_t cmdCnt = (uint32_t) *pointer;
+         pointer += sizeof(uint32_t);
+         const uint32_t ptsCnt = (uint32_t) *pointer;
+         pointer += sizeof(uint32_t);
+         const PathCommand * cmds = (PathCommand *) pointer;
+         pointer += sizeof(PathCommand) * cmdCnt;
+         const Point * pts = (Point *) pointer;
+         pointer += sizeof(Point) * ptsCnt;
+
+         if (pointer > end) return LoaderResult::SizeCorruption;
+
+         path.cmdCnt = cmdCnt;
+         path.ptsCnt = ptsCnt;
+         path.reserveCmd(cmdCnt);
+         path.reservePts(ptsCnt);
+         memcpy(path.cmds, cmds, sizeof(PathCommand) * cmdCnt);
+         memcpy(path.pts, pts, sizeof(Point) * ptsCnt);
+
+         flag |= RenderUpdateFlag::Path;
+         return LoaderResult::Success;
+    }
+
+    LoaderResult tvgLoadStrokeDashptrn(const char* pointer, const char* end)
+    {
+       const uint32_t dashPatternCnt = (uint32_t) *pointer;
+       pointer += sizeof(uint32_t);
+       const float * dashPattern = (float *) pointer;
+       pointer += sizeof(float) * dashPatternCnt;
+
+       if (pointer > end) return LoaderResult::SizeCorruption;
+
+       if (stroke->dashPattern) free(stroke->dashPattern);
+       stroke->dashPattern = static_cast<float*>(malloc(sizeof(float) * dashPatternCnt));
+       if (!stroke->dashPattern) return LoaderResult::MemoryCorruption;
+
+       stroke->dashCnt = dashPatternCnt;
+       memcpy(stroke->dashPattern, dashPattern, sizeof(float) * dashPatternCnt);
+
+       return LoaderResult::Success;
+    }
+
+    /*
+     * Load stroke from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoadStroke(const char* pointer, const char* end)
+    {
+       if (!stroke) stroke = new ShapeStroke();
+       if (!stroke) return LoaderResult::MemoryCorruption;
+
+       while (pointer < end)
+          {
+             tvg_block block = read_tvg_block(pointer);
+             if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+             switch (block.type)
+                {
+                   case TVG_SHAPE_STROKE_FLAG_CAP: { // stroke cap
+                      if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                      switch (*block.data) {
+                         case TVG_SHAPE_STROKE_FLAG_CAP_SQUARE:
+                            stroke->cap = StrokeCap::Square;
+                            break;
+                         case TVG_SHAPE_STROKE_FLAG_CAP_ROUND:
+                            stroke->cap = StrokeCap::Round;
+                            break;
+                         case TVG_SHAPE_STROKE_FLAG_CAP_BUTT:
+                            stroke->cap = StrokeCap::Butt;
+                            break;
+                      }
+                      break;
+                   }
+                   case TVG_SHAPE_STROKE_FLAG_JOIN: { // stroke join
+                      if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                      switch (*block.data) {
+                         case TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL:
+                            stroke->join = StrokeJoin::Bevel;
+                            break;
+                         case TVG_SHAPE_STROKE_FLAG_JOIN_ROUND:
+                            stroke->join = StrokeJoin::Round;
+                            break;
+                         case TVG_SHAPE_STROKE_FLAG_JOIN_MITER:
+                            stroke->join = StrokeJoin::Miter;
+                            break;
+                      }
+                      break;
+                   }
+                   case TVG_SHAPE_STROKE_FLAG_WIDTH: { // stroke width
+                      if (block.lenght != sizeof(float)) return LoaderResult::SizeCorruption;
+                      _read_tvg_float(&stroke->width, block.data);
+                      break;
+                   }
+                   case TVG_SHAPE_STROKE_FLAG_COLOR: { // stroke color
+                      if (block.lenght != sizeof(stroke->color)) return LoaderResult::SizeCorruption;
+                      memcpy(&stroke->color, block.data, sizeof(stroke->color));
+                      break;
+                   }
+                   case TVG_SHAPE_STROKE_FLAG_HAS_FILL: { // stroke fill
+                      // TODO
+                      break;
+                   }
+                   case TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN: { // dashed stroke
+                      LoaderResult result = tvgLoadStrokeDashptrn(block.data, block.block_end);
+                      if (result != LoaderResult::Success) return result;
+                      break;
+                   }
+                }
+
+             pointer = block.block_end;
+          }
+
+       return LoaderResult::Success;
+    }
+
+    /*
+     * Load fill from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoadFill(const char* pointer, const char* end)
+    {
+       unique_ptr<Fill> fillGrad;
+
+       while (pointer < end)
+          {
+             tvg_block block = read_tvg_block(pointer);
+             if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+             switch (block.type)
+                {
+                   case TVG_GRADIENT_FLAG_TYPE_RADIAL: { // radial gradient
+                      if (block.lenght != 12) return LoaderResult::SizeCorruption;
+                      float x, y, radius;
+                      _read_tvg_float(&x, block.data);
+                      _read_tvg_float(&y, block.data + 4);
+                      _read_tvg_float(&radius, block.data + 8);
+
+                      auto fillGradRadial = RadialGradient::gen();
+                      fillGradRadial->radial(x, y, radius);
+                      fillGrad = move(fillGradRadial);
+                      break;
+                   }
+                   case TVG_GRADIENT_FLAG_TYPE_LINEAR: { // linear gradient
+                      if (block.lenght != 16) return LoaderResult::SizeCorruption;
+                      float x1, y1, x2, y2;
+                      _read_tvg_float(&x1, block.data);
+                      _read_tvg_float(&y1, block.data + 4);
+                      _read_tvg_float(&x2, block.data + 8);
+                      _read_tvg_float(&y2, block.data + 12);
+
+                      auto fillGradLinear = LinearGradient::gen();
+                      fillGradLinear->linear(x1, y1, x2, y2);
+                      fillGrad = move(fillGradLinear);
+                      break;
+                   }
+                   case TVG_FILL_FLAG_FILLSPREAD: { // fill spread
+                      if (!fillGrad) return LoaderResult::LogicalCorruption;
+                      if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                      switch (*block.data) {
+                         case TVG_FILL_FLAG_FILLSPREAD_PAD:
+                            fillGrad->spread(FillSpread::Pad);
+                            break;
+                         case TVG_FILL_FLAG_FILLSPREAD_REFLECT:
+                            fillGrad->spread(FillSpread::Reflect);
+                            break;
+                         case TVG_FILL_FLAG_FILLSPREAD_REPEAT:
+                            fillGrad->spread(FillSpread::Repeat);
+                            break;
+                      }
+                      break;
+                   }
+                   case TVG_FILL_FLAG_COLORSTOPS: { // color stops
+                      if (!fillGrad) return LoaderResult::LogicalCorruption;
+                      if (block.lenght == 0 || block.lenght & 0x07) return LoaderResult::SizeCorruption;
+                      uint32_t stopsCnt = block.lenght >> 3; // 8 bytes per ColorStop
+                      if (stopsCnt > 1023) return LoaderResult::SizeCorruption;
+                      Fill::ColorStop stops [stopsCnt];
+                      const char* p = block.data;
+                      for (uint32_t i = 0; i < stopsCnt; i++, p += 8) {
+                            _read_tvg_float(&stops[i].offset, p);
+                            stops[i].r = p[4];
+                            stops[i].g = p[5];
+                            stops[i].b = p[6];
+                            stops[i].a = p[7];
+                      }
+                      fillGrad->colorStops(stops, stopsCnt);
+                      break;
+                   }
+                }
+
+             pointer = block.block_end;
+          }
+
+       fill = fillGrad.release();
+       return LoaderResult::Success;
+    }
+
+    /*
+     * Load paint and derived classes from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoad(tvg_block block)
+    {
+       printf("Shape tvgLoad type %d \n", block.type);
+       switch (block.type)
+          {
+             case TVG_SHAPE_FLAG_HAS_PATH: { // path
+                LoaderResult result = tvgLoadPath(block.data, block.block_end);
+                if (result != LoaderResult::Success) return result;
+                break;
+             }
+             case TVG_SHAPE_FLAG_HAS_STROKE: { // stroke section
+                LoaderResult result = tvgLoadStroke(block.data, block.block_end);
+                printf("TVG_SHAPE_FLAG_HAS_STROKE result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
+                if (result != LoaderResult::Success) return result;
+                flag |= RenderUpdateFlag::Stroke;
+                break;
+             }
+             case TVG_SHAPE_FLAG_HAS_FILL: { // fill (gradient)
+                LoaderResult result = tvgLoadFill(block.data, block.block_end);
+                printf("TVG_SHAPE_FLAG_HAS_FILL result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
+                if (result != LoaderResult::Success) return result;
+                flag |= RenderUpdateFlag::Gradient;
+                break;
+             }
+             case TVG_SHAPE_FLAG_COLOR: { // color
+                if (block.lenght != sizeof(color)) return LoaderResult::SizeCorruption;
+                memcpy(&color, block.data, sizeof(color));
+                flag = RenderUpdateFlag::Color;
+                break;
+             }
+             case TVG_SHAPE_FLAG_FILLRULE: { // fill rule
+                if (block.lenght != sizeof(uint8_t)) return LoaderResult::SizeCorruption;
+                switch (*block.data)
+                {
+                   case TVG_SHAPE_FLAG_FILLRULE_WINDING:
+                      rule = FillRule::Winding;
+                      break;
+                   case TVG_SHAPE_FLAG_FILLRULE_EVENODD:
+                      rule = FillRule::EvenOdd;
+                      break;
+                }
+                break;
+             }
+             default: {
+                return LoaderResult::InvalidType;
+             }
+          }
+
+       return LoaderResult::Success;
+    }
 };
 
 #endif //_TVG_SHAPE_IMPL_H_

@@ -25,6 +25,7 @@
 #include <float.h>
 #include <math.h>
 #include "tvgRender.h"
+#include "tvgTvgLoadParser.h"
 
 namespace tvg
 {
@@ -40,6 +41,9 @@ namespace tvg
         virtual bool bounds(float* x, float* y, float* w, float* h) const = 0;
         virtual RenderRegion bounds(RenderMethod& renderer) const = 0;
         virtual Paint* duplicate() = 0;
+
+        virtual void serialize(char** pointer) = 0;
+        virtual LoaderResult tvgLoad(tvg_block block) = 0;
     };
 
     struct Paint::Impl
@@ -200,6 +204,7 @@ namespace tvg
 
         Paint* duplicate()
         {
+           printf("Paint* duplicate() paint h \n");
             auto ret = smethod->duplicate();
             if (!ret) return nullptr;
 
@@ -228,6 +233,171 @@ namespace tvg
             cmpTarget = target;
             cmpMethod = method;
             return true;
+        }
+
+        void serializePaint(char** pointer)
+        {
+cout << __FILE__ << " " << __func__ << endl;
+            FlagType flag;
+            size_t flagSize = sizeof(FlagType);
+            ByteCounter byteCnt = flagSize;
+            size_t byteCntSize = sizeof(ByteCounter);
+
+            //MGS - only for op < 255 ?
+            // opacity flag
+            flag = TVG_PAINT_FLAG_HAS_OPACITY;
+            memcpy(*pointer, &flag, flagSize);
+            *pointer += flagSize;
+            // number of bytes associated with opacity
+            byteCnt = sizeof(opacity);
+            memcpy(*pointer, &byteCnt, byteCntSize);
+            *pointer += byteCntSize;
+            // bytes associated with  opacity
+            memcpy(*pointer, &opacity, byteCnt);
+            *pointer += byteCnt;
+
+            // transform
+            if (rTransform) {
+                Matrix m = rTransform->m;
+                // transform matrix flag
+                flag = TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with transf matrix
+                byteCnt = sizeof(m);
+                memcpy(*pointer, &byteCnt, byteCntSize);
+                *pointer += byteCntSize;
+                // bytes associated with transf matrix
+                memcpy(*pointer, &m, byteCnt);
+                *pointer += byteCnt;
+            }
+
+            // cmpTarget
+            if (cmpTarget) {
+                char* start = *pointer;
+
+                // cmpTarget flag
+                flag = TVG_PAINT_FLAG_HAS_CMP_TARGET;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with cmpTarget - empty
+                *pointer += byteCntSize;
+                // bytes associated with cmpTrget: method and target
+
+                // method flag
+                flag = TVG_PAINT_FLAG_CMP_METHOD;
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+                // number of bytes associated with method flag
+                memcpy(*pointer, &byteCnt, byteCntSize);
+                *pointer += byteCntSize;
+                // bytes associated with method flag
+                switch (cmpMethod) {
+                    case CompositeMethod::ClipPath: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH;
+                        break;
+                    }
+                    case CompositeMethod::AlphaMask: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK;
+                        break;
+                    }
+                    case CompositeMethod::InvAlphaMask: {
+                        flag = TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK;
+                        break;
+                    }
+                    case CompositeMethod::None: {
+                        // obsluzyc blad MGS
+                        break;
+                    }
+                }
+                memcpy(*pointer, &flag, flagSize);
+                *pointer += flagSize;
+
+                // bytes associated with cmpTrget
+                cmpTarget->pImpl->serialize(pointer);
+                // number of bytes associated with shape - filled
+                byteCnt = *pointer - start - flagSize - byteCntSize;
+                memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+            }
+        }
+
+        void serialize(char** pointer)
+        {
+cout << __FILE__ << " " << __func__ << endl;
+            smethod->serialize(pointer);
+        }
+
+        LoaderResult tvgLoadCmpTarget(const char* pointer, const char* end)
+        {
+           tvg_block block = read_tvg_block(pointer);
+           if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+           if (block.type != TVG_PAINT_FLAG_CMP_METHOD) return LoaderResult::LogicalCorruption;
+           if (block.lenght != 1) return LoaderResult::SizeCorruption;
+           switch (*block.data)
+           {
+              case TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH:
+                 cmpMethod = CompositeMethod::ClipPath;
+                 break;
+              case TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK:
+                 cmpMethod = CompositeMethod::AlphaMask;
+                 break;
+              case TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK:
+                 cmpMethod = CompositeMethod::InvAlphaMask;
+                 break;
+              default:
+                 return LoaderResult::LogicalCorruption;
+           }
+
+           pointer = block.block_end;
+           tvg_block block_paint = read_tvg_block(pointer);
+           if (block_paint.block_end > end) return LoaderResult::SizeCorruption;
+
+           LoaderResult result = tvg_read_paint(block_paint, &cmpTarget);
+           if (result > LoaderResult::Success)
+           {
+              if (cmpTarget) delete(cmpTarget);
+              return result;
+           }
+
+           return LoaderResult::Success;
+        }
+
+        LoaderResult tvgLoad(const char* pointer, const char* end)
+        {
+           while (pointer < end)
+           {
+              tvg_block block = read_tvg_block(pointer);
+              if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+              LoaderResult result = smethod->tvgLoad(block);
+              if (result == LoaderResult::InvalidType)
+              {
+                 switch (block.type) {
+                    case TVG_PAINT_FLAG_HAS_OPACITY: {
+                       if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                       opacity = *block.data;
+                       break;
+                    }
+                    case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
+                       if (block.lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
+                       const Matrix * matrix = (Matrix *) block.data;
+                       transform(*matrix); // TODO: check if transformation works
+                       break;
+                    }
+                    case TVG_PAINT_FLAG_HAS_CMP_TARGET: { // cmp target
+                       if (block.lenght < 5) return LoaderResult::SizeCorruption;
+                       LoaderResult result = tvgLoadCmpTarget(block.data, block.block_end);
+                       if (result != LoaderResult::Success) return result;
+                       break;
+                    }
+                 }
+              }
+
+              if (result > LoaderResult::Success) return result;
+              pointer = block.block_end;
+           }
+           return LoaderResult::Success;
         }
     };
 
@@ -268,6 +438,17 @@ namespace tvg
         Paint* duplicate() override
         {
             return inst->duplicate();
+        }
+
+        void serialize(char** pointer) override
+        {
+cout << __FILE__ << " " << __func__ << " sm" << endl;
+             inst->serialize(pointer);
+        }
+
+        LoaderResult tvgLoad(tvg_block block) override
+        {
+             return inst->tvgLoad(block);
         }
     };
 }

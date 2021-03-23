@@ -23,6 +23,10 @@
 #define _TVG_SCENE_IMPL_H_
 
 #include "tvgPaint.h"
+#include "tvgSaverMgr.h"
+#include "tvgTvgSaver.h" //MGS - for temp sollution 
+
+#include "tvgTvgLoader.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -32,6 +36,14 @@ struct Scene::Impl
 {
     Array<Paint*> paints;
     uint8_t opacity;            //for composition
+    Scene* scene = nullptr;
+
+    unique_ptr<Saver> saver = nullptr;
+    unique_ptr<TvgLoader> loader = nullptr;
+
+    Impl(Scene* s) : scene(s)
+    {
+    }
 
     bool dispose(RenderMethod& renderer)
     {
@@ -65,6 +77,8 @@ struct Scene::Impl
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             (*paint)->pImpl->update(renderer, transform, opacity, clips, static_cast<uint32_t>(flag));
         }
+
+        if (saver && !saver->write()) return nullptr;
 
         /* FXIME: it requires to return list of children engine data
            This is necessary for scene composition */
@@ -157,6 +171,90 @@ struct Scene::Impl
         }
 
         return ret.release();
+    }
+
+    void serialize(char** pointer)
+    {
+cout << __FILE__ << " " << __func__ << endl;
+        if (!*pointer) return;// false;
+
+        char* start = *pointer;
+        FlagType flag;
+        size_t flagSize = sizeof(FlagType);
+        ByteCounter byteCnt = flagSize;
+        size_t byteCntSize = sizeof(ByteCounter);
+
+        // scene indicator
+        flag = TVG_SCENE_BEGIN_INDICATOR;
+        memcpy(*pointer, &flag, flagSize);
+        *pointer += flagSize;
+        // number of bytes associated with scene - empty for now
+        *pointer += byteCntSize;
+
+        for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
+            (*paint)->pImpl->serialize(pointer);
+        }
+
+        scene->Paint::pImpl->serializePaint(pointer);
+
+        // number of bytes associated with scene - filled
+        byteCnt = *pointer - start - flagSize - byteCntSize;
+        memcpy(*pointer - byteCnt - byteCntSize, &byteCnt, byteCntSize);
+    }
+
+    Result save(const std::string& path, Scene *scene)
+    {
+        if (saver) saver->close();
+        saver = SaverMgr::saver(path, scene);
+        if (!saver) return Result::NonSupport;
+
+        return Result::Success;
+    }
+
+    Result load(const string& path, Scene * scene)
+    {
+       if (loader) loader->close();
+       loader = unique_ptr<TvgLoader>(new TvgLoader(scene));
+       if (!loader->open(path)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
+       return Result::Success;
+    }
+
+    Result load(const char* data, uint32_t size, Scene * scene)
+    {
+       if (loader) loader->close();
+       loader = unique_ptr<TvgLoader>(new TvgLoader(scene));
+       if (!loader->open(data, size)) return Result::Unknown;
+       if (!loader->read()) return Result::Unknown;
+       return Result::Success;
+    }
+
+    /*
+     * Load scene from .tvg binary file
+     * Returns LoaderResult: Success on success and moves pointer to next position,
+     * InvalidType if not applicable for paint or SizeCorruption if corrupted.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoad(tvg_block block)
+    {
+       switch (block.type)
+         {
+          case TVG_SCENE_FLAG_RESERVEDCNT: {
+             if (block.lenght != 1) return LoaderResult::SizeCorruption;
+             uint32_t reservedCnt;
+             _read_tvg_ui32(&reservedCnt, block.data);
+             paints.reserve(reservedCnt);
+             return LoaderResult::Success;
+          }
+         }
+
+       Paint * paint;
+       LoaderResult result = tvg_read_paint(block, &paint);
+       if (result == LoaderResult::Success) paints.push(paint);
+
+       if (result != LoaderResult::InvalidType) return result;
+       return LoaderResult::InvalidType;
     }
 };
 

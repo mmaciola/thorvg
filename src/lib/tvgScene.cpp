@@ -25,7 +25,7 @@
 /* External Class Implementation                                        */
 /************************************************************************/
 
-Scene::Scene() : pImpl(new Impl())
+Scene::Scene() : pImpl(new Impl(this))
 {
     Paint::pImpl->type = PaintType::Scene;
     Paint::pImpl->method(new PaintMethod<Scene::Impl>(pImpl));
@@ -68,3 +68,30 @@ Result Scene::clear() noexcept
 
     return Result::Success;
 }
+
+// tvgTvgLoader / tvgTvgStorer
+Result Scene::save(const std::string& path) noexcept
+{
+    if (path.empty()) return Result::InvalidArguments;
+    return pImpl->save(path, this);
+}
+
+//MGS2 - temp solution ?
+void Scene::serialize()
+{
+        auto tvgSaver = static_cast<TvgSaver*>(pImpl->saver.get());
+        Paint::pImpl->serialize(&tvgSaver->pointer);
+}
+
+Result Scene::load(const string& path)
+{
+   if (path.empty()) return Result::InvalidArguments;
+   return pImpl->load(path, this);
+}
+
+Result Scene::load(const char* data, uint32_t size)
+{
+   return pImpl->load(data, size, this);
+}
+
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd. All rights reserved.
 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,19 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef _TVG_COMMON_H_
-#define _TVG_COMMON_H_
 
-#include "config.h"
-#include "thorvg.h"
-#include <iostream> //MGS - remove
+#ifndef _TVG_TVG_LOAD_PARSER_H_
+#define _TVG_TVG_LOAD_PARSER_H_
 
-using namespace std;
-using namespace tvg;
+#include "tvgCommon.h"
+#include "tvgTvgHelper.h"
 
-#define FILL_ID_LINEAR 0
-#define FILL_ID_RADIAL 1
+bool tvg_file_parse(const char * pointer, uint32_t size, Scene * root);
+tvg_block read_tvg_block(const char * pointer);
+LoaderResult tvg_read_paint(tvg_block block, Paint ** paint);
 
-#define TVG_UNUSED __attribute__ ((__unused__))
-
-#endif //_TVG_COMMON_H_
+#endif //_TVG_TVG_LOAD_PARSER_H_

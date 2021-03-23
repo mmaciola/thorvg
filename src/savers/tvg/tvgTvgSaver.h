@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2020 Samsung Electronics Co., Ltd. All rights reserved.
 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,19 +19,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef _TVG_COMMON_H_
-#define _TVG_COMMON_H_
+#ifndef _TVG_TVG_SAVER_H_
+#define _TVG_TVG_SAVER_H_
 
-#include "config.h"
-#include "thorvg.h"
-#include <iostream> //MGS - remove
+#include "tvgTaskScheduler.h"
+#include "tvgSaverMgr.h"
+#include <fstream>
 
-using namespace std;
-using namespace tvg;
+class TvgSaver : public Saver, public Task
+{
+public:
+    ofstream outFile;
 
-#define FILL_ID_LINEAR 0
-#define FILL_ID_RADIAL 1
+    char* buffer;
+    uint32_t size = 0;   
+    uint32_t reserved = 0; //MGS
+    char* pointer = nullptr;
 
-#define TVG_UNUSED __attribute__ ((__unused__))
+    Scene* root;
 
-#endif //_TVG_COMMON_H_
+    TvgSaver(Scene* scene);
+    ~TvgSaver();
+
+    using Saver::open;  //MGS
+    bool open(const string& path) override;
+    bool write() override;
+    bool close() override;
+    void run(unsigned tid);
+
+    void resizeBuffer(); //MGS
+};
+
+#endif //_TVG_TVG_SAVER_H_

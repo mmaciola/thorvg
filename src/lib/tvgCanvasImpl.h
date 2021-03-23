@@ -24,6 +24,8 @@
 
 #include "tvgPaint.h"
 
+#include "tvgTvgLoader.h"
+
 /************************************************************************/
 /* Internal Class Implementation                                        */
 /************************************************************************/
@@ -33,6 +35,8 @@ struct Canvas::Impl
     Array<Paint*> paints;
     RenderMethod* renderer;
     bool refresh = false;   //if all paints should be updated by force.
+
+    unique_ptr<TvgLoader> loader = nullptr;
 
     Impl(RenderMethod* pRenderer):renderer(pRenderer)
     {
@@ -101,7 +105,17 @@ struct Canvas::Impl
 
     Result draw()
     {
+
         if (!renderer || !renderer->preRender()) return Result::InsufficientCondition;
+
+        if (loader) {
+              auto scene = loader->scene();
+              if (scene) {
+                    push(move(scene));
+                    loader->close();
+                    printf("scene loaded \n");
+              }
+        }
 
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             if (!(*paint)->pImpl->render(*renderer)) return Result::InsufficientCondition;
@@ -111,6 +125,22 @@ struct Canvas::Impl
 
         return Result::Success;
     }
+
+   Result load(const string& path)
+   {
+      loader = unique_ptr<TvgLoader>(new TvgLoader(0));
+     if (!loader->open(path)) return Result::Unknown;
+     if (!loader->read()) return Result::Unknown;
+     return Result::Success;
+   }
+
+   Result load(const char* data, uint32_t size)
+   {
+      loader = unique_ptr<TvgLoader>(new TvgLoader(0));
+     if (!loader->open(data, size)) return Result::Unknown;
+     if (!loader->read()) return Result::Unknown;
+     return Result::Success;
+   }
 };
 
 #endif /* _TVG_CANVAS_IMPL_H_ */

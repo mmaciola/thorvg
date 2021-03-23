@@ -30,7 +30,7 @@ option('tools',
 
 option('examples',
     type: 'boolean',
-    value: false,
+    value: true,
     description: 'Enable building examples')
 
 option('test',
