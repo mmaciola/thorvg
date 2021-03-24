@@ -35,7 +35,7 @@ public:
 
    unique_ptr<Scene> root;
 
-    TvgLoader(Scene * scene);
+    TvgLoader();
     ~TvgLoader();
 
     using Loader::open;

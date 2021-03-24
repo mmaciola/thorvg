@@ -86,12 +86,12 @@ void Scene::serialize()
 Result Scene::load(const string& path)
 {
    if (path.empty()) return Result::InvalidArguments;
-   return pImpl->load(path, this);
+   return pImpl->load(path);
 }
 
 Result Scene::load(const char* data, uint32_t size)
 {
-   return pImpl->load(data, size, this);
+   return pImpl->load(data, size);
 }
 
 

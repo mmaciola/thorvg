@@ -162,9 +162,6 @@ public:
     virtual Result draw() noexcept;
     virtual Result sync() noexcept;
 
-    virtual Result load(const std::string& path);
-    virtual Result load(const char* data, uint32_t size);
-
     _TVG_DECLARE_PRIVATE(Canvas);
 };
 

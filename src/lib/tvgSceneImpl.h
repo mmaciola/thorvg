@@ -69,6 +69,14 @@ struct Scene::Impl
 
     void* update(RenderMethod &renderer, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag flag)
     {
+       if (loader) {
+             auto scene = loader->scene();
+             if (scene) {
+                   paints.push(scene.release());
+                   loader->close();
+             }
+       }
+
         /* Overriding opacity value. If this scene is half-translucent,
            It must do intermeidate composition with that opacity value. */
         this->opacity = static_cast<uint8_t>(opacity);
@@ -211,19 +219,19 @@ cout << __FILE__ << " " << __func__ << endl;
         return Result::Success;
     }
 
-    Result load(const string& path, Scene * scene)
+    Result load(const string& path)
     {
        if (loader) loader->close();
-       loader = unique_ptr<TvgLoader>(new TvgLoader(scene));
+       loader = unique_ptr<TvgLoader>(new TvgLoader());
        if (!loader->open(path)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
        return Result::Success;
     }
 
-    Result load(const char* data, uint32_t size, Scene * scene)
+    Result load(const char* data, uint32_t size)
     {
        if (loader) loader->close();
-       loader = unique_ptr<TvgLoader>(new TvgLoader(scene));
+       loader = unique_ptr<TvgLoader>(new TvgLoader());
        if (!loader->open(data, size)) return Result::Unknown;
        if (!loader->read()) return Result::Unknown;
        return Result::Success;
