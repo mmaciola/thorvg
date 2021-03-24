@@ -25,6 +25,7 @@
 #include <float.h>
 #include <math.h>
 #include "tvgRender.h"
+#include "tvgTvgLoadParser.h"
 
 namespace tvg
 {
@@ -40,6 +41,8 @@ namespace tvg
         virtual bool bounds(float* x, float* y, float* w, float* h) const = 0;
         virtual RenderRegion bounds(RenderMethod& renderer) const = 0;
         virtual Paint* duplicate() = 0;
+
+        virtual LoaderResult tvgLoad(tvg_block block) = 0;
     };
 
     struct Paint::Impl
@@ -229,6 +232,80 @@ namespace tvg
             cmpMethod = method;
             return true;
         }
+
+        LoaderResult tvgLoadCmpTarget(const char* pointer, const char* end)
+        {
+           tvg_block block = read_tvg_block(pointer);
+           if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+           if (block.type != TVG_PAINT_FLAG_CMP_METHOD) return LoaderResult::LogicalCorruption;
+           if (block.lenght != 1) return LoaderResult::SizeCorruption;
+           switch (*block.data)
+           {
+              case TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH:
+                 cmpMethod = CompositeMethod::ClipPath;
+                 break;
+              case TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK:
+                 cmpMethod = CompositeMethod::AlphaMask;
+                 break;
+              case TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK:
+                 cmpMethod = CompositeMethod::InvAlphaMask;
+                 break;
+              default:
+                 return LoaderResult::LogicalCorruption;
+           }
+
+           pointer = block.block_end;
+           tvg_block block_paint = read_tvg_block(pointer);
+           if (block_paint.block_end > end) return LoaderResult::SizeCorruption;
+
+           LoaderResult result = tvg_read_paint(block_paint, &cmpTarget);
+           if (result != LoaderResult::Success)
+           {
+              if (cmpTarget) delete(cmpTarget);
+              cmpMethod = CompositeMethod::None;
+           }
+
+           if (result > LoaderResult::Success) return result;
+           return LoaderResult::Success;
+        }
+
+        LoaderResult tvgLoad(const char* pointer, const char* end)
+        {
+           while (pointer < end)
+           {
+              tvg_block block = read_tvg_block(pointer);
+              if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+              LoaderResult result = smethod->tvgLoad(block);
+              if (result == LoaderResult::InvalidType)
+              {
+                 switch (block.type) {
+                    case TVG_PAINT_FLAG_HAS_OPACITY: {
+                       if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                       opacity = *block.data;
+                       break;
+                    }
+                    case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
+                       if (block.lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
+                       const Matrix * matrix = (Matrix *) block.data;
+                       transform(*matrix); // TODO: check if transformation works
+                       break;
+                    }
+                    case TVG_PAINT_FLAG_HAS_CMP_TARGET: { // cmp target
+                       if (block.lenght < 5) return LoaderResult::SizeCorruption;
+                       LoaderResult result = tvgLoadCmpTarget(block.data, block.block_end);
+                       if (result != LoaderResult::Success) return result;
+                       break;
+                    }
+                 }
+              }
+
+              if (result > LoaderResult::Success) return result;
+              pointer = block.block_end;
+           }
+           return LoaderResult::Success;
+        }
     };
 
 
@@ -268,6 +345,11 @@ namespace tvg
         Paint* duplicate() override
         {
             return inst->duplicate();
+        }
+
+        LoaderResult tvgLoad(tvg_block block) override
+        {
+             return inst->tvgLoad(block);
         }
     };
 }

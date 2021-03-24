@@ -54,7 +54,6 @@ enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
 enum class TVG_EXPORT CompositeMethod { None = 0, ClipPath, AlphaMask, InvAlphaMask };
 enum class TVG_EXPORT CanvasEngine { Sw = (1 << 1), Gl = (1 << 2)};
 
-
 struct Point
 {
     float x, y;
@@ -66,6 +65,16 @@ struct Matrix
     float e11, e12, e13;
     float e21, e22, e23;
     float e31, e32, e33;
+};
+
+enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption, LogicalCorruption };
+using FlagType = uint8_t;
+using ByteCounter = uint32_t;
+struct tvg_block {
+   FlagType type;
+   ByteCounter lenght;
+   const char * data;
+   const char * block_end;
 };
 
 
@@ -93,6 +102,8 @@ public:
     Result composite(std::unique_ptr<Paint> target, CompositeMethod method) const noexcept;
 
     uint8_t opacity() const noexcept;
+
+    LoaderResult tvgLoad(const char* pointer, const char* end) noexcept;
 
     _TVG_DECLARE_ACCESSOR();
     _TVG_DECLARE_PRIVATE(Paint);
@@ -305,6 +316,9 @@ public:
     Result push(std::unique_ptr<Paint> paint) noexcept;
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
+
+    Result load(const std::string& path) noexcept;
+    Result load(const char* data, uint32_t size) noexcept;
 
     static std::unique_ptr<Scene> gen() noexcept;
 

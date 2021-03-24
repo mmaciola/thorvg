@@ -210,6 +210,43 @@ struct Picture::Impl
 
         return ret.release();
     }
+
+    /*
+     * Load picture from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TVG_RAW_IMAGE_BEGIN_INDICATOR : [w][h][pixels]
+     */
+    LoaderResult tvgLoad(tvg_block block)
+    {
+       switch (block.type)
+         {
+            case TVG_RAW_IMAGE_BEGIN_INDICATOR: {
+               if (block.lenght < 8) return LoaderResult::SizeCorruption;
+
+               uint32_t w, h;
+               _read_tvg_ui32(&w, block.data);
+               _read_tvg_ui32(&h, block.data + 4);
+               uint32_t size = w * h * sizeof(pixels[0]);
+               if (block.lenght != 8 + size) return LoaderResult::SizeCorruption;
+
+               uint32_t* pixels = (uint32_t*) malloc(size);
+               if (!pixels) return LoaderResult::MemoryCorruption;
+               memcpy(pixels, block.data + 8, size);
+
+               load(pixels, w, h, false);
+               return LoaderResult::Success;
+            }
+         }
+
+       Paint * paint_local;
+       LoaderResult result = tvg_read_paint(block, &paint_local);
+       if (result == LoaderResult::Success) paint = paint_local;
+
+       if (result != LoaderResult::InvalidType) return result;
+       return LoaderResult::InvalidType;
+    }
 };
 
 #endif //_TVG_PICTURE_IMPL_H_
