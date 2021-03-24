@@ -1,8 +1,6 @@
 examples_dep = dependency('elementary', required : true)
 
 source_file = [
-    'TvgStorerLoader.cpp',
-    'Tvg.cpp',
     'Duplicate.cpp',
     'FillRule.cpp',
     'GradientStroke.cpp',
@@ -30,6 +28,8 @@ source_file = [
     'Masking.cpp',
     'InvMasking.cpp',
     'AnimateMasking.cpp',
+    'TvgSaver.cpp',
+    'TvgLoader.cpp',
 ]
 
 foreach current_file : source_file

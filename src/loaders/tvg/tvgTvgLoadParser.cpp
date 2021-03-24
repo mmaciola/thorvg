@@ -78,7 +78,9 @@ LoaderResult tvg_read_paint(tvg_block block, Paint ** paint)
    {
       case TVG_SCENE_BEGIN_INDICATOR:
          {
-            printf("TVG_SCENE_BEGIN_INDICATOR \n");
+#ifdef TVG_LOADER_LOG_ENABLED
+            printf("TVG_SCENE_BEGIN_INDICATOR[%d] \n", block.lenght);
+#endif
             auto s = Scene::gen();
             LoaderResult result = s->tvgLoad(block.data, block.block_end);
             if (result > LoaderResult::Success) return result;
@@ -87,7 +89,9 @@ LoaderResult tvg_read_paint(tvg_block block, Paint ** paint)
          }
       case TVG_SHAPE_BEGIN_INDICATOR:
          {
-            printf("TVG_SHAPE_BEGIN_INDICATOR \n");
+#ifdef TVG_LOADER_LOG_ENABLED
+            printf("TVG_SHAPE_BEGIN_INDICATOR[%d] \n", block.lenght);
+#endif
             auto s = Shape::gen();
             LoaderResult result = s->tvgLoad(block.data, block.block_end);
             if (result > LoaderResult::Success) return result;
@@ -96,7 +100,9 @@ LoaderResult tvg_read_paint(tvg_block block, Paint ** paint)
          }
       case TVG_PICTURE_BEGIN_INDICATOR:
          {
-            printf("TVG_PICTURE_BEGIN_INDICATOR \n");
+#ifdef TVG_LOADER_LOG_ENABLED
+            printf("TVG_PICTURE_BEGIN_INDICATOR[%d] \n", block.lenght);
+#endif
             auto s = Picture::gen();
             LoaderResult result = s->tvgLoad(block.data, block.block_end);
             if (result > LoaderResult::Success) return result;

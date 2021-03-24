@@ -800,6 +800,91 @@ cout << __FILE__ << " " << __func__ << endl;
          return LoaderResult::Success;
     }
 
+    /*
+     * Load fill for shape or shape stroke from .tvg binary file
+     * Returns LoaderResult:: Success on success and moves pointer to next position,
+     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Details:
+     * TODO
+     */
+    LoaderResult tvgLoadFill(const char* pointer, const char* end, Fill ** fillOutside)
+    {
+       unique_ptr<Fill> fillGrad;
+
+       while (pointer < end)
+          {
+             tvg_block block = read_tvg_block(pointer);
+             if (block.block_end > end) return LoaderResult::SizeCorruption;
+
+             switch (block.type)
+                {
+                   case TVG_GRADIENT_FLAG_TYPE_RADIAL: { // radial gradient
+                      if (block.lenght != 12) return LoaderResult::SizeCorruption;
+                      float x, y, radius;
+                      _read_tvg_float(&x, block.data);
+                      _read_tvg_float(&y, block.data + 4);
+                      _read_tvg_float(&radius, block.data + 8);
+
+                      auto fillGradRadial = RadialGradient::gen();
+                      fillGradRadial->radial(x, y, radius);
+                      fillGrad = move(fillGradRadial);
+                      break;
+                   }
+                   case TVG_GRADIENT_FLAG_TYPE_LINEAR: { // linear gradient
+                      if (block.lenght != 16) return LoaderResult::SizeCorruption;
+                      float x1, y1, x2, y2;
+                      _read_tvg_float(&x1, block.data);
+                      _read_tvg_float(&y1, block.data + 4);
+                      _read_tvg_float(&x2, block.data + 8);
+                      _read_tvg_float(&y2, block.data + 12);
+
+                      auto fillGradLinear = LinearGradient::gen();
+                      fillGradLinear->linear(x1, y1, x2, y2);
+                      fillGrad = move(fillGradLinear);
+                      break;
+                   }
+                   case TVG_FILL_FLAG_FILLSPREAD: { // fill spread
+                      if (!fillGrad) return LoaderResult::LogicalCorruption;
+                      if (block.lenght != 1) return LoaderResult::SizeCorruption;
+                      switch (*block.data) {
+                         case TVG_FILL_FLAG_FILLSPREAD_PAD:
+                            fillGrad->spread(FillSpread::Pad);
+                            break;
+                         case TVG_FILL_FLAG_FILLSPREAD_REFLECT:
+                            fillGrad->spread(FillSpread::Reflect);
+                            break;
+                         case TVG_FILL_FLAG_FILLSPREAD_REPEAT:
+                            fillGrad->spread(FillSpread::Repeat);
+                            break;
+                      }
+                      break;
+                   }
+                   case TVG_FILL_FLAG_COLORSTOPS: { // color stops
+                      if (!fillGrad) return LoaderResult::LogicalCorruption;
+                      if (block.lenght == 0 || block.lenght & 0x07) return LoaderResult::SizeCorruption;
+                      uint32_t stopsCnt = block.lenght >> 3; // 8 bytes per ColorStop
+                      if (stopsCnt > 1023) return LoaderResult::SizeCorruption;
+                      Fill::ColorStop stops [stopsCnt];
+                      const char* p = block.data;
+                      for (uint32_t i = 0; i < stopsCnt; i++, p += 8) {
+                            _read_tvg_float(&stops[i].offset, p);
+                            stops[i].r = p[4];
+                            stops[i].g = p[5];
+                            stops[i].b = p[6];
+                            stops[i].a = p[7];
+                      }
+                      fillGrad->colorStops(stops, stopsCnt);
+                      break;
+                   }
+                }
+
+             pointer = block.block_end;
+          }
+
+       *fillOutside = fillGrad.release();
+       return LoaderResult::Success;
+    }
+
     LoaderResult tvgLoadStrokeDashptrn(const char* pointer, const char* end)
     {
        const uint32_t dashPatternCnt = (uint32_t) *pointer;
@@ -879,7 +964,9 @@ cout << __FILE__ << " " << __func__ << endl;
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_HAS_FILL: { // stroke fill
-                      // TODO
+                      LoaderResult result = tvgLoadFill(block.data, block.block_end, &stroke->fill);
+                      if (result != LoaderResult::Success) return result;
+                      flag |= RenderUpdateFlag::GradientStroke;
                       break;
                    }
                    case TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN: { // dashed stroke
@@ -892,91 +979,6 @@ cout << __FILE__ << " " << __func__ << endl;
              pointer = block.block_end;
           }
 
-       return LoaderResult::Success;
-    }
-
-    /*
-     * Load fill from .tvg binary file
-     * Returns LoaderResult:: Success on success and moves pointer to next position,
-     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
-     * Details:
-     * TODO
-     */
-    LoaderResult tvgLoadFill(const char* pointer, const char* end)
-    {
-       unique_ptr<Fill> fillGrad;
-
-       while (pointer < end)
-          {
-             tvg_block block = read_tvg_block(pointer);
-             if (block.block_end > end) return LoaderResult::SizeCorruption;
-
-             switch (block.type)
-                {
-                   case TVG_GRADIENT_FLAG_TYPE_RADIAL: { // radial gradient
-                      if (block.lenght != 12) return LoaderResult::SizeCorruption;
-                      float x, y, radius;
-                      _read_tvg_float(&x, block.data);
-                      _read_tvg_float(&y, block.data + 4);
-                      _read_tvg_float(&radius, block.data + 8);
-
-                      auto fillGradRadial = RadialGradient::gen();
-                      fillGradRadial->radial(x, y, radius);
-                      fillGrad = move(fillGradRadial);
-                      break;
-                   }
-                   case TVG_GRADIENT_FLAG_TYPE_LINEAR: { // linear gradient
-                      if (block.lenght != 16) return LoaderResult::SizeCorruption;
-                      float x1, y1, x2, y2;
-                      _read_tvg_float(&x1, block.data);
-                      _read_tvg_float(&y1, block.data + 4);
-                      _read_tvg_float(&x2, block.data + 8);
-                      _read_tvg_float(&y2, block.data + 12);
-
-                      auto fillGradLinear = LinearGradient::gen();
-                      fillGradLinear->linear(x1, y1, x2, y2);
-                      fillGrad = move(fillGradLinear);
-                      break;
-                   }
-                   case TVG_FILL_FLAG_FILLSPREAD: { // fill spread
-                      if (!fillGrad) return LoaderResult::LogicalCorruption;
-                      if (block.lenght != 1) return LoaderResult::SizeCorruption;
-                      switch (*block.data) {
-                         case TVG_FILL_FLAG_FILLSPREAD_PAD:
-                            fillGrad->spread(FillSpread::Pad);
-                            break;
-                         case TVG_FILL_FLAG_FILLSPREAD_REFLECT:
-                            fillGrad->spread(FillSpread::Reflect);
-                            break;
-                         case TVG_FILL_FLAG_FILLSPREAD_REPEAT:
-                            fillGrad->spread(FillSpread::Repeat);
-                            break;
-                      }
-                      break;
-                   }
-                   case TVG_FILL_FLAG_COLORSTOPS: { // color stops
-                      if (!fillGrad) return LoaderResult::LogicalCorruption;
-                      if (block.lenght == 0 || block.lenght & 0x07) return LoaderResult::SizeCorruption;
-                      uint32_t stopsCnt = block.lenght >> 3; // 8 bytes per ColorStop
-                      if (stopsCnt > 1023) return LoaderResult::SizeCorruption;
-                      Fill::ColorStop stops [stopsCnt];
-                      const char* p = block.data;
-                      for (uint32_t i = 0; i < stopsCnt; i++, p += 8) {
-                            _read_tvg_float(&stops[i].offset, p);
-                            stops[i].r = p[4];
-                            stops[i].g = p[5];
-                            stops[i].b = p[6];
-                            stops[i].a = p[7];
-                      }
-                      fillGrad->colorStops(stops, stopsCnt);
-                      break;
-                   }
-                }
-
-             pointer = block.block_end;
-          }
-
-       fill = fillGrad.release();
        return LoaderResult::Success;
     }
 
@@ -1005,7 +1007,7 @@ cout << __FILE__ << " " << __func__ << endl;
                 break;
              }
              case TVG_SHAPE_FLAG_HAS_FILL: { // fill (gradient)
-                LoaderResult result = tvgLoadFill(block.data, block.block_end);
+                LoaderResult result = tvgLoadFill(block.data, block.block_end, &fill);
                 printf("TVG_SHAPE_FLAG_HAS_FILL result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 flag |= RenderUpdateFlag::Gradient;

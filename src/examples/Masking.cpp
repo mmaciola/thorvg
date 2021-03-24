@@ -46,7 +46,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     canvas->push(move(shape));
 
     //SVG
-    auto svg = tvg::Picture::gen();
+    /*auto svg = tvg::Picture::gen();
     if (svg->load(EXAMPLE_DIR"/cartman.svg") != tvg::Result::Success) return;
     svg->opacity(100);
     svg->scale(3);
@@ -110,7 +110,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     mask4->close();
     mask4->fill(255, 255, 255, 70);
     image->composite(move(mask4), tvg::CompositeMethod::AlphaMask);
-    if (canvas->push(move(image)) != tvg::Result::Success) return;
+    if (canvas->push(move(image)) != tvg::Result::Success) return;*/
 }
 
 

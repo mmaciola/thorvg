@@ -354,12 +354,13 @@ cout << __FILE__ << " " << __func__ << endl;
            if (block_paint.block_end > end) return LoaderResult::SizeCorruption;
 
            LoaderResult result = tvg_read_paint(block_paint, &cmpTarget);
-           if (result > LoaderResult::Success)
+           if (result != LoaderResult::Success)
            {
               if (cmpTarget) delete(cmpTarget);
-              return result;
+              cmpMethod = CompositeMethod::None;
            }
 
+           if (result > LoaderResult::Success) return result;
            return LoaderResult::Success;
         }
 
