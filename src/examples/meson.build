@@ -1,13 +1,6 @@
 examples_dep = dependency('elementary', required : true)
 
 source_file = [
-    'Arc.cpp',
-    'Async.cpp',
-    'Blending.cpp',
-    'Boundary.cpp',
-    'Capi.cpp',
-    'CustomTransform.cpp',
-    'DirectUpdate.cpp',
     'Duplicate.cpp',
     'FillRule.cpp',
     'GradientStroke.cpp',
@@ -35,6 +28,7 @@ source_file = [
     'Masking.cpp',
     'InvMasking.cpp',
     'AnimateMasking.cpp',
+    'TvgLoader.cpp',
 ]
 
 foreach current_file : source_file
