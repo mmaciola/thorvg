@@ -288,8 +288,9 @@ namespace tvg
                     }
                     case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
                        if (block.lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
-                       const Matrix * matrix = (Matrix *) block.data;
-                       transform(*matrix); // TODO: check if transformation works
+                       Matrix matrix;
+                       memcpy(&matrix, block.data, sizeof(Matrix));
+                       if (!transform(matrix)) return LoaderResult::MemoryCorruption;
                        break;
                     }
                     case TVG_PAINT_FLAG_HAS_CMP_TARGET: { // cmp target
