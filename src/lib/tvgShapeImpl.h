@@ -387,11 +387,11 @@ struct Shape::Impl
     }
 
     /*
-     * Load paint and derived classes from .tvg binary file
-     * Returns LoaderResult:: Success on success and moves pointer to next position,
-     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Load shape path from .tvg binary file
+     * Returns LoaderResult::Success on success or LoaderResult::SizeCorruption if size corrupted.
      * Details:
-     * TODO
+     * [uint32_t cmdCnt][uint32_t ptsCnt][cmdCnt * PathCommand cmds][ptsCnt * Point pts]
+     * Updates flag with RenderUpdateFlag::Path bit.
      */
     LoaderResult tvgLoadPath(const char* pointer, const char* end)
     {
@@ -419,11 +419,17 @@ struct Shape::Impl
     }
 
     /*
-     * Load fill for shape or shape stroke from .tvg binary file
-     * Returns LoaderResult:: Success on success and moves pointer to next position,
-     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Load fill (gradient) for shape or shape stroke from .tvg binary file
+     * Returns LoaderResult::Success on success or LoaderResult::SizeCorruption if size corrupted,
+     * LoaderResult::LogicalCorruption if logically corrupted (gradient parameters before gradient type).
      * Details:
-     * TODO
+     * Must start with gradient type:
+     * [TVG_GRADIENT_FLAG_TYPE_RADIAL][12][float x][float y][float radius]
+     * or
+     * [TVG_GRADIENT_FLAG_TYPE_LINEAR][16][float x1][float y1][float x2][float y2]
+     * Next are gradient parameters:
+     * [TVG_FILL_FLAG_FILLSPREAD][1][FILLSPREAD_PAD/FILLSPREAD_REFLECT/FILLSPREAD_REPEAT]
+     * [TVG_FILL_FLAG_COLORSTOPS][8*stopsCnt][stopsCnt * [float offset][uint8_t r][uint8_t g][uint8_t b][uint8_t a]]
      */
     LoaderResult tvgLoadFill(const char* pointer, const char* end, Fill ** fillOutside)
     {
@@ -503,6 +509,13 @@ struct Shape::Impl
        return LoaderResult::Success;
     }
 
+    /*
+     * Load stroke dash pattern from .tvg binary file
+     * Returns LoaderResult::Success on success or LoaderResult::SizeCorruption if size corrupted,
+     * LoaderResult::MemoryCorruption if memory corruption.
+     * Details:
+     * [uint32_t dashPatternCnt][dashPatternCnt * float dashPattern]
+     */
     LoaderResult tvgLoadStrokeDashptrn(const char* pointer, const char* end)
     {
        const uint32_t dashPatternCnt = (uint32_t) *pointer;
@@ -527,7 +540,12 @@ struct Shape::Impl
      * Returns LoaderResult:: Success on success and moves pointer to next position,
      * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
      * Details:
-     * TODO
+     * [TVG_SHAPE_STROKE_FLAG_CAP][1][CAP_SQUARE/CAP_ROUND/CAP_BUTT]
+     * [TVG_SHAPE_STROKE_FLAG_JOIN][1][JOIN_BEVEL/JOIN_ROUND/JOIN_MITER]
+     * [TVG_SHAPE_STROKE_FLAG_WIDTH][4][float width]
+     * [TVG_SHAPE_STROKE_FLAG_COLOR][4][color color]
+     * [TVG_SHAPE_STROKE_FLAG_HAS_FILL] - see tvgLoadFill()
+     * [TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN] - see tvgLoadStrokeDashptrn()
      */
     LoaderResult tvgLoadStroke(const char* pointer, const char* end)
     {
@@ -601,11 +619,14 @@ struct Shape::Impl
     }
 
     /*
-     * Load paint and derived classes from .tvg binary file
-     * Returns LoaderResult:: Success on success and moves pointer to next position,
-     * LoaderResult::SizeCorruption if corrupted or LoaderResult::InvalidType if not applicable for paint.
+     * Load shape from .tvg binary file
+     * Returns LoaderResult::Success on success, LoaderResult::InvalidType or other if corrupted.
      * Details:
-     * TODO
+     * [TVG_SHAPE_FLAG_HAS_PATH] - see tvgLoadPath()
+     * [TVG_SHAPE_FLAG_HAS_STROKE] - see tvgLoadStroke()
+     * [TVG_SHAPE_FLAG_HAS_FILL] - see tvgLoadFill()
+     * [TVG_SHAPE_FLAG_COLOR][4][color color]
+     * [TVG_SHAPE_FLAG_FILLRULE][1][FILLRULE_WINDING/FILLRULE_EVENODD]
      */
     LoaderResult tvgLoad(tvg_block block)
     {

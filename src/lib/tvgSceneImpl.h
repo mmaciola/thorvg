@@ -190,10 +190,11 @@ struct Scene::Impl
 
     /*
      * Load scene from .tvg binary file
-     * Returns LoaderResult: Success on success and moves pointer to next position,
-     * InvalidType if not applicable for paint or SizeCorruption if corrupted.
-     * Details:
-     * TODO
+     * Returns LoaderResult: Success on success, InvalidType if not applicable
+     * or SizeCorruption/MemoryCorruption/LogicalCorruption if corrupted.
+     * Alowed blocks are:
+     * [TVG_SCENE_FLAG_RESERVEDCNT][1][reservedCnt]
+     * [TVG_SCENE_BEGIN_INDICATOR/TVG_SHAPE_BEGIN_INDICATOR/TVG_PICTURE_BEGIN_INDICATOR][...]
      */
     LoaderResult tvgLoad(tvg_block block)
     {
