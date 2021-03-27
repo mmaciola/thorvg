@@ -247,6 +247,38 @@ struct Picture::Impl
        if (result != LoaderResult::InvalidType) return result;
        return LoaderResult::InvalidType;
     }
+
+    ByteCounter serialize(TvgSaver* tvgSaver)
+    {
+        if (!tvgSaver || (!paint && !pixels)) return 0;
+
+        ByteCounter pictureDataByteCnt = 0;
+
+        tvgSaver->saveMemberIndicator(TVG_PICTURE_BEGIN_INDICATOR);
+        tvgSaver->skipMemberDataSize();
+
+        if (paint) {
+            pictureDataByteCnt += paint->Paint::pImpl->serialize(tvgSaver);
+        }
+        else if (pixels && loader) { // MGS for now the information about the pict size is only in the loader
+            uint32_t w = loader->vw, h = loader->vh; // MGS loader is expecting ints insead of floats
+            ByteCounter wByteCnt = sizeof(w); // same as h size
+            ByteCounter pixelsByteCnt = w * h * sizeof(pixels[0]);
+
+            tvgSaver->saveMemberIndicator(TVG_RAW_IMAGE_BEGIN_INDICATOR);
+            tvgSaver->saveMemberDataSize(2 * wByteCnt + pixelsByteCnt);
+            pictureDataByteCnt += tvgSaver->saveMemberData(&w, wByteCnt);
+            pictureDataByteCnt += tvgSaver->saveMemberData(&h, wByteCnt);
+            pictureDataByteCnt += tvgSaver->saveMemberData(pixels, pixelsByteCnt);
+            pictureDataByteCnt += sizeof(IndicatorType) + sizeof(ByteCounter);
+        }
+
+        pictureDataByteCnt += picture->Paint::pImpl->serializePaint(tvgSaver);
+
+        tvgSaver->saveMemberDataSizeAt(pictureDataByteCnt);
+
+        return sizeof(IndicatorType) + sizeof(ByteCounter) + pictureDataByteCnt;
+    }
 };
 
 #endif //_TVG_PICTURE_IMPL_H_

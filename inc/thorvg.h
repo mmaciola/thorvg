@@ -68,15 +68,16 @@ struct Matrix
 };
 
 enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption, LogicalCorruption };
+//MGS this should be in helper
 using FlagType = uint8_t;
+using IndicatorType = uint8_t;
 using ByteCounter = uint32_t;
 struct tvg_block {
-   FlagType type;
+   IndicatorType type;
    ByteCounter lenght;
    const char * data;
    const char * block_end;
 };
-
 
 /**
  * @class Paint
@@ -319,6 +320,9 @@ public:
 
     Result load(const std::string& path) noexcept;
     Result load(const char* data, uint32_t size) noexcept;
+    Result save(const std::string& path) noexcept;
+
+    void serialize();//MGS - temp?
 
     static std::unique_ptr<Scene> gen() noexcept;
 

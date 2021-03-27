@@ -1,6 +1,13 @@
 examples_dep = dependency('elementary', required : true)
 
 source_file = [
+    'Arc.cpp',
+    'Async.cpp',
+    'Blending.cpp',
+    'Boundary.cpp',
+    'Capi.cpp',
+    'CustomTransform.cpp',
+    'DirectUpdate.cpp',
     'Duplicate.cpp',
     'FillRule.cpp',
     'GradientStroke.cpp',
