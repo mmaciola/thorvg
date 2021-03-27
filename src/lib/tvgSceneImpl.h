@@ -33,8 +33,14 @@ struct Scene::Impl
 {
     Array<Paint*> paints;
     uint8_t opacity;            //for composition
+    Scene* scene = nullptr;
 
+    unique_ptr<Saver> saver = nullptr;
     unique_ptr<TvgLoader> loader = nullptr;
+
+    Impl(Scene* s) : scene(s)
+    {
+    }
 
     bool dispose(RenderMethod& renderer)
     {
@@ -76,6 +82,8 @@ struct Scene::Impl
         for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
             (*paint)->pImpl->update(renderer, transform, opacity, clips, static_cast<uint32_t>(flag));
         }
+
+        if (saver && !saver->write()) return nullptr;
 
         /* FXIME: it requires to return list of children engine data
            This is necessary for scene composition */
@@ -215,6 +223,37 @@ struct Scene::Impl
 
        if (result != LoaderResult::InvalidType) return result;
        return LoaderResult::InvalidType;
+    }
+
+
+    ByteCounter serialize(TvgSaver* tvgSaver)
+    {
+        if (!tvgSaver) return 0;
+
+        ByteCounter sceneDataByteCnt = 0;
+
+        tvgSaver->saveMemberIndicator(TVG_SCENE_BEGIN_INDICATOR);
+        tvgSaver->skipMemberDataSize();
+
+        for (auto paint = paints.data; paint < (paints.data + paints.count); ++paint) {
+            sceneDataByteCnt += (*paint)->pImpl->serialize(tvgSaver);
+        }
+
+        sceneDataByteCnt += scene->Paint::pImpl->serializePaint(tvgSaver);
+
+        tvgSaver->saveMemberDataSizeAt(sceneDataByteCnt);
+
+        return sizeof(IndicatorType) + sizeof(ByteCounter) + sceneDataByteCnt;
+    }
+
+
+    Result save(const std::string& path, Scene *scene)
+    {
+        if (saver) saver->close();
+        saver = SaverMgr::saver(path, scene);
+        if (!saver) return Result::NonSupport;
+
+        return Result::Success;
     }
 };
 
