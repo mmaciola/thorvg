@@ -442,7 +442,7 @@ struct Shape::Impl
 
              switch (block.type)
                 {
-                   case TVG_GRADIENT_FLAG_TYPE_RADIAL: { // radial gradient
+                   case TVG_FILL_RADIAL_GRADIENT_INDICATOR: { // radial gradient
                       if (block.lenght != 12) return LoaderResult::SizeCorruption;
                       float x, y, radius;
                       _read_tvg_float(&x, block.data);
@@ -454,7 +454,7 @@ struct Shape::Impl
                       fillGrad = move(fillGradRadial);
                       break;
                    }
-                   case TVG_GRADIENT_FLAG_TYPE_LINEAR: { // linear gradient
+                   case TVG_FILL_LINEAR_GRADIENT_INDICATOR: { // linear gradient
                       if (block.lenght != 16) return LoaderResult::SizeCorruption;
                       float x1, y1, x2, y2;
                       _read_tvg_float(&x1, block.data);
@@ -467,23 +467,23 @@ struct Shape::Impl
                       fillGrad = move(fillGradLinear);
                       break;
                    }
-                   case TVG_FILL_FLAG_FILLSPREAD: { // fill spread
+                   case TVG_FILL_FILLSPREAD_INDICATOR: { // fill spread
                       if (!fillGrad) return LoaderResult::LogicalCorruption;
                       if (block.lenght != 1) return LoaderResult::SizeCorruption;
                       switch (*block.data) {
-                         case TVG_FILL_FLAG_FILLSPREAD_PAD:
+                         case TVG_FILL_FILLSPREAD_PAD_FLAG:
                             fillGrad->spread(FillSpread::Pad);
                             break;
-                         case TVG_FILL_FLAG_FILLSPREAD_REFLECT:
+                         case TVG_FILL_FILLSPREAD_REFLECT_FLAG:
                             fillGrad->spread(FillSpread::Reflect);
                             break;
-                         case TVG_FILL_FLAG_FILLSPREAD_REPEAT:
+                         case TVG_FILL_FILLSPREAD_REPEAT_FLAG:
                             fillGrad->spread(FillSpread::Repeat);
                             break;
                       }
                       break;
                    }
-                   case TVG_FILL_FLAG_COLORSTOPS: { // color stops
+                   case TVG_FILL_COLORSTOPS_INDICATOR: { // color stops
                       if (!fillGrad) return LoaderResult::LogicalCorruption;
                       if (block.lenght == 0 || block.lenght & 0x07) return LoaderResult::SizeCorruption;
                       uint32_t stopsCnt = block.lenght >> 3; // 8 bytes per ColorStop
@@ -559,53 +559,53 @@ struct Shape::Impl
 
              switch (block.type)
                 {
-                   case TVG_SHAPE_STROKE_FLAG_CAP: { // stroke cap
+                   case TVG_SHAPE_STROKE_CAP_INDICATOR: { // stroke cap
                       if (block.lenght != 1) return LoaderResult::SizeCorruption;
                       switch (*block.data) {
-                         case TVG_SHAPE_STROKE_FLAG_CAP_SQUARE:
+                         case TVG_SHAPE_STROKE_CAP_SQUARE_FLAG:
                             stroke->cap = StrokeCap::Square;
                             break;
-                         case TVG_SHAPE_STROKE_FLAG_CAP_ROUND:
+                         case TVG_SHAPE_STROKE_CAP_ROUND_FLAG:
                             stroke->cap = StrokeCap::Round;
                             break;
-                         case TVG_SHAPE_STROKE_FLAG_CAP_BUTT:
+                         case TVG_SHAPE_STROKE_CAP_BUTT_FLAG:
                             stroke->cap = StrokeCap::Butt;
                             break;
                       }
                       break;
                    }
-                   case TVG_SHAPE_STROKE_FLAG_JOIN: { // stroke join
+                   case TVG_SHAPE_STROKE_JOIN_INDICATOR: { // stroke join
                       if (block.lenght != 1) return LoaderResult::SizeCorruption;
                       switch (*block.data) {
-                         case TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL:
+                         case TVG_SHAPE_STROKE_JOIN_BEVEL_FLAG:
                             stroke->join = StrokeJoin::Bevel;
                             break;
-                         case TVG_SHAPE_STROKE_FLAG_JOIN_ROUND:
+                         case TVG_SHAPE_STROKE_JOIN_ROUND_FLAG:
                             stroke->join = StrokeJoin::Round;
                             break;
-                         case TVG_SHAPE_STROKE_FLAG_JOIN_MITER:
+                         case TVG_SHAPE_STROKE_JOIN_MITER_FLAG:
                             stroke->join = StrokeJoin::Miter;
                             break;
                       }
                       break;
                    }
-                   case TVG_SHAPE_STROKE_FLAG_WIDTH: { // stroke width
+                   case TVG_SHAPE_STROKE_WIDTH_INDICATOR: { // stroke width
                       if (block.lenght != sizeof(float)) return LoaderResult::SizeCorruption;
                       _read_tvg_float(&stroke->width, block.data);
                       break;
                    }
-                   case TVG_SHAPE_STROKE_FLAG_COLOR: { // stroke color
+                   case TVG_SHAPE_STROKE_COLOR_INDICATOR: { // stroke color
                       if (block.lenght != sizeof(stroke->color)) return LoaderResult::SizeCorruption;
                       memcpy(&stroke->color, block.data, sizeof(stroke->color));
                       break;
                    }
-                   case TVG_SHAPE_STROKE_FLAG_HAS_FILL: { // stroke fill
+                   case TVG_SHAPE_STROKE_FILL_INDICATOR: { // stroke fill
                       LoaderResult result = tvgLoadFill(block.data, block.block_end, &stroke->fill);
                       if (result != LoaderResult::Success) return result;
                       flag |= RenderUpdateFlag::GradientStroke;
                       break;
                    }
-                   case TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN: { // dashed stroke
+                   case TVG_SHAPE_STROKE_DASHPTRN_INDICATOR: { // dashed stroke
                       LoaderResult result = tvgLoadStrokeDashptrn(block.data, block.block_end);
                       if (result != LoaderResult::Success) return result;
                       break;
@@ -632,39 +632,39 @@ struct Shape::Impl
     {
        switch (block.type)
           {
-             case TVG_SHAPE_FLAG_HAS_PATH: { // path
+             case TVG_SHAPE_PATH_INDICATOR: { // path
                 LoaderResult result = tvgLoadPath(block.data, block.block_end);
                 if (result != LoaderResult::Success) return result;
                 break;
              }
-             case TVG_SHAPE_FLAG_HAS_STROKE: { // stroke section
+             case TVG_SHAPE_STROKE_INDICATOR: { // stroke section
                 LoaderResult result = tvgLoadStroke(block.data, block.block_end);
-                printf("TVG_SHAPE_FLAG_HAS_STROKE result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
+                printf("TVG_SHAPE_STROKE_INDICATOR result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 flag |= RenderUpdateFlag::Stroke;
                 break;
              }
-             case TVG_SHAPE_FLAG_HAS_FILL: { // fill (gradient)
+             case TVG_SHAPE_FILL_INDICATOR: { // fill (gradient)
                 LoaderResult result = tvgLoadFill(block.data, block.block_end, &fill);
-                printf("TVG_SHAPE_FLAG_HAS_FILL result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
+                printf("TVG_SHAPE_FILL_INDICATOR result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 flag |= RenderUpdateFlag::Gradient;
                 break;
              }
-             case TVG_SHAPE_FLAG_COLOR: { // color
+             case TVG_SHAPE_COLOR_INDICATOR: { // color
                 if (block.lenght != sizeof(color)) return LoaderResult::SizeCorruption;
                 memcpy(&color, block.data, sizeof(color));
                 flag = RenderUpdateFlag::Color;
                 break;
              }
-             case TVG_SHAPE_FLAG_FILLRULE: { // fill rule
+             case TVG_SHAPE_FILLRULE_INDICATOR: { // fill rule
                 if (block.lenght != sizeof(uint8_t)) return LoaderResult::SizeCorruption;
                 switch (*block.data)
                 {
-                   case TVG_SHAPE_FLAG_FILLRULE_WINDING:
+                   case TVG_SHAPE_FILLRULE_WINDING_FLAG:
                       rule = FillRule::Winding;
                       break;
-                   case TVG_SHAPE_FLAG_FILLRULE_EVENODD:
+                   case TVG_SHAPE_FILLRULE_EVENODD_FLAG:
                       rule = FillRule::EvenOdd;
                       break;
                 }
@@ -698,7 +698,7 @@ struct Shape::Impl
                 tvgSaver->rewindBuffer(sizeof(FlagType) + sizeof(ByteCounter));
                 return 0;
             }
-            fillDataByteCnt += tvgSaver->saveMember(TVG_GRADIENT_FLAG_TYPE_RADIAL, sizeof(argRadial), argRadial);
+            fillDataByteCnt += tvgSaver->saveMember(TVG_FILL_RADIAL_GRADIENT_INDICATOR, sizeof(argRadial), argRadial);
         }
         else {
             float argLinear[4];
@@ -707,26 +707,26 @@ struct Shape::Impl
                 tvgSaver->rewindBuffer(sizeof(FlagType) + sizeof(ByteCounter));
                 return 0;
             }
-            fillDataByteCnt += tvgSaver->saveMember(TVG_GRADIENT_FLAG_TYPE_LINEAR, sizeof(argLinear), argLinear);
+            fillDataByteCnt += tvgSaver->saveMember(TVG_FILL_LINEAR_GRADIENT_INDICATOR, sizeof(argLinear), argLinear);
         }
 
         switch (f->spread()) {
             case FillSpread::Pad: {
-                strokeTvgFlag = TVG_FILL_FLAG_FILLSPREAD_PAD;
+                strokeTvgFlag = TVG_FILL_FILLSPREAD_PAD_FLAG;
                 break;
             }
             case FillSpread::Reflect: {
-                strokeTvgFlag = TVG_FILL_FLAG_FILLSPREAD_REFLECT;
+                strokeTvgFlag = TVG_FILL_FILLSPREAD_REFLECT_FLAG;
                 break;
             }
             case FillSpread::Repeat: {
-                strokeTvgFlag = TVG_FILL_FLAG_FILLSPREAD_REPEAT;
+                strokeTvgFlag = TVG_FILL_FILLSPREAD_REPEAT_FLAG;
                 break;
             }
         }
-        fillDataByteCnt += tvgSaver->saveMember(TVG_FILL_FLAG_FILLSPREAD, sizeof(FlagType), &strokeTvgFlag);
+        fillDataByteCnt += tvgSaver->saveMember(TVG_FILL_FILLSPREAD_INDICATOR, TVG_FLAG_SIZE, &strokeTvgFlag);
 
-        fillDataByteCnt += tvgSaver->saveMember(TVG_FILL_FLAG_COLORSTOPS, stopsCnt * sizeof(stops), stops);
+        fillDataByteCnt += tvgSaver->saveMember(TVG_FILL_COLORSTOPS_INDICATOR, stopsCnt * sizeof(stops), stops);
 
         tvgSaver->saveMemberDataSizeAt(fillDataByteCnt);
 
@@ -740,54 +740,54 @@ struct Shape::Impl
         ByteCounter strokeDataByteCnt = 0;
         FlagType strokeTvgFlag;
 
-        tvgSaver->saveMemberIndicator(TVG_SHAPE_FLAG_HAS_STROKE);
+        tvgSaver->saveMemberIndicator(TVG_SHAPE_STROKE_INDICATOR);
         tvgSaver->skipMemberDataSize();
 
         switch (stroke->cap) {
             case StrokeCap::Square: {
-                strokeTvgFlag = TVG_SHAPE_STROKE_FLAG_CAP_SQUARE;
+                strokeTvgFlag = TVG_SHAPE_STROKE_CAP_SQUARE_FLAG;
                 break;
             }
             case StrokeCap::Round: {
-                strokeTvgFlag = TVG_SHAPE_STROKE_FLAG_CAP_ROUND;
+                strokeTvgFlag = TVG_SHAPE_STROKE_CAP_ROUND_FLAG;
                 break;
             }
             case StrokeCap::Butt: {
-                strokeTvgFlag = TVG_SHAPE_STROKE_FLAG_CAP_BUTT;
+                strokeTvgFlag = TVG_SHAPE_STROKE_CAP_BUTT_FLAG;
                 break;
             }
         }
-        strokeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_STROKE_FLAG_CAP, sizeof(FlagType), &strokeTvgFlag);
+        strokeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_STROKE_CAP_INDICATOR, TVG_FLAG_SIZE, &strokeTvgFlag);
 
         switch (stroke->join) {
             case StrokeJoin::Bevel: {
-                strokeTvgFlag = TVG_SHAPE_STROKE_FLAG_JOIN_BEVEL;
+                strokeTvgFlag = TVG_SHAPE_STROKE_JOIN_BEVEL_FLAG;
                 break;
             }
             case StrokeJoin::Round: {
-                strokeTvgFlag = TVG_SHAPE_STROKE_FLAG_JOIN_ROUND;
+                strokeTvgFlag = TVG_SHAPE_STROKE_JOIN_ROUND_FLAG;
                 break;
             }
             case StrokeJoin::Miter: {
-                strokeTvgFlag = TVG_SHAPE_STROKE_FLAG_JOIN_MITER;
+                strokeTvgFlag = TVG_SHAPE_STROKE_JOIN_MITER_FLAG;
                 break;
             }
         }
-        strokeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_STROKE_FLAG_JOIN, sizeof(FlagType), &strokeTvgFlag);
+        strokeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_STROKE_JOIN_INDICATOR, TVG_FLAG_SIZE, &strokeTvgFlag);
 
-        strokeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_STROKE_FLAG_WIDTH, sizeof(stroke->width), &stroke->width);
+        strokeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_STROKE_WIDTH_INDICATOR, sizeof(stroke->width), &stroke->width);
 
         if (stroke->fill) {
-            strokeDataByteCnt += serializeFill(tvgSaver, stroke->fill, TVG_SHAPE_STROKE_FLAG_HAS_FILL);
+            strokeDataByteCnt += serializeFill(tvgSaver, stroke->fill, TVG_SHAPE_STROKE_FILL_INDICATOR);
         }
 
-        strokeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_STROKE_FLAG_COLOR, sizeof(stroke->color), &stroke->color);
+        strokeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_STROKE_COLOR_INDICATOR, sizeof(stroke->color), &stroke->color);
 
         if (stroke->dashPattern && stroke->dashCnt > 0) {
             ByteCounter dashCntByteCnt = sizeof(stroke->dashCnt);
             ByteCounter dashPtrnByteCnt = stroke->dashCnt * sizeof(stroke->dashPattern[0]);
 
-            tvgSaver->saveMemberIndicator(TVG_SHAPE_STROKE_FLAG_HAS_DASHPTRN);
+            tvgSaver->saveMemberIndicator(TVG_SHAPE_STROKE_DASHPTRN_INDICATOR);
             tvgSaver->saveMemberDataSize(dashCntByteCnt + dashPtrnByteCnt);
             strokeDataByteCnt += tvgSaver->saveMemberData(&stroke->dashCnt, dashCntByteCnt);
             strokeDataByteCnt += tvgSaver->saveMemberData(stroke->dashPattern, dashPtrnByteCnt);
@@ -806,7 +806,7 @@ struct Shape::Impl
 
         ByteCounter pathDataByteCnt = 0;
 
-        tvgSaver->saveMemberIndicator(TVG_SHAPE_FLAG_HAS_PATH);
+        tvgSaver->saveMemberIndicator(TVG_SHAPE_PATH_INDICATOR);
         tvgSaver->skipMemberDataSize();
 
         pathDataByteCnt += tvgSaver->saveMemberData(&path.cmdCnt, sizeof(path.cmdCnt));
@@ -828,18 +828,18 @@ struct Shape::Impl
         tvgSaver->saveMemberIndicator(TVG_SHAPE_BEGIN_INDICATOR);
         tvgSaver->skipMemberDataSize();
 
-        FlagType ruleTvgFlag = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FLAG_FILLRULE_EVENODD : TVG_SHAPE_FLAG_FILLRULE_WINDING;
-        shapeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_FLAG_FILLRULE, sizeof(FlagType), &ruleTvgFlag);
+        TvgFlag ruleTvgFlag = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FILLRULE_EVENODD_FLAG : TVG_SHAPE_FILLRULE_WINDING_FLAG;
+        shapeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_FILLRULE_INDICATOR, TVG_FLAG_SIZE, &ruleTvgFlag);
 
         if (stroke) {
             shapeDataByteCnt += serializeStroke(tvgSaver);
         }
 
         if (fill) {
-            shapeDataByteCnt += serializeFill(tvgSaver, fill, TVG_SHAPE_FLAG_HAS_FILL);
+            shapeDataByteCnt += serializeFill(tvgSaver, fill, TVG_SHAPE_FILL_INDICATOR);
         }
 
-        shapeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_FLAG_COLOR, sizeof(color), color);
+        shapeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_COLOR_INDICATOR, sizeof(color), color);
 
         if (path.cmds && path.pts) {
             shapeDataByteCnt += serializePath(tvgSaver);

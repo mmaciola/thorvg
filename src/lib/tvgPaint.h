@@ -240,17 +240,17 @@ namespace tvg
            tvg_block block = read_tvg_block(pointer);
            if (block.block_end > end) return LoaderResult::SizeCorruption;
 
-           if (block.type != TVG_PAINT_FLAG_CMP_METHOD) return LoaderResult::LogicalCorruption;
+           if (block.type != TVG_PAINT_CMP_METHOD_INDICATOR) return LoaderResult::LogicalCorruption;
            if (block.lenght != 1) return LoaderResult::SizeCorruption;
            switch (*block.data)
            {
-              case TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH:
+              case TVG_PAINT_CMP_METHOD_CLIPPATH_FLAG:
                  cmpMethod = CompositeMethod::ClipPath;
                  break;
-              case TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK:
+              case TVG_PAINT_CMP_METHOD_ALPHAMASK_FLAG:
                  cmpMethod = CompositeMethod::AlphaMask;
                  break;
-              case TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK:
+              case TVG_PAINT_CMP_METHOD_INV_ALPHAMASK_FLAG:
                  cmpMethod = CompositeMethod::InvAlphaMask;
                  break;
               default:
@@ -283,19 +283,19 @@ namespace tvg
               if (result == LoaderResult::InvalidType)
               {
                  switch (block.type) {
-                    case TVG_PAINT_FLAG_HAS_OPACITY: {
+                    case TVG_PAINT_OPACITY_INDICATOR: {
                        if (block.lenght != 1) return LoaderResult::SizeCorruption;
                        opacity = *block.data;
                        break;
                     }
-                    case TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX: {
+                    case TVG_PAINT_TRANSFORM_MATRIX_INDICATOR: {
                        if (block.lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
                        Matrix matrix;
                        memcpy(&matrix, block.data, sizeof(Matrix));
                        if (!transform(matrix)) return LoaderResult::MemoryCorruption;
                        break;
                     }
-                    case TVG_PAINT_FLAG_HAS_CMP_TARGET: { // cmp target
+                    case TVG_PAINT_CMP_TARGET_INDICATOR: { // cmp target
                        if (block.lenght < 5) return LoaderResult::SizeCorruption;
                        LoaderResult result = tvgLoadCmpTarget(block.data, block.block_end);
                        if (result != LoaderResult::Success) return result;
@@ -316,40 +316,40 @@ namespace tvg
             ByteCounter paintDataByteCnt = 0;
 
             if (opacity < 255) {
-                paintDataByteCnt += tvgSaver->saveMember(TVG_PAINT_FLAG_HAS_OPACITY,
+                paintDataByteCnt += tvgSaver->saveMember(TVG_PAINT_OPACITY_INDICATOR,
                                                          sizeof(opacity), &opacity);
             }
 
             if (rTransform) {
-                paintDataByteCnt += tvgSaver->saveMember(TVG_PAINT_FLAG_HAS_TRANSFORM_MATRIX,
+                paintDataByteCnt += tvgSaver->saveMember(TVG_PAINT_TRANSFORM_MATRIX_INDICATOR,
                                                          sizeof(rTransform->m), &rTransform->m);
             }
 
             if (cmpTarget) {
                 ByteCounter cmpDataByteCnt = 0;
 
-                tvgSaver->saveMemberIndicator(TVG_PAINT_FLAG_HAS_CMP_TARGET);
+                tvgSaver->saveMemberIndicator(TVG_PAINT_CMP_TARGET_INDICATOR);
                 tvgSaver->skipMemberDataSize();
 
                 FlagType cmpMethodTvgFlag;
                 switch (cmpMethod) {
                     case CompositeMethod::ClipPath: {
-                        cmpMethodTvgFlag = TVG_PAINT_FLAG_CMP_METHOD_CLIPPATH;
+                        cmpMethodTvgFlag = TVG_PAINT_CMP_METHOD_CLIPPATH_FLAG;
                         break;
                     }
                     case CompositeMethod::AlphaMask: {
-                        cmpMethodTvgFlag = TVG_PAINT_FLAG_CMP_METHOD_ALPHAMASK;
+                        cmpMethodTvgFlag = TVG_PAINT_CMP_METHOD_ALPHAMASK_FLAG;
                         break;
                     }
                     case CompositeMethod::InvAlphaMask: {
-                        cmpMethodTvgFlag = TVG_PAINT_FLAG_CMP_METHOD_INV_ALPHAMASK;
+                        cmpMethodTvgFlag = TVG_PAINT_CMP_METHOD_INV_ALPHAMASK_FLAG;
                         break;
                     }
                     case CompositeMethod::None: {
                         break;
                     }
                 }
-                cmpDataByteCnt += tvgSaver->saveMember(TVG_PAINT_FLAG_CMP_METHOD, sizeof(FlagType), &cmpMethodTvgFlag);
+                cmpDataByteCnt += tvgSaver->saveMember(TVG_PAINT_CMP_METHOD_INDICATOR, TVG_FLAG_SIZE, &cmpMethodTvgFlag);
 
                 cmpDataByteCnt += cmpTarget->pImpl->serialize(tvgSaver);
 
