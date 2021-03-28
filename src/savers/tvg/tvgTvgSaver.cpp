@@ -101,37 +101,37 @@ bool TvgSaver::close()
 }
 
 
-void TvgSaver::saveMemberIndicator(IndicatorType ind)
+void TvgSaver::saveMemberIndicator(TvgIndicator ind)
 {
-    if (size + sizeof(IndicatorType) > reserved) resizeBuffer(size + sizeof(IndicatorType));
+    if (size + TVG_INDICATOR_SIZE > reserved) resizeBuffer(size + TVG_INDICATOR_SIZE);
 
-    memcpy(bufferPosition, &ind, sizeof(IndicatorType));
-    bufferPosition += sizeof(IndicatorType);
-    size += sizeof(IndicatorType);
+    memcpy(bufferPosition, &ind, TVG_INDICATOR_SIZE);
+    bufferPosition += TVG_INDICATOR_SIZE;
+    size += TVG_INDICATOR_SIZE;
 }
 
 
 void TvgSaver::saveMemberDataSize(ByteCounter byteCnt)
 {
-    if (size + sizeof(ByteCounter) > reserved) resizeBuffer(size + sizeof(ByteCounter));
+    if (size + BYTE_COUNTER_SIZE > reserved) resizeBuffer(size + BYTE_COUNTER_SIZE);
 
-    memcpy(bufferPosition, &byteCnt, sizeof(ByteCounter));
-    bufferPosition += sizeof(ByteCounter);
-    size += sizeof(ByteCounter);
+    memcpy(bufferPosition, &byteCnt, BYTE_COUNTER_SIZE);
+    bufferPosition += BYTE_COUNTER_SIZE;
+    size += BYTE_COUNTER_SIZE;
 }
 
 
 void TvgSaver::saveMemberDataSizeAt(ByteCounter byteCnt)
 {
-    memcpy(bufferPosition - byteCnt - sizeof(ByteCounter), &byteCnt, sizeof(ByteCounter));
+    memcpy(bufferPosition - byteCnt - BYTE_COUNTER_SIZE, &byteCnt, BYTE_COUNTER_SIZE);
 }
 
 
 void TvgSaver::skipMemberDataSize()
 {
-    if (size + sizeof(ByteCounter) > reserved) resizeBuffer(size + sizeof(ByteCounter));
-    bufferPosition += sizeof(ByteCounter);
-    size += sizeof(ByteCounter);
+    if (size + BYTE_COUNTER_SIZE > reserved) resizeBuffer(size + BYTE_COUNTER_SIZE);
+    bufferPosition += BYTE_COUNTER_SIZE;
+    size += BYTE_COUNTER_SIZE;
 }
 
 
@@ -147,16 +147,16 @@ ByteCounter TvgSaver::saveMemberData(const void* data, ByteCounter byteCnt)
 }
 
 
-ByteCounter TvgSaver::saveMember(IndicatorType ind, ByteCounter byteCnt, const void* data)
+ByteCounter TvgSaver::saveMember(TvgIndicator ind, ByteCounter byteCnt, const void* data)
 {
-    ByteCounter blockByteCnt = sizeof(IndicatorType) + sizeof(ByteCounter) + byteCnt;
+    ByteCounter blockByteCnt = TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + byteCnt;
 
     if (size + blockByteCnt > reserved) resizeBuffer(size + blockByteCnt);
 
-    memcpy(bufferPosition, &ind, sizeof(IndicatorType));
-    bufferPosition += sizeof(IndicatorType);
-    memcpy(bufferPosition, &byteCnt, sizeof(ByteCounter));
-    bufferPosition += sizeof(ByteCounter);
+    memcpy(bufferPosition, &ind, TVG_INDICATOR_SIZE);
+    bufferPosition += TVG_INDICATOR_SIZE;
+    memcpy(bufferPosition, &byteCnt, BYTE_COUNTER_SIZE);
+    bufferPosition += BYTE_COUNTER_SIZE;
     memcpy(bufferPosition, data, byteCnt);
     bufferPosition += byteCnt;
 

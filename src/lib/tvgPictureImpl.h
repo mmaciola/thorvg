@@ -270,14 +270,14 @@ struct Picture::Impl
             pictureDataByteCnt += tvgSaver->saveMemberData(&w, wByteCnt);
             pictureDataByteCnt += tvgSaver->saveMemberData(&h, wByteCnt);
             pictureDataByteCnt += tvgSaver->saveMemberData(pixels, pixelsByteCnt);
-            pictureDataByteCnt += sizeof(IndicatorType) + sizeof(ByteCounter);
+            pictureDataByteCnt += TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE;
         }
 
         pictureDataByteCnt += picture->Paint::pImpl->serializePaint(tvgSaver);
 
         tvgSaver->saveMemberDataSizeAt(pictureDataByteCnt);
 
-        return sizeof(IndicatorType) + sizeof(ByteCounter) + pictureDataByteCnt;
+        return TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + pictureDataByteCnt;
     }
 };
 

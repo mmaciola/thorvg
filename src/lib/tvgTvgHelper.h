@@ -8,6 +8,20 @@
 #define _read_tvg_ui32(dst, src) memcpy(dst, (src), sizeof(uint32_t))
 #define _read_tvg_float(dst, src) memcpy(dst, (src), sizeof(float))
 
+using TvgFlag = uint8_t;
+using TvgIndicator = uint8_t;
+using ByteCounter = uint32_t;
+#define TVG_FLAG_SIZE sizeof(TvgFlag)
+#define TVG_INDICATOR_SIZE sizeof(TvgIndicator)
+#define BYTE_COUNTER_SIZE sizeof(ByteCounter)
+
+struct tvg_block {
+   TvgIndicator type;
+   ByteCounter lenght;
+   const char * data;
+   const char * block_end;
+};
+
 #define TVG_HEADER_TVG_SIGN_CODE "TVG"
 #define TVG_HEADER_TVG_VERSION_CODE "000"
 

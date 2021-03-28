@@ -678,12 +678,12 @@ struct Shape::Impl
        return LoaderResult::Success;
     }
 
-    ByteCounter serializeFill(TvgSaver* tvgSaver, Fill* f, IndicatorType fillTvgFlag)
+    ByteCounter serializeFill(TvgSaver* tvgSaver, Fill* f, TvgIndicator fillTvgFlag)
     {
         if (!tvgSaver) return 0;
 
         ByteCounter fillDataByteCnt = 0;
-        FlagType strokeTvgFlag;
+        TvgFlag strokeTvgFlag;
         const Fill::ColorStop* stops = nullptr;
         auto stopsCnt = f->colorStops(&stops);
         if (!stops || stopsCnt == 0) return 0;
@@ -695,7 +695,7 @@ struct Shape::Impl
             float argRadial[3];
             auto radGrad = static_cast<RadialGradient*>(f);
             if (radGrad->radial(argRadial, argRadial + 1,argRadial + 2) != Result::Success) {
-                tvgSaver->rewindBuffer(sizeof(FlagType) + sizeof(ByteCounter));
+                tvgSaver->rewindBuffer(TVG_FLAG_SIZE + BYTE_COUNTER_SIZE);
                 return 0;
             }
             fillDataByteCnt += tvgSaver->saveMember(TVG_FILL_RADIAL_GRADIENT_INDICATOR, sizeof(argRadial), argRadial);
@@ -704,7 +704,7 @@ struct Shape::Impl
             float argLinear[4];
             auto linGrad = static_cast<LinearGradient*>(f);
             if (linGrad->linear(argLinear, argLinear + 1, argLinear + 2, argLinear + 3) != Result::Success) {
-                tvgSaver->rewindBuffer(sizeof(FlagType) + sizeof(ByteCounter));
+                tvgSaver->rewindBuffer(TVG_FLAG_SIZE + BYTE_COUNTER_SIZE);
                 return 0;
             }
             fillDataByteCnt += tvgSaver->saveMember(TVG_FILL_LINEAR_GRADIENT_INDICATOR, sizeof(argLinear), argLinear);
@@ -730,7 +730,7 @@ struct Shape::Impl
 
         tvgSaver->saveMemberDataSizeAt(fillDataByteCnt);
 
-        return sizeof(IndicatorType) + sizeof(ByteCounter) + fillDataByteCnt;
+        return TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + fillDataByteCnt;
     }
 
     ByteCounter serializeStroke(TvgSaver* tvgSaver)
@@ -738,7 +738,7 @@ struct Shape::Impl
         if (!tvgSaver) return 0;
 
         ByteCounter strokeDataByteCnt = 0;
-        FlagType strokeTvgFlag;
+        TvgFlag strokeTvgFlag;
 
         tvgSaver->saveMemberIndicator(TVG_SHAPE_STROKE_INDICATOR);
         tvgSaver->skipMemberDataSize();
@@ -791,12 +791,12 @@ struct Shape::Impl
             tvgSaver->saveMemberDataSize(dashCntByteCnt + dashPtrnByteCnt);
             strokeDataByteCnt += tvgSaver->saveMemberData(&stroke->dashCnt, dashCntByteCnt);
             strokeDataByteCnt += tvgSaver->saveMemberData(stroke->dashPattern, dashPtrnByteCnt);
-            strokeDataByteCnt += sizeof(IndicatorType) + sizeof(ByteCounter);
+            strokeDataByteCnt += TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE;
         }
 
         tvgSaver->saveMemberDataSizeAt(strokeDataByteCnt);
 
-        return sizeof(IndicatorType) + sizeof(ByteCounter) + strokeDataByteCnt;
+        return TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + strokeDataByteCnt;
     }
 
     ByteCounter serializePath(TvgSaver* tvgSaver)
@@ -816,7 +816,7 @@ struct Shape::Impl
 
         tvgSaver->saveMemberDataSizeAt(pathDataByteCnt);
 
-        return sizeof(IndicatorType) + sizeof(ByteCounter) + pathDataByteCnt;
+        return TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + pathDataByteCnt;
     }
 
     ByteCounter serialize(TvgSaver* tvgSaver)
@@ -849,7 +849,7 @@ struct Shape::Impl
 
         tvgSaver->saveMemberDataSizeAt(shapeDataByteCnt);
 
-        return sizeof(IndicatorType) + sizeof(ByteCounter) + shapeDataByteCnt;
+        return TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + shapeDataByteCnt;
     }
 };
 

@@ -331,7 +331,7 @@ namespace tvg
                 tvgSaver->saveMemberIndicator(TVG_PAINT_CMP_TARGET_INDICATOR);
                 tvgSaver->skipMemberDataSize();
 
-                FlagType cmpMethodTvgFlag;
+                TvgFlag cmpMethodTvgFlag;
                 switch (cmpMethod) {
                     case CompositeMethod::ClipPath: {
                         cmpMethodTvgFlag = TVG_PAINT_CMP_METHOD_CLIPPATH_FLAG;
@@ -354,7 +354,7 @@ namespace tvg
                 cmpDataByteCnt += cmpTarget->pImpl->serialize(tvgSaver);
 
                 tvgSaver->saveMemberDataSizeAt(cmpDataByteCnt);
-                paintDataByteCnt += sizeof(IndicatorType) + sizeof(ByteCounter) + cmpDataByteCnt;
+                paintDataByteCnt += TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + cmpDataByteCnt;
             }
 
             return paintDataByteCnt;

@@ -243,7 +243,7 @@ struct Scene::Impl
 
         tvgSaver->saveMemberDataSizeAt(sceneDataByteCnt);
 
-        return sizeof(IndicatorType) + sizeof(ByteCounter) + sceneDataByteCnt;
+        return TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + sceneDataByteCnt;
     }
 
 
