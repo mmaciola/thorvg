@@ -68,16 +68,6 @@ struct Matrix
 };
 
 enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption, LogicalCorruption };
-//MGS this should be in helper
-using FlagType = uint8_t;
-using IndicatorType = uint8_t;
-using ByteCounter = uint32_t;
-struct tvg_block {
-   IndicatorType type;
-   ByteCounter lenght;
-   const char * data;
-   const char * block_end;
-};
 
 /**
  * @class Paint

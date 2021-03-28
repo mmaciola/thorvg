@@ -24,6 +24,7 @@
 
 #include "tvgTaskScheduler.h"
 #include "tvgSaverMgr.h"
+#include "tvgTvgHelper.h"
 
 class TvgSaver : public Saver, public Task
 {
@@ -36,12 +37,12 @@ public:
     void run(unsigned tid);
     bool close() override;
 
-    void saveMemberIndicator(IndicatorType ind);
+    void saveMemberIndicator(TvgIndicator ind);
     void saveMemberDataSize(ByteCounter byteCnt);
     void saveMemberDataSizeAt(ByteCounter byteCnt);
     void skipMemberDataSize();
     ByteCounter saveMemberData(const void* data, ByteCounter byteCnt);
-    ByteCounter saveMember(IndicatorType ind, ByteCounter byteCnt, const void* data);
+    ByteCounter saveMember(TvgIndicator ind, ByteCounter byteCnt, const void* data);
     void resizeBuffer(uint32_t newSize);
     void rewindBuffer(ByteCounter bytesNum);
 
