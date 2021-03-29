@@ -25,14 +25,14 @@ struct tvg_block {
 #define TVG_HEADER_TVG_SIGN_CODE "TVG"
 #define TVG_HEADER_TVG_VERSION_CODE "000"
 
+// Base elements
 #define TVG_SCENE_BEGIN_INDICATOR     (TvgIndicator)0xfe
 #define TVG_SHAPE_BEGIN_INDICATOR     (TvgIndicator)0xfd
 #define TVG_PICTURE_BEGIN_INDICATOR   (TvgIndicator)0xfc
-#define TVG_RAW_IMAGE_BEGIN_INDICATOR (TvgIndicator)0x50
 
+// Paint
 #define TVG_PAINT_OPACITY_INDICATOR          (TvgIndicator)0x01
 #define TVG_PAINT_TRANSFORM_MATRIX_INDICATOR (TvgIndicator)0x02
-#define TVG_SCENE_FLAG_RESERVEDCNT           (TvgIndicator)0x03
 #define TVG_PAINT_CMP_TARGET_INDICATOR       (TvgIndicator)0x04
 
 #define TVG_PAINT_CMP_METHOD_INDICATOR     (TvgIndicator)0x10
@@ -40,6 +40,10 @@ struct tvg_block {
 #define TVG_PAINT_CMP_METHOD_ALPHAMASK_FLAG     (TvgFlag)0x02
 #define TVG_PAINT_CMP_METHOD_INV_ALPHAMASK_FLAG (TvgFlag)0x03
 
+// Scene
+#define TVG_SCENE_FLAG_RESERVEDCNT         (TvgIndicator)0x03
+
+// Shape
 #define TVG_SHAPE_PATH_INDICATOR    (TvgIndicator)0x20 // If set, shape has path section
 #define TVG_SHAPE_STROKE_INDICATOR  (TvgIndicator)0x21 // If set, shape has stroke section
 #define TVG_SHAPE_FILL_INDICATOR    (TvgIndicator)0x22 // If set, shape has fill section
@@ -72,5 +76,7 @@ struct tvg_block {
 #define TVG_FILL_FILLSPREAD_REFLECT_FLAG         (TvgFlag)0x02 // FillSpread::Reflect
 #define TVG_FILL_FILLSPREAD_REPEAT_FLAG          (TvgFlag)0x03 // FillSpread::Repeat
 
+// Picture
+#define TVG_RAW_IMAGE_BEGIN_INDICATOR (TvgIndicator)0x50
 
 #endif //_TVG_STANDARD_HELPER_H_
