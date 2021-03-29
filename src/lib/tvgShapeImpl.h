@@ -520,7 +520,8 @@ struct Shape::Impl
      */
     LoaderResult tvgLoadStrokeDashptrn(const char* pointer, const char* end)
     {
-       const uint32_t dashPatternCnt = (uint32_t) *pointer;
+       uint32_t dashPatternCnt;
+       _read_tvg_ui32(&dashPatternCnt, pointer);
        pointer += sizeof(uint32_t);
        const float * dashPattern = (float *) pointer;
        pointer += sizeof(float) * dashPatternCnt;

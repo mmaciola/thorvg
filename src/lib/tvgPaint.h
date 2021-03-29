@@ -306,7 +306,8 @@ namespace tvg
 
               if (result > LoaderResult::Success)
                  {
-                    printf("tvgLoad[type: 0x%02x] ERROR %d \n", (int)block.type, (int)result);
+                    // LOG: tvgLoad parsing error
+                    printf("TVG_LOADER: Loading error[type: 0x%02x]: %d \n", (int)block.type, (int)result);
                     return result;
                  }
               pointer = block.block_end;
