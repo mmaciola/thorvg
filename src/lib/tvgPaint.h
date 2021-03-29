@@ -304,7 +304,11 @@ namespace tvg
                  }
               }
 
-              if (result > LoaderResult::Success) return result;
+              if (result > LoaderResult::Success)
+                 {
+                    printf("tvgLoad[type: 0x%02x] ERROR %d \n", (int)block.type, (int)result);
+                    return result;
+                 }
               pointer = block.block_end;
            }
            return LoaderResult::Success;

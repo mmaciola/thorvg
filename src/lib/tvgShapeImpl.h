@@ -396,10 +396,12 @@ struct Shape::Impl
     LoaderResult tvgLoadPath(const char* pointer, const char* end)
     {
          // ShapePath
-         const uint32_t cmdCnt = (uint32_t) *pointer;
+         uint32_t cmdCnt, ptsCnt;
+         _read_tvg_ui32(&cmdCnt, pointer);
          pointer += sizeof(uint32_t);
-         const uint32_t ptsCnt = (uint32_t) *pointer;
+         _read_tvg_ui32(&ptsCnt, pointer);
          pointer += sizeof(uint32_t);
+
          const PathCommand * cmds = (PathCommand *) pointer;
          pointer += sizeof(PathCommand) * cmdCnt;
          const Point * pts = (Point *) pointer;
@@ -639,14 +641,12 @@ struct Shape::Impl
              }
              case TVG_SHAPE_STROKE_INDICATOR: { // stroke section
                 LoaderResult result = tvgLoadStroke(block.data, block.block_end);
-                printf("TVG_SHAPE_STROKE_INDICATOR result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 flag |= RenderUpdateFlag::Stroke;
                 break;
              }
              case TVG_SHAPE_FILL_INDICATOR: { // fill (gradient)
                 LoaderResult result = tvgLoadFill(block.data, block.block_end, &fill);
-                printf("TVG_SHAPE_FILL_INDICATOR result %s \n", (result != LoaderResult::Success) ? "ERROR" : "OK");
                 if (result != LoaderResult::Success) return result;
                 flag |= RenderUpdateFlag::Gradient;
                 break;
