@@ -148,8 +148,8 @@ bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
 tvg_block read_tvg_block(const char * pointer) {
    tvg_block block;
    block.type = *pointer;
-   _read_tvg_ui32(&block.lenght, pointer + sizeof(TvgFlag));
-   block.data = pointer + sizeof(TvgFlag) + sizeof(ByteCounter);
+   _read_tvg_ui32(&block.lenght, pointer + TVG_INDICATOR_SIZE);
+   block.data = pointer + TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE;
    block.block_end = block.data + block.lenght;
    //printf("TVG_LOADER: lenght %d: %02x %02x %02x %02x.\n", block.lenght, pointer[1], pointer[2], pointer[3], pointer[4]);
    //printf("TVG_LOADER: type %d, data[%d]: %02x %02x %02x.\n", block.type, block.lenght, block.data[0], block.data[1], block.data[2]);
