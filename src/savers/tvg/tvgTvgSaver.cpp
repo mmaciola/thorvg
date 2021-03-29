@@ -19,9 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include "tvgTvgSaver.h"
 #include <string.h>
 #include <fstream>
+#include "tvgTvgSaver.h"
+#include "tvgTvgHelper.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
