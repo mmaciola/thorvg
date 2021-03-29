@@ -24,6 +24,10 @@
 
 #include "config.h"
 #include "thorvg.h"
+#include <iostream>
+#include <chrono>
+
+using namespace std::chrono;
 
 using namespace std;
 using namespace tvg;

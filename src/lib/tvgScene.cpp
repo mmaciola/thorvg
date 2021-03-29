@@ -92,5 +92,10 @@ Result Scene::save(const std::string& path) noexcept
 void Scene::serialize()
 {
     auto tvgSaver = static_cast<TvgSaver*>(pImpl->saver.get());
+    auto start = high_resolution_clock::now();
     auto tmp = Paint::pImpl->serialize(tvgSaver);
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    cout << "Serialization time: " << duration.count() << " microseconds" << endl;
+
 }

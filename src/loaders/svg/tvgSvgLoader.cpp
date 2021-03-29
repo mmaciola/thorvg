@@ -27,6 +27,7 @@
 #include "tvgLoaderMgr.h"
 #include "tvgXmlParser.h"
 #include "tvgSvgLoader.h"
+#include <iostream>
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -2573,6 +2574,7 @@ SvgLoader::~SvgLoader()
 
 void SvgLoader::run(unsigned tid)
 {
+cout << __FILE__ << " " << __func__ << endl;
     if (!simpleXmlParse(content, size, true, _svgLoaderParser, &(loaderData))) return;
 
     if (loaderData.doc) {

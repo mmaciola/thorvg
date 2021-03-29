@@ -25,7 +25,7 @@
 #include <map>
 #include "tvgTvgLoadParser.h"
 
-#define TVG_LOADER_LOG_ENABLED 1
+#define TVG_LOADER_LOG_ENABLED 0
 
 /*
  * Read header of the .tvg binary file
@@ -60,7 +60,6 @@ static bool tvg_read_header(const char** pointer)
    char metadata[meta_lenght + 1];
    memcpy(metadata, *pointer, meta_lenght);
    metadata[meta_lenght] = '\0';
-   printf("TVG_LOADER: Header is valid, metadata[%d]: %s.\n", meta_lenght, metadata);
 #endif
 
    *pointer += meta_lenght;
@@ -79,7 +78,6 @@ LoaderResult tvg_read_paint(tvg_block block, Paint ** paint)
       case TVG_SCENE_BEGIN_INDICATOR:
          {
 #ifdef TVG_LOADER_LOG_ENABLED
-            printf("TVG_SCENE_BEGIN_INDICATOR[%d] \n", block.lenght);
 #endif
             auto s = Scene::gen();
             LoaderResult result = s->tvgLoad(block.data, block.block_end);
@@ -90,7 +88,6 @@ LoaderResult tvg_read_paint(tvg_block block, Paint ** paint)
       case TVG_SHAPE_BEGIN_INDICATOR:
          {
 #ifdef TVG_LOADER_LOG_ENABLED
-            printf("TVG_SHAPE_BEGIN_INDICATOR[%d] \n", block.lenght);
 #endif
             auto s = Shape::gen();
             LoaderResult result = s->tvgLoad(block.data, block.block_end);
@@ -101,7 +98,6 @@ LoaderResult tvg_read_paint(tvg_block block, Paint ** paint)
       case TVG_PICTURE_BEGIN_INDICATOR:
          {
 #ifdef TVG_LOADER_LOG_ENABLED
-            printf("TVG_PICTURE_BEGIN_INDICATOR[%d] \n", block.lenght);
 #endif
             auto s = Picture::gen();
             LoaderResult result = s->tvgLoad(block.data, block.block_end);
@@ -140,7 +136,6 @@ bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
       }
 
    // LOG: File parsed correctly
-   printf("TVG_LOADER: File parsed correctly.\n");
    return true;
 }
 
