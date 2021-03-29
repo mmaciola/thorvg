@@ -78,7 +78,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     scene->push(move(shape3));
     scene->push(move(svg));
 
-    if (scene->save("./tvg_file.tvg") != tvg::Result::Success) return;
+    if (scene->save(EXAMPLE_DIR"/tvg_file.tvg") != tvg::Result::Success) return;
 
     //Draw the Scene onto the Canvas
     canvas->push(move(scene));
