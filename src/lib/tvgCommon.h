@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include "thorvg.h"
+#include <iostream>
 
 using namespace std;
 using namespace tvg;

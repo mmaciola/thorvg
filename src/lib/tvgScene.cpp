@@ -93,4 +93,5 @@ void Scene::serialize()
 {
     auto tvgSaver = static_cast<TvgSaver*>(pImpl->saver.get());
     auto tmp = Paint::pImpl->serialize(tvgSaver);
+
 }
