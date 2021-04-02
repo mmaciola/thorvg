@@ -25,7 +25,7 @@
 #include <map>
 #include "tvgTvgLoadParser.h"
 
-#define TVG_LOADER_LOG_ENABLED 1
+//#define TVG_LOADER_LOG_ENABLED 1
 
 /*
  * Read header of the .tvg binary file
@@ -565,7 +565,9 @@ bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
       }
 
    // LOG: File parsed correctly
+#ifdef TVG_LOADER_LOG_ENABLED
    printf("TVG_LOADER: File parsed correctly.\n");
+#endif
    return true;
 }
 
