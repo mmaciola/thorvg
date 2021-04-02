@@ -98,3 +98,17 @@ const uint32_t* Picture::data() const noexcept
 
     return pImpl->pixels;
 }
+
+
+Result Picture::paint(unique_ptr<Paint> paint) noexcept
+{
+   // TODO remove old is set
+   Paint * p = paint.release();
+   if (!p) return Result::MemoryCorruption;
+   pImpl->paint = p;
+   return Result::Success;
+}
+
+
+
+

@@ -33,7 +33,6 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     //Round Rectangle
     auto shape1 = tvg::Shape::gen();
     shape1->appendRect(2, 9, 401, 404, 49, 51);
-    shape1->fill(91, 92, 93, 94);
     shape1->stroke(5);
     shape1->stroke(255,0,0,200);
     float dashPattern[3] = {20, 10, 17.98};

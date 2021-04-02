@@ -281,6 +281,8 @@ public:
     //TODO: Replace with size(). Remove API
     Result viewbox(float* x, float* y, float* w, float* h) const noexcept;
 
+    Result paint(std::unique_ptr<Paint> paint) noexcept;
+
     Result size(float w, float h) noexcept;
     Result size(float* w, float* h) const noexcept;
     const uint32_t* data() const noexcept;

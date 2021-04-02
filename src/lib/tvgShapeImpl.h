@@ -832,15 +832,14 @@ struct Shape::Impl
         TvgFlag ruleTvgFlag = (rule == FillRule::EvenOdd) ? TVG_SHAPE_FILLRULE_EVENODD_FLAG : TVG_SHAPE_FILLRULE_WINDING_FLAG;
         shapeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_FILLRULE_INDICATOR, TVG_FLAG_SIZE, &ruleTvgFlag);
 
+        shapeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_COLOR_INDICATOR, sizeof(color), color);
+
         if (stroke) {
             shapeDataByteCnt += serializeStroke(tvgSaver);
         }
-
         if (fill) {
             shapeDataByteCnt += serializeFill(tvgSaver, fill, TVG_SHAPE_FILL_INDICATOR);
         }
-
-        shapeDataByteCnt += tvgSaver->saveMember(TVG_SHAPE_COLOR_INDICATOR, sizeof(color), color);
 
         if (path.cmds && path.pts) {
             shapeDataByteCnt += serializePath(tvgSaver);

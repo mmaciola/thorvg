@@ -453,8 +453,7 @@ LoaderResult tvgParsePicture(tvg_block block, Picture * picture)
 
    Paint * paint;
    LoaderResult result = tvg_read_paint(block, &paint);
-   //if (result == LoaderResult::Success) paint = paint_local;
-   // TODO No set paint function for picture
+   if (result == LoaderResult::Success) picture->paint(unique_ptr<Paint>(paint));
    return result;
 }
 
