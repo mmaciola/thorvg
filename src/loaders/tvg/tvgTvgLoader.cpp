@@ -110,8 +110,7 @@ void TvgLoader::run(unsigned tid)
 {
    if (!tvg_file_parse(this->pointer, this->size, this->root.get()))
       {
-         // TODO: what should I do if parsing error
-         printf("[mmaciola] tvg_file_parse ERROR\n");
+         printf("TVG_LOADER: File parsing error\n");
          tvg_clean_buffer();
       }
 }
