@@ -52,6 +52,7 @@ enum class TVG_EXPORT StrokeJoin { Bevel = 0, Round, Miter };
 enum class TVG_EXPORT FillSpread { Pad = 0, Reflect, Repeat };
 enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
 enum class TVG_EXPORT CompositeMethod { None = 0, ClipPath, AlphaMask, InvAlphaMask };
+enum class TVG_EXPORT BlendingMode { Normal = 0, Screen, Multiply, Overlay, Darken, Lighten, ColorDodge, ColorBurn, HardLight, SoftLight, Difference, Exclusion, Hue, Saturation, Color, Luminosity };
 enum class TVG_EXPORT CanvasEngine { Sw = (1 << 1), Gl = (1 << 2)};
 
 

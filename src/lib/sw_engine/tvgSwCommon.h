@@ -282,6 +282,18 @@ static inline SwCoord HALF_STROKE(float width)
     return TO_SWCOORD(width * 0.5);
 }
 
+static inline uint32_t LIMIT_BYTE(uint32_t b)
+{
+    return (b & 0xffffff00) ? 0xff : b;
+}
+
+static inline uint32_t BLEND_COLORS(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t ialpha)
+{
+    return (LIMIT_BYTE((((src >> 16) & 0xff) * alpha + ((dst >> 16) & 0xff) * ialpha) >> 8) << 16)
+      | (LIMIT_BYTE((((src >> 8) & 0xff) * alpha + ((dst >> 8) & 0xff) * ialpha) >> 8) << 8)
+      | LIMIT_BYTE((((src) & 0xff) * alpha + ((dst) & 0xff) * ialpha) >> 8);
+}
+
 int64_t mathMultiply(int64_t a, int64_t b);
 int64_t mathDivide(int64_t a, int64_t b);
 int64_t mathMulDiv(int64_t a, int64_t b, int64_t c);

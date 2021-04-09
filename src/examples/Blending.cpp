@@ -41,17 +41,17 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     //Prepare Circle
     auto shape2 = tvg::Shape::gen();
     shape2->appendCircle(400, 400, 200, 200);    //cx, cy, radiusW, radiusH
-    shape2->fill(255, 255, 0, 170);              //r, g, b, a
+    shape2->fill(255, 255, 0, 255);              //r, g, b, a
     if (canvas->push(move(shape2)) != tvg::Result::Success) return;
 
     //Prepare Ellipse
     auto shape3 = tvg::Shape::gen();
     shape3->appendCircle(400, 400, 250, 100);    //cx, cy, radiusW, radiusH
-    shape3->fill(255, 255, 255, 100);            //r, g, b, a
+    shape3->fill(255, 0, 0, 128);            //r, g, b, a
     if (canvas->push(move(shape3)) != tvg::Result::Success) return;
 
     //Prepare Star
-    auto shape4 = tvg::Shape::gen();
+    /*auto shape4 = tvg::Shape::gen();
     shape4->moveTo(199, 234);
     shape4->lineTo(253, 343);
     shape4->lineTo(374, 360);
@@ -64,13 +64,13 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     shape4->lineTo(146, 343);
     shape4->close();
     shape4->fill(255, 0, 200, 200);
-    if (canvas->push(move(shape4)) != tvg::Result::Success) return;
+    if (canvas->push(move(shape4)) != tvg::Result::Success) return;*/
 
     //Prepare Opaque Ellipse
-    auto shape5 = tvg::Shape::gen();
+    /*auto shape5 = tvg::Shape::gen();
     shape5->appendCircle(600, 650, 200, 150);
     shape5->fill(0, 0, 255, 255);
-    if (canvas->push(move(shape5)) != tvg::Result::Success) return;
+    if (canvas->push(move(shape5)) != tvg::Result::Success) return;*/
 }
 
 

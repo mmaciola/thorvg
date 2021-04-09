@@ -102,6 +102,7 @@ namespace tvg
 
         Paint* cmpTarget = nullptr;
         CompositeMethod cmpMethod = CompositeMethod::None;
+        BlendingMode blendingMode = BlendingMode::Normal;
 
         uint8_t opacity = 255;
 
@@ -283,6 +284,7 @@ namespace tvg
                 }
             }
 
+            ret->pImpl->blendingMode = blendingMode;
             ret->pImpl->opacity = opacity;
 
             if (cmpTarget) ret->pImpl->cmpTarget = cmpTarget->duplicate();

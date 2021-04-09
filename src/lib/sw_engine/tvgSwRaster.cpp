@@ -163,6 +163,33 @@ static bool _translucentRectInvAlphaMask(SwSurface* surface, const SwBBox& regio
     return true;
 }
 
+static bool _translucentRectBlending(SwSurface* surface, const SwBBox& region, uint32_t color)
+{
+   // mmaciola TODO
+   auto buffer = surface->buffer + (region.min.y * surface->stride) + region.min.x;
+   auto h = static_cast<uint32_t>(region.max.y - region.min.y);
+   auto w = static_cast<uint32_t>(region.max.x - region.min.x);
+
+#ifdef THORVG_LOG_ENABLED
+   cout <<"SW_ENGINE: Rectangle Inverse Alpha Mask Composition" << endl;
+#endif
+
+   auto cbuffer = surface->compositor->image.data + (region.min.y * surface->stride) + region.min.x;   //compositor buffer
+
+   for (uint32_t y = 0; y < h; ++y) {
+       auto dst = &buffer[y * surface->stride];
+       auto cmp = &cbuffer[y * surface->stride];
+       for (uint32_t x = 0; x < w; ++x) {
+           //auto ialpha = 255 - surface->blender.alpha(*cmp);
+           //auto tmp = ALPHA_BLEND(color, ialpha);
+           //dst[x] = tmp + ALPHA_BLEND(dst[x], 255 - surface->blender.alpha(tmp));
+           dst[x] = 0x00baccff;
+           ++cmp;
+       }
+   }
+   return true;
+}
+
 static bool _rasterTranslucentRect(SwSurface* surface, const SwBBox& region, uint32_t color)
 {
     if (surface->compositor) {
@@ -171,6 +198,9 @@ static bool _rasterTranslucentRect(SwSurface* surface, const SwBBox& region, uin
         }
         if (surface->compositor->method == CompositeMethod::InvAlphaMask) {
             return _translucentRectInvAlphaMask(surface, region, color);
+        }
+        if (surface->compositor->blending != BlendingMode::Normal) {
+              return _translucentRectBlending(surface, region, color);
         }
     }
     return _translucentRect(surface, region, color);
@@ -262,6 +292,118 @@ static bool _translucentRleInvAlphaMask(SwSurface* surface, SwRleData* rle, uint
     return true;
 }
 
+static uint32_t _blendLayers(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t ialpha, uint32_t src_blended, BlendingMode mode)
+{
+   // https://love2d.org/wiki/BlendMode_Formulas
+   switch (mode)
+   {
+      default:
+      case BlendingMode::Normal: {
+         // normal: A + B
+         return src + ALPHA_BLEND(dst, ialpha);
+      }
+      case BlendingMode::Screen: {
+         // screen: 1 - (1-A)*(1-B) = A + B - A*B
+         // alpha (A + B - A*B) + ialpha B = A_blended (1-B) + B
+         return (LIMIT_BYTE(((src_blended >> 16) & 0xff)*(1-((dst >> 16) & 0xff)) + ((dst >> 16) & 0xff)) << 16)
+               | (LIMIT_BYTE(((src_blended >> 8) & 0xff)*(1-((dst >> 8) & 0xff)) + ((dst >> 8) & 0xff)) << 8)
+               | LIMIT_BYTE((src_blended & 0xff)*(1-(dst & 0xff)) + (dst & 0xff));
+      }
+      case BlendingMode::Multiply: {
+         // multiply: A*B
+         // alpha (A*B) + ialpha B = B * (A_blended + ialpha)
+         return (LIMIT_BYTE((((src_blended >> 8) & 0xff) + ialpha) * ((dst >> 16) & 0xff) >> 8) << 16)
+               | (LIMIT_BYTE((((src_blended) & 0xff) + ialpha) * ((dst >> 8) & 0xff) >> 8) << 8)
+               | LIMIT_BYTE((((src_blended << 8) & 0xff) + ialpha) * ((dst) & 0xff) >> 8);
+      }
+      case BlendingMode::Overlay: { // TODO
+         // overlay: 2AB if A < 0.5 OR 1-2(1-A)(1-B) otherwise
+         if (alpha < 128)
+            return 2 * src * dst;
+         else
+            return 2 * src + 2 * dst - 2 * src * dst - 0xffffff;
+      }
+      case BlendingMode::Darken: {
+         // darken: min(A, B)
+         uint32_t result = (min((src >> 16) & 0xff, (dst >> 16) & 0xff) << 16)
+                           | (min((src >> 8) & 0xff, (dst >> 8) & 0xff) << 8)
+                           | (min(src & 0xff, dst & 0xff));
+         return BLEND_COLORS(result, dst, alpha, ialpha);
+      }
+      case BlendingMode::Lighten: {
+         // lighten: max(A, B)
+         uint32_t result = (max((src >> 16) & 0xff, (dst >> 16) & 0xff) << 16)
+                           | (max((src >> 8) & 0xff, (dst >> 8) & 0xff) << 8)
+                           | (max(src & 0xff, dst & 0xff));
+         return BLEND_COLORS(result, dst, alpha, ialpha);
+      }
+      case BlendingMode::ColorDodge: {
+         // ColorDodge: min(a, b)
+         return 0;
+      }
+      case BlendingMode::ColorBurn: {
+         // ColorBurn: min(a, b)
+         return (LIMIT_BYTE(0) << 16)
+               | (LIMIT_BYTE(0) << 8)
+               | LIMIT_BYTE(0);
+      }
+      case BlendingMode::HardLight: {
+         // HardLight: min(a, b)
+         return 0;
+      }
+      case BlendingMode::SoftLight: {
+         // SoftLight: min(a, b)
+         return 0;
+      }
+      case BlendingMode::Difference: {
+         // Difference: min(a, b)
+         return 0;
+      }
+      case BlendingMode::Exclusion: {
+         // Exclusion: min(a, b)
+         return 0;
+      }
+      case BlendingMode::Hue: {
+         // Hue: min(a, b)
+         return 0;
+      }
+      case BlendingMode::Saturation: {
+         // Saturation: min(a, b)
+         return 0;
+      }
+      case BlendingMode::Color: {
+         // Color: min(a, b)
+         return 0;
+      }
+      case BlendingMode::Luminosity: {
+         // Luminosity: min(a, b)
+         return 0;
+      }
+   }
+}
+
+static bool _translucentRleBlending(SwSurface* surface, SwRleData* rle, uint32_t color)
+{
+   // mmaciola todo
+   printf("_translucentRleBlending \n");
+   auto span = rle->spans;
+   uint32_t src;
+
+   for (uint32_t i = 0; i < rle->size; ++i) {
+       auto dst = &surface->buffer[span->y * surface->stride + span->x];
+       if (span->coverage < 255) src = ALPHA_BLEND(color, span->coverage);
+       else src = color;
+       auto ialpha = 255 - surface->blender.alpha(src);
+       for (uint32_t x = 0; x < span->len; ++x) {
+           //dst[x] = src + ALPHA_BLEND(dst[x], ialpha);
+            // dst[x] = _blendLayers(src, ALPHA_BLEND(dst[x], ialpha), span->coverage, BlendingMode::Screen);
+             dst[x] = _blendLayers(color, dst[x], span->coverage, ialpha, src, BlendingMode::Multiply);
+       }
+       ++span;
+   }
+   return true;
+}
+
 static bool _rasterTranslucentRle(SwSurface* surface, SwRleData* rle, uint32_t color)
 {
     if (!rle) return false;
@@ -273,7 +415,11 @@ static bool _rasterTranslucentRle(SwSurface* surface, SwRleData* rle, uint32_t c
         if (surface->compositor->method == CompositeMethod::InvAlphaMask) {
             return _translucentRleInvAlphaMask(surface, rle, color);
         }
+        //if (surface->compositor->blending != BlendingMode::Normal) {
+          //    return _translucentRleBlending(surface, rle, color);
+        //}
     }
+    return _translucentRleBlending(surface, rle, color);
     return _translucentRle(surface, rle, color);
 }
 
@@ -856,7 +1002,6 @@ bool rasterSolidShape(SwSurface* surface, SwShape* shape, uint8_t r, uint8_t g, 
         g = ALPHA_MULTIPLY(g, a);
         b = ALPHA_MULTIPLY(b, a);
     }
-
     auto color = surface->blender.join(r, g, b, a);
     auto translucent = _translucent(surface, a);
 
@@ -868,6 +1013,7 @@ bool rasterSolidShape(SwSurface* surface, SwShape* shape, uint8_t r, uint8_t g, 
     if (translucent) {
         return _rasterTranslucentRle(surface, shape->rle, color);
     }
+    printf("rasterSolidShape 3\n");
     return _rasterSolidRle(surface, shape->rle, color);
 }
 

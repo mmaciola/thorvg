@@ -43,6 +43,7 @@ using RenderData = void*;
 
 struct Compositor {
     CompositeMethod method;
+    BlendingMode blending;
     uint32_t        opacity;
 };
 
