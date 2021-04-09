@@ -243,6 +243,7 @@ struct SwSurface : Surface
 {
     SwBlender blender;                    //mandatory
     SwCompositor* compositor = nullptr;   //compositor (optional)
+    BlendingMode blendingMode;
 };
 
 struct SwCompositor : Compositor
@@ -287,6 +288,28 @@ static inline uint8_t ALPHA_MULTIPLY(uint32_t c, uint32_t a)
 static inline SwCoord HALF_STROKE(float width)
 {
     return TO_SWCOORD(width * 0.5);
+}
+
+static inline uint32_t LIMIT_BYTE(uint32_t b)
+{
+    return (b & 0xffffff00) ? 0xff : b;
+}
+
+static inline uint32_t LIMIT_BYTE_LOW(uint32_t b)
+{
+    return (b & 0xffffff00) ? 0x00 : b;
+}
+
+static inline uint32_t BLEND_COLORS(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t ialpha)
+{
+    return (LIMIT_BYTE((((src >> 16) & 0xff) * alpha + ((dst >> 16) & 0xff) * ialpha) >> 8) << 16)
+      | (LIMIT_BYTE((((src >> 8) & 0xff) * alpha + ((dst >> 8) & 0xff) * ialpha) >> 8) << 8)
+      | LIMIT_BYTE((((src) & 0xff) * alpha + ((dst) & 0xff) * ialpha) >> 8);
+}
+
+static inline uint32_t ABS_DIFFERENCE(uint32_t src, uint32_t dst)
+{
+    return (src >= dst) ? (src - dst) : (dst - src);
 }
 
 int64_t mathMultiply(int64_t a, int64_t b);
