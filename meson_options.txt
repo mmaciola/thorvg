@@ -19,7 +19,7 @@ option('vectors',
 option('bindings',
    type: 'array',
    choices: ['', 'capi'],
-   value: [''],
+   value: ['capi'],
    description: 'Enable C API binding')
 
 option('tools',
@@ -30,7 +30,7 @@ option('tools',
 
 option('examples',
     type: 'boolean',
-    value: false,
+    value: true,
     description: 'Enable building examples')
 
 option('test',
@@ -40,5 +40,5 @@ option('test',
 
 option('log',
     type: 'boolean',
-    value: false,
+    value: true,
     description: 'Enable log message')
