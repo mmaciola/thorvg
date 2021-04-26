@@ -29,7 +29,7 @@
 class TvgLoader : public Loader, public Task
 {
 public:
-   char * buffer;
+   char * buffer = nullptr;
    const char * pointer = nullptr;
    uint32_t size = 0;
 

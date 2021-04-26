@@ -92,8 +92,6 @@ bool TvgLoader::open(const char* data, uint32_t size)
 
 bool TvgLoader::read()
 {
-   if (!this->root) root = Scene::gen();
-   if (!this->root) return false;
    if (!this->pointer || this->size == 0) return false;
    TaskScheduler::request(this);
    return true;
@@ -108,6 +106,9 @@ bool TvgLoader::close()
 
 void TvgLoader::run(unsigned tid)
 {
+   root = Scene::gen();
+   if (!this->root) return;
+
    if (!tvg_file_parse(this->pointer, this->size, this->root.get()))
       {
          printf("TVG_LOADER: File parsing error\n");

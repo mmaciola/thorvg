@@ -442,11 +442,15 @@ LoaderResult tvgParsePicture(tvg_block block, Picture * picture)
            uint32_t size = w * h * sizeof(uint32_t);
            if (block.lenght != 8 + size) return LoaderResult::SizeCorruption;
 
-           uint32_t* pixels = (uint32_t*) malloc(size);
+           /*uint32_t* pixels = (uint32_t*) malloc(size);
            if (!pixels) return LoaderResult::MemoryCorruption;
            memcpy(pixels, block.data + 8, size);
 
            picture->load(pixels, w, h, false);
+           free(pixels);*/
+
+           uint32_t* pixels = (uint32_t*) &block.data[8];
+           picture->load(pixels, w, h, true);
            return LoaderResult::Success;
         }
      }

@@ -6,11 +6,15 @@
 
 void tvgDrawCmds(tvg::Canvas* canvas)
 {
-    if (!canvas) return;
+   if (!canvas) return;
 
-    auto scene = tvg::Scene::gen();
-    scene->load(EXAMPLE_DIR"/tvg_file.tvg");
-    canvas->push(move(scene));
+   /*auto scene = tvg::Scene::gen();
+   scene->load(EXAMPLE_DIR"/tvg_file.tvg");
+   canvas->push(move(scene));*/
+
+   auto picture = tvg::Picture::gen();
+   picture->load(EXAMPLE_DIR"/tvg_file.tvg");
+   canvas->push(move(picture));
 }
 
 
