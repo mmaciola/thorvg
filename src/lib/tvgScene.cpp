@@ -70,18 +70,6 @@ Result Scene::clear() noexcept
 }
 
 
-Result Scene::load(const string& path)
-{
-   if (path.empty()) return Result::InvalidArguments;
-   return pImpl->load(path);
-}
-
-Result Scene::load(const char* data, uint32_t size)
-{
-   return pImpl->load(data, size);
-}
-
-
 Result Scene::save(const std::string& path) noexcept
 {
     if (path.empty()) return Result::InvalidArguments;

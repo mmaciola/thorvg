@@ -94,8 +94,6 @@ public:
 
     uint8_t opacity() const noexcept;
 
-    LoaderResult tvgLoad(const char* pointer, const char* end) noexcept;
-
     _TVG_DECLARE_ACCESSOR();
     _TVG_DECLARE_PRIVATE(Paint);
 };

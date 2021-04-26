@@ -11,18 +11,21 @@ void tvgDrawCmds(tvg::Canvas* canvas)
 {
     if (!canvas) return;
 
-    auto scene = tvg::Scene::gen();
+    //auto scene = tvg::Scene::gen();
+    auto picture = tvg::Picture::gen();
 
     auto start_tot = high_resolution_clock::now();
 
     for (int i = 0; i < 20000; i++)
-    scene->load(EXAMPLE_DIR"/tvg_file.tvg");
+    //scene->load(EXAMPLE_DIR"/tvg_file.tvg");
+    picture->load(EXAMPLE_DIR"/tvg_file.tvg");
 
     auto stop_tot = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop_tot - start_tot);
     cout << "Loading time: " << duration.count() << " microseconds" << endl;
 
-    canvas->push(move(scene));
+    //canvas->push(move(scene));
+    canvas->push(move(picture));
 }
 
 

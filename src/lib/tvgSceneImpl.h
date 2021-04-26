@@ -23,7 +23,6 @@
 #define _TVG_SCENE_IMPL_H_
 
 #include "tvgPaint.h"
-#include "tvgTvgLoader.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -36,7 +35,6 @@ struct Scene::Impl
     Scene* scene = nullptr;
 
     unique_ptr<Saver> saver = nullptr;
-    unique_ptr<TvgLoader> loader = nullptr;
 
     Impl(Scene* s) : scene(s)
     {
@@ -66,14 +64,6 @@ struct Scene::Impl
 
     void* update(RenderMethod &renderer, const RenderTransform* transform, uint32_t opacity, Array<RenderData>& clips, RenderUpdateFlag flag)
     {
-       if (loader) {
-             auto scene = loader->scene();
-             if (scene) {
-                   paints.push(scene.release());
-                   loader->close();
-             }
-       }
-
         /* Overriding opacity value. If this scene is half-translucent,
            It must do intermeidate composition with that opacity value. */
         this->opacity = static_cast<uint8_t>(opacity);
@@ -176,53 +166,6 @@ struct Scene::Impl
         }
 
         return ret.release();
-    }
-
-    Result load(const string& path)
-    {
-       if (loader) loader->close();
-       loader = unique_ptr<TvgLoader>(new TvgLoader());
-       if (!loader->open(path)) return Result::Unknown;
-       if (!loader->read()) return Result::Unknown;
-       return Result::Success;
-    }
-
-    Result load(const char* data, uint32_t size)
-    {
-       if (loader) loader->close();
-       loader = unique_ptr<TvgLoader>(new TvgLoader());
-       if (!loader->open(data, size)) return Result::Unknown;
-       if (!loader->read()) return Result::Unknown;
-       return Result::Success;
-    }
-
-    /*
-     * Load scene from .tvg binary file
-     * Returns LoaderResult: Success on success, InvalidType if not applicable
-     * or SizeCorruption/MemoryCorruption/LogicalCorruption if corrupted.
-     * Alowed blocks are:
-     * [TVG_SCENE_FLAG_RESERVEDCNT][1][reservedCnt]
-     * [TVG_SCENE_BEGIN_INDICATOR/TVG_SHAPE_BEGIN_INDICATOR/TVG_PICTURE_BEGIN_INDICATOR][...]
-     */
-    LoaderResult tvgLoad(tvg_block block)
-    {
-       switch (block.type)
-         {
-          case TVG_SCENE_FLAG_RESERVEDCNT: {
-             if (block.lenght != 1) return LoaderResult::SizeCorruption;
-             uint32_t reservedCnt;
-             _read_tvg_ui32(&reservedCnt, block.data);
-             paints.reserve(reservedCnt);
-             return LoaderResult::Success;
-          }
-         }
-
-       Paint * paint;
-       LoaderResult result = tvg_read_paint(block, &paint);
-       if (result == LoaderResult::Success) paints.push(paint);
-
-       if (result != LoaderResult::InvalidType) return result;
-       return LoaderResult::InvalidType;
     }
 
 

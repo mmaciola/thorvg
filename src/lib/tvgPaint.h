@@ -25,7 +25,6 @@
 #include <float.h>
 #include <math.h>
 #include "tvgRender.h"
-#include "tvgTvgLoadParser.h"
 #include "tvgTvgSaver.h"
 
 namespace tvg
@@ -44,7 +43,6 @@ namespace tvg
         virtual Paint* duplicate() = 0;
 
         virtual ByteCounter serialize(TvgSaver* tvgSaver) = 0;
-        virtual LoaderResult tvgLoad(tvg_block block) = 0;
     };
 
     struct Paint::Impl
@@ -235,86 +233,6 @@ namespace tvg
             return true;
         }
 
-        LoaderResult tvgLoadCmpTarget(const char* pointer, const char* end)
-        {
-           tvg_block block = read_tvg_block(pointer);
-           if (block.block_end > end) return LoaderResult::SizeCorruption;
-
-           if (block.type != TVG_PAINT_CMP_METHOD_INDICATOR) return LoaderResult::LogicalCorruption;
-           if (block.lenght != 1) return LoaderResult::SizeCorruption;
-           switch (*block.data)
-           {
-              case TVG_PAINT_CMP_METHOD_CLIPPATH_FLAG:
-                 cmpMethod = CompositeMethod::ClipPath;
-                 break;
-              case TVG_PAINT_CMP_METHOD_ALPHAMASK_FLAG:
-                 cmpMethod = CompositeMethod::AlphaMask;
-                 break;
-              case TVG_PAINT_CMP_METHOD_INV_ALPHAMASK_FLAG:
-                 cmpMethod = CompositeMethod::InvAlphaMask;
-                 break;
-              default:
-                 return LoaderResult::LogicalCorruption;
-           }
-
-           pointer = block.block_end;
-           tvg_block block_paint = read_tvg_block(pointer);
-           if (block_paint.block_end > end) return LoaderResult::SizeCorruption;
-
-           LoaderResult result = tvg_read_paint(block_paint, &cmpTarget);
-           if (result != LoaderResult::Success)
-           {
-              if (cmpTarget) delete(cmpTarget);
-              cmpMethod = CompositeMethod::None;
-           }
-
-           if (result > LoaderResult::Success) return result;
-           return LoaderResult::Success;
-        }
-
-        LoaderResult tvgLoad(const char* pointer, const char* end)
-        {
-           while (pointer < end)
-           {
-              tvg_block block = read_tvg_block(pointer);
-              if (block.block_end > end) return LoaderResult::SizeCorruption;
-
-              LoaderResult result = smethod->tvgLoad(block);
-              if (result == LoaderResult::InvalidType)
-              {
-                 switch (block.type) {
-                    case TVG_PAINT_OPACITY_INDICATOR: {
-                       if (block.lenght != 1) return LoaderResult::SizeCorruption;
-                       opacity = *block.data;
-                       break;
-                    }
-                    case TVG_PAINT_TRANSFORM_MATRIX_INDICATOR: {
-                       if (block.lenght != sizeof(Matrix)) return LoaderResult::SizeCorruption;
-                       Matrix matrix;
-                       memcpy(&matrix, block.data, sizeof(Matrix));
-                       if (!transform(matrix)) return LoaderResult::MemoryCorruption;
-                       break;
-                    }
-                    case TVG_PAINT_CMP_TARGET_INDICATOR: { // cmp target
-                       if (block.lenght < 5) return LoaderResult::SizeCorruption;
-                       LoaderResult result = tvgLoadCmpTarget(block.data, block.block_end);
-                       if (result != LoaderResult::Success) return result;
-                       break;
-                    }
-                 }
-              }
-
-              if (result > LoaderResult::Success)
-                 {
-                    // LOG: tvgLoad parsing error
-                    printf("TVG_LOADER: Loading error[type: 0x%02x]: %d \n", (int)block.type, (int)result);
-                    return result;
-                 }
-              pointer = block.block_end;
-           }
-           return LoaderResult::Success;
-        }
-
         ByteCounter serializePaint(TvgSaver* tvgSaver)
         {
             if (!tvgSaver) return 0;
@@ -408,11 +326,6 @@ namespace tvg
         Paint* duplicate() override
         {
             return inst->duplicate();
-        }
-
-        LoaderResult tvgLoad(tvg_block block) override
-        {
-             return inst->tvgLoad(block);
         }
 
         ByteCounter serialize(TvgSaver* tvgSaver) override
