@@ -63,7 +63,7 @@ bool TvgSaver::write()
 {
     if (!buffer) return false;
 
-    TaskScheduler::request(this);
+    TaskScheduler::request(this, true);
 
     return true;
 }

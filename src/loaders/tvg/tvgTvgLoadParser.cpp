@@ -25,7 +25,7 @@
 #include <map>
 #include "tvgTvgLoadParser.h"
 
-//#define TVG_LOADER_LOG_ENABLED 1
+#define TVG_LOADER_LOG_ENABLED 1
 
 /*
  * Read header of the .tvg binary file
@@ -548,6 +548,11 @@ LoaderResult tvg_read_paint(tvg_block base_block, Paint ** paint)
 // Load .tvg file to pointed scene
 bool tvg_file_parse(const char * pointer, uint32_t size, Scene * scene)
 {
+   printf("[mmaciola] tvg_file_parse (%d) :", size);
+   for (int i = 0; i < 8; i++)
+      printf(" %02X", pointer[i]);
+   printf("\n");
+
    const char* end = pointer + size;
    if (!tvg_read_header(&pointer) || pointer >= end)
       {

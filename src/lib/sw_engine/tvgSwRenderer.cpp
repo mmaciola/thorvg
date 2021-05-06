@@ -516,7 +516,7 @@ void* SwRenderer::prepareCommon(SwTask* task, const RenderTransform* transform, 
     task->flags = flags;
 
     tasks.push(task);
-    TaskScheduler::request(task);
+    TaskScheduler::request(task, true);
 
     return task;
 }
