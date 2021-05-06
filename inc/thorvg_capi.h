@@ -1236,6 +1236,19 @@ TVG_EXPORT Tvg_Result tvg_picture_load_raw(Tvg_Paint* paint, uint32_t *data, uin
 
 
 /*!
+* \fn TVG_EXPORT Tvg_Result tvg_picture_load_data(Tvg_Paint* paint, uint32_t *data, uint32_t size)
+* \brief The function loads data into given paint object.
+* \param[in] paint Tvg_Paint pointer
+* \param[in] data raw data pointer
+* \param[in] size of data
+* \return Tvg_Result return value
+* - TVG_RESULT_SUCCESS: if ok.
+* - TVG_RESULT_INVALID_PARAMETERS: if paint is invalid
+*/
+TVG_EXPORT Tvg_Result tvg_picture_load_data(Tvg_Paint* paint, const char *data, uint32_t size);
+
+
+/*!
 * \fn TVG_EXPORT Tvg_Result tvg_picture_get_viewbox(const Tvg_Paint* paint, float* x, float* y, float* w, float* h)
 * \brief The function returns viewbox coordinates and size for given paint
 * \param[in] paint Tvg_Paint pointer
