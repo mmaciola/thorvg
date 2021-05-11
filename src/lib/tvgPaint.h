@@ -23,7 +23,8 @@
 #define _TVG_PAINT_H_
 
 #include "tvgRender.h"
-
+//#include "tvgSaverImpl.h"
+#include "tvgTvgHelper.h" //MGS
 
 namespace tvg
 {
@@ -39,6 +40,7 @@ namespace tvg
         virtual bool bounds(float* x, float* y, float* w, float* h) const = 0;
         virtual RenderRegion bounds(RenderMethod& renderer) const = 0;
         virtual Paint* duplicate() = 0;
+        virtual ByteCounter serialize(Saver* saver) = 0;
     };
 
     struct Paint::Impl
@@ -105,6 +107,60 @@ namespace tvg
         void* update(RenderMethod& renderer, const RenderTransform* pTransform, uint32_t opacity, Array<RenderData>& clips, uint32_t pFlag);
         bool render(RenderMethod& renderer);
         Paint* duplicate();
+
+        ByteCounter serializePaint(Saver* saver)
+        {
+            if (!saver) return 0;
+            ByteCounter paintDataByteCnt = 0;
+
+            if (opacity < 255) {
+                paintDataByteCnt += saver->saveMember(TVG_PAINT_OPACITY_INDICATOR, sizeof(opacity), &opacity);
+            }
+
+            if (rTransform) {
+                rTransform->update();
+                paintDataByteCnt += saver->saveMember(TVG_PAINT_TRANSFORM_MATRIX_INDICATOR, sizeof(rTransform->m), &rTransform->m);
+            }
+
+            if (cmpTarget) {
+                ByteCounter cmpDataByteCnt = 0;
+
+                saver->saveMemberIndicator(TVG_PAINT_CMP_TARGET_INDICATOR);
+                saver->skipMemberDataSize();
+
+                TvgFlag cmpMethodTvgFlag;
+                switch (cmpMethod) {
+                    case CompositeMethod::ClipPath: {
+                        cmpMethodTvgFlag = TVG_PAINT_CMP_METHOD_CLIPPATH_FLAG;
+                        break;
+                    }
+                    case CompositeMethod::AlphaMask: {
+                        cmpMethodTvgFlag = TVG_PAINT_CMP_METHOD_ALPHAMASK_FLAG;
+                        break;
+                    }
+                    case CompositeMethod::InvAlphaMask: {
+                        cmpMethodTvgFlag = TVG_PAINT_CMP_METHOD_INV_ALPHAMASK_FLAG;
+                        break;
+                    }
+                    case CompositeMethod::None: {
+                        break;
+                    }
+                }
+                cmpDataByteCnt += saver->saveMember(TVG_PAINT_CMP_METHOD_INDICATOR, TVG_FLAG_SIZE, &cmpMethodTvgFlag);
+
+                cmpDataByteCnt += cmpTarget->pImpl->serialize(saver);
+
+                saver->saveMemberDataSizeAt(cmpDataByteCnt);
+                paintDataByteCnt += TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + cmpDataByteCnt;
+            }
+
+            return paintDataByteCnt;
+        }
+
+        ByteCounter serialize(Saver* saver)
+        {
+            return smethod->serialize(saver);
+        }
     };
 
 
@@ -144,6 +200,11 @@ namespace tvg
         Paint* duplicate() override
         {
             return inst->duplicate();
+        }
+
+        ByteCounter serialize(Saver* saver) override
+        {
+             return inst->serialize(saver);
         }
     };
 }
