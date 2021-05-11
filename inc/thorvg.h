@@ -60,7 +60,6 @@ enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
 enum class TVG_EXPORT CompositeMethod { None = 0, ClipPath, AlphaMask, InvAlphaMask };
 enum class TVG_EXPORT CanvasEngine { Sw = (1 << 1), Gl = (1 << 2)};
 
-
 struct Point
 {
     float x, y;
@@ -74,6 +73,7 @@ struct Matrix
     float e31, e32, e33;
 };
 
+enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption, LogicalCorruption };
 
 /**
  * @class Paint
@@ -283,9 +283,12 @@ public:
 
     Result load(const std::string& path) noexcept;
     Result load(const char* data, uint32_t size) noexcept;
+    Result load(const char* data, uint32_t size, bool async) noexcept;
     Result load(uint32_t* data, uint32_t w, uint32_t h, bool copy) noexcept;
     //TODO: Replace with size(). Remove API
     Result viewbox(float* x, float* y, float* w, float* h) const noexcept;
+
+    Result paint(std::unique_ptr<Paint> paint) noexcept;
 
     Result size(float w, float h) noexcept;
     Result size(float* w, float* h) const noexcept;

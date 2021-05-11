@@ -1649,6 +1649,18 @@ TVG_EXPORT Tvg_Result tvg_picture_load(Tvg_Paint* paint, const char* path);
 */
 TVG_EXPORT Tvg_Result tvg_picture_load_raw(Tvg_Paint* paint, uint32_t *data, uint32_t w, uint32_t h, bool copy);
 
+/*!
+* \fn TVG_EXPORT Tvg_Result tvg_picture_load_data(Tvg_Paint* paint, uint32_t *data, uint32_t size, bool async)
+* \brief The function loads data into given paint object.
+* \param[in] paint Tvg_Paint pointer
+* \param[in] data raw data pointer
+* \param[in] size of data
+* \param[in] async if true load asynchronously, otherwise synchronously
+* \return Tvg_Result return value
+* - TVG_RESULT_SUCCESS: if ok.
+* - TVG_RESULT_INVALID_PARAMETERS: if paint is invalid
+*/
+TVG_EXPORT Tvg_Result tvg_picture_load_data(Tvg_Paint* paint, const char *data, uint32_t size, bool async);
 
 /*!
 * \brief Gets the position and the size of the loaded picture. (BETA version)

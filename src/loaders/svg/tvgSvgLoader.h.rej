@@ -1,0 +1,9 @@
+diff a/src/loaders/svg/tvgSvgLoader.h b/src/loaders/svg/tvgSvgLoader.h	(rejected hunks)
+@@ -31,6 +31,7 @@ public:
+     string filePath;
+     const char* content = nullptr;
+     uint32_t size = 0;
++    bool async = false;
+ 
+     SvgLoaderData loaderData;
+     SvgSceneBuilder builder;
