@@ -213,7 +213,10 @@ struct Picture::Impl
 
     ByteCounter serialize(Saver* saver)
     {
-        if (!saver || (!paint && !pixels)) return 0;
+       if (!saver) return 0;
+
+       reload();
+       if ((!paint && !pixels)) return 0;
 
         ByteCounter pictureDataByteCnt = 0;
 

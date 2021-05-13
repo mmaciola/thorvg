@@ -46,13 +46,29 @@ Saver::~Saver()
 
 Result Saver::save(std::unique_ptr<Paint> paint, const std::string& path) noexcept
 {
-    if (!paint || path.empty()) return Result::InvalidArguments;
+   // if empty path save to buffer
+    if (!paint) return Result::InvalidArguments;
 
     auto saver = unique_ptr<Saver>(new Saver());
     if (!saver) return Result::FailedAllocation;
 
 // MGS  zwolnic
     if (saver->pImpl->save(paint.release(), path)) return Result::Success;
+
+    return Result::Unknown;
+}
+
+
+Result Saver::save(std::unique_ptr<Paint> paint, char** buffer_out, uint32_t* size_out) noexcept
+{
+   // if empty path save to buffer
+    if (!paint) return Result::InvalidArguments;
+
+    auto saver = unique_ptr<Saver>(new Saver());
+    if (!saver) return Result::FailedAllocation;
+
+// MGS  zwolnic
+    if (saver->pImpl->save(paint.release(), buffer_out, size_out)) return Result::Success;
 
     return Result::Unknown;
 }

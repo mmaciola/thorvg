@@ -69,129 +69,57 @@ bool saveHeader()
 
     bool save(Paint* paint, const std::string& path)
     {
-cout << __FILE__ << " " << __func__ << endl;
+      cout << __FILE__ << " " << __func__ << endl;
 
-        reserved = 8;
-        buffer = static_cast<char*>(malloc(reserved));
-        if (!buffer) {
-            reserved = 0;
-            return false;
-        }
-        bufferPosition = buffer;
+      reserved = 8;
+      buffer = static_cast<char*>(malloc(reserved));
+      if (!buffer) {
+      reserved = 0;
+      return false;
+      }
+      bufferPosition = buffer;
 
-        saveHeader();
+      saveHeader();
 
+      auto tmp = paint->pImpl->serialize(saver);
 
-        auto tmp = paint->pImpl->serialize(saver);
+      ofstream outFile;
+      outFile.open(path, ios::out | ios::trunc | ios::binary);
+      cout << "otworze  plik " << path << endl;
+      if (!outFile.is_open()) return false;
+      cout << "otworzylam plik " << path << endl;
+      outFile.write(buffer,size);
+      outFile.close();
 
-    ofstream outFile;
-    outFile.open(path, ios::out | ios::trunc | ios::binary);
-cout << "otworze  plik " << path << endl;
-    if (!outFile.is_open()) return false;
-cout << "otworzylam plik " << path << endl;
-    outFile.write(buffer,size);
-    outFile.close();
+      if (buffer) free(buffer);
+      buffer = nullptr;
+      bufferPosition = nullptr;
+      size = 0;
+      reserved = 0;
 
-    if (buffer) free(buffer);
-    buffer = nullptr;
-    bufferPosition = nullptr;
-    size = 0;
-    reserved = 0;
-
-
-
-
-        return true;
+      return true;
     }
 
-/*
-void saveMemberIndicator(TvgIndicator ind)
-{
-    if (size + TVG_INDICATOR_SIZE > reserved) resizeBuffer(size + TVG_INDICATOR_SIZE);
+    bool save(Paint* paint, char** buffer_out, uint32_t* size_out)
+    {
+       reserved = 8;
+       buffer = static_cast<char*>(malloc(reserved));
+       if (!buffer) {
+          reserved = 0;
+          return false;
+       }
+       bufferPosition = buffer;
 
-    memcpy(bufferPosition, &ind, TVG_INDICATOR_SIZE);
-    bufferPosition += TVG_INDICATOR_SIZE;
-    size += TVG_INDICATOR_SIZE;
-}
+       saveHeader();
 
+       auto tmp = paint->pImpl->serialize(saver);
 
-void saveMemberDataSize(ByteCounter byteCnt)
-{
-    if (size + BYTE_COUNTER_SIZE > reserved) resizeBuffer(size + BYTE_COUNTER_SIZE);
+       *buffer_out = buffer;
+       *size_out = size;
 
-    memcpy(bufferPosition, &byteCnt, BYTE_COUNTER_SIZE);
-    bufferPosition += BYTE_COUNTER_SIZE;
-    size += BYTE_COUNTER_SIZE;
-}
+       return true;
+    }
 
-
-void saveMemberDataSizeAt(ByteCounter byteCnt)
-{
-    memcpy(bufferPosition - byteCnt - BYTE_COUNTER_SIZE, &byteCnt, BYTE_COUNTER_SIZE);
-}
-
-
-void skipMemberDataSize()
-{
-    if (size + BYTE_COUNTER_SIZE > reserved) resizeBuffer(size + BYTE_COUNTER_SIZE);
-    bufferPosition += BYTE_COUNTER_SIZE;
-    size += BYTE_COUNTER_SIZE;
-}
-
-
-ByteCounter saveMemberData(const void* data, ByteCounter byteCnt)
-{
-    if (size + byteCnt > reserved) resizeBuffer(size + byteCnt);
-
-    memcpy(bufferPosition, data, byteCnt);
-    bufferPosition += byteCnt;
-    size += byteCnt;
-
-    return byteCnt;
-}
-
-
-ByteCounter saveMember(TvgIndicator ind, ByteCounter byteCnt, const void* data)
-{
-    ByteCounter blockByteCnt = TVG_INDICATOR_SIZE + BYTE_COUNTER_SIZE + byteCnt;
-
-    if (size + blockByteCnt > reserved) resizeBuffer(size + blockByteCnt);
-
-    memcpy(bufferPosition, &ind, TVG_INDICATOR_SIZE);
-    bufferPosition += TVG_INDICATOR_SIZE;
-    memcpy(bufferPosition, &byteCnt, BYTE_COUNTER_SIZE);
-    bufferPosition += BYTE_COUNTER_SIZE;
-    memcpy(bufferPosition, data, byteCnt);
-    bufferPosition += byteCnt;
-
-    size += blockByteCnt;
-
-    return blockByteCnt;
-}
-
-
-void resizeBuffer(uint32_t newSize)
-{
-    // MGS - find more optimal alg ?
-    reserved += 100;
-    if (newSize > reserved) reserved += newSize - reserved + 100;
-
-    auto bufferOld = buffer;
-
-    buffer = static_cast<char*>(realloc(buffer, reserved));
-
-    if (buffer != bufferOld)
-        bufferPosition = buffer + (bufferPosition - bufferOld);
-}
-
-void rewindBuffer(ByteCounter bytesNum)
-{
-    if (bufferPosition - bytesNum < buffer) return;
-
-    bufferPosition -= bytesNum;
-    size -= bytesNum;
-}
-*/
 
 };
 

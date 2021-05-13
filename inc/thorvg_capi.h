@@ -1669,6 +1669,7 @@ TVG_EXPORT Tvg_Result tvg_picture_load_data(Tvg_Paint* paint, const char *data, 
 */
 TVG_EXPORT Tvg_Result tvg_picture_get_viewbox(const Tvg_Paint* paint, float* x, float* y, float* w, float* h);
 
+TVG_EXPORT Tvg_Result tvg_picture_save_data(Tvg_Paint* paint, char **data, uint32_t *size);
 
 /** \} */   // end defgroup ThorVGCapi_Picture
 

@@ -413,6 +413,7 @@ public:
 */
 
     static Result save(std::unique_ptr<Paint> paint, const std::string& path) noexcept;
+    static Result save(std::unique_ptr<Paint> paint, char** buffer_out, uint32_t* size_out) noexcept;
 
     void saveMemberIndicator(TvgIndicator ind);
     void saveMemberDataSize(ByteCounter byteCnt);
