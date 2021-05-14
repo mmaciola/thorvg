@@ -40,6 +40,7 @@ namespace tvg
         virtual bool bounds(float* x, float* y, float* w, float* h) const = 0;
         virtual RenderRegion bounds(RenderMethod& renderer) const = 0;
         virtual Paint* duplicate() = 0;
+        virtual bool interpolate(Paint* from, Paint* to, double pos_map) = 0;
         virtual ByteCounter serialize(Saver* saver) = 0;
     };
 
@@ -101,12 +102,27 @@ namespace tvg
             return true;
         }
 
+        bool interpolate(Paint* from, Paint* to, double pos_map)
+        {
+           bool result = smethod->interpolate(from, to, pos_map);
+           if (!result) return false;
+
+           Impl* impl_from = from->pImpl;
+           Impl* impl_to = to->pImpl;
+
+           // TODO
+           //printf("Paint::interpolate \n");
+
+           return true;
+        }
+
         bool rotate(float degree);
         bool scale(float factor);
         bool translate(float x, float y);
         void* update(RenderMethod& renderer, const RenderTransform* pTransform, uint32_t opacity, Array<RenderData>& clips, uint32_t pFlag);
         bool render(RenderMethod& renderer);
         Paint* duplicate();
+        //bool interpolate(Paint* from, Paint* to, double pos_map);
 
         ByteCounter serializePaint(Saver* saver)
         {
@@ -200,6 +216,11 @@ namespace tvg
         Paint* duplicate() override
         {
             return inst->duplicate();
+        }
+
+        bool interpolate(Paint* from, Paint* to, double pos_map) override
+        {
+            return inst->interpolate(from, to, pos_map);
         }
 
         ByteCounter serialize(Saver* saver) override

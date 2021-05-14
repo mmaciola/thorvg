@@ -46,6 +46,11 @@ struct LinearGradient::Impl
 
         return ret.release();
     }
+
+    bool interpolate(Fill* from, Fill* to, double pos_map)
+    {
+       return true;
+    }
 };
 
 /************************************************************************/

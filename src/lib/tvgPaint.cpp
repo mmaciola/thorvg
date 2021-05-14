@@ -111,6 +111,17 @@ Paint* Paint::Impl::duplicate()
 }
 
 
+/*bool Paint::Impl::interpolate(Paint* from, Paint* to, double pos_map)
+{
+   //auto ret = smethod->interpolate(from, to, pos_map);
+   //if (!ret) return nullptr;
+
+   // todo
+
+   return true;
+}*/
+
+
 bool Paint::Impl::rotate(float degree)
 {
     if (rTransform) {
@@ -298,6 +309,13 @@ Paint* Paint::duplicate() const noexcept
 Result Paint::composite(std::unique_ptr<Paint> target, CompositeMethod method) const noexcept
 {
     if (pImpl->composite(target.release(), method)) return Result::Success;
+    return Result::InvalidArguments;
+}
+
+
+Result Paint::interpolate(std::unique_ptr<Paint> from, std::unique_ptr<Paint> to, double pos_map) const noexcept
+{
+    if (pImpl->interpolate(from.release(), to.release(), pos_map)) return Result::Success;
     return Result::InvalidArguments;
 }
 

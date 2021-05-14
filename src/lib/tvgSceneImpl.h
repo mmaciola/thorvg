@@ -165,6 +165,20 @@ struct Scene::Impl
         return ret.release();
     }
 
+    bool interpolate(Paint* from, Paint* to, double pos_map)
+    {
+       Impl* impl_from = static_cast<const Scene*>(from)->pImpl;
+       Impl* impl_to = static_cast<const Scene*>(to)->pImpl;
+
+       if (paints.count != impl_from->paints.count || paints.count != impl_to->paints.count) return false;
+
+       for (uint32_t i = 0; i < paints.count; ++i) {
+          if (!paints.data[i]->pImpl->interpolate(impl_from->paints.data[i], impl_to->paints.data[i], pos_map)) return false;
+       }
+
+       return true;
+    }
+
     ByteCounter serialize(Saver* saver)
     {
         if (!saver) return 0;

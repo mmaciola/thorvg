@@ -211,6 +211,18 @@ struct Picture::Impl
         return ret.release();
     }
 
+    bool interpolate(Paint* from, Paint* to, double pos_map)
+    {
+       Impl* impl_from = static_cast<const Picture*>(from)->pImpl;
+       Impl* impl_to = static_cast<const Picture*>(to)->pImpl;
+
+       if (paint) {
+          if (!paint->pImpl->interpolate(impl_from->paint, impl_to->paint, pos_map)) return false;
+       }
+
+       return true;
+    }
+
     ByteCounter serialize(Saver* saver)
     {
        if (!saver) return 0;

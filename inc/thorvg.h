@@ -100,6 +100,8 @@ public:
 
     Result composite(std::unique_ptr<Paint> target, CompositeMethod method) const noexcept;
 
+    Result interpolate(std::unique_ptr<Paint> from, std::unique_ptr<Paint> to, double pos_map) const noexcept;
+
     uint8_t opacity() const noexcept;
 
     _TVG_DECLARE_ACCESSOR();
@@ -132,6 +134,8 @@ public:
     uint32_t colorStops(const ColorStop** colorStops) const noexcept;
     FillSpread spread() const noexcept;
     Fill* duplicate() const noexcept;
+
+    bool interpolate(Fill* from, Fill* to, double pos_map) const noexcept;
 
     _TVG_DECALRE_IDENTIFIER();
     _TVG_DECLARE_PRIVATE(Fill);
