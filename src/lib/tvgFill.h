@@ -77,6 +77,12 @@ struct Fill::Impl
 
         return ret;
     }
+
+    bool interpolate(Fill* from, Fill* to, double pos_map)
+    {
+       // TODO: interpolate fill
+       return true;
+    }
 };
 
 #endif  //_TVG_FILL_H_

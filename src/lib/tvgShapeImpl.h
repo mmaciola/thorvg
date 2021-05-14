@@ -29,6 +29,11 @@
 /* Internal Class Implementation                                        */
 /************************************************************************/
 
+static inline double _interpolate(double from, double to, double pos_map)
+{
+   return (from * (1.0 - pos_map)) + (to * pos_map);
+}
+
 struct ShapeStroke
 {
     float width = 0;
@@ -58,6 +63,34 @@ struct ShapeStroke
     {
         if (dashPattern) free(dashPattern);
         if (fill) delete(fill);
+    }
+
+    bool interpolate(const ShapeStroke* from, const ShapeStroke* to, double pos_map)
+    {
+       //Fill
+       if (fill) {
+          if (!fill->interpolate(from->fill, from->fill, pos_map)) return false;
+       }
+
+       //DashPattern
+       if (dashCnt) {
+          if (dashCnt != from->dashCnt || dashCnt != to->dashCnt) return false;
+          for (uint32_t i = 0; i < dashCnt; ++i) {
+                dashPattern[i] = _interpolate(from->dashPattern[i], to->dashPattern[i], pos_map);
+          }
+       }
+
+       //Width
+       width = _interpolate(from->width, to->width, pos_map);
+
+       //Color
+       if (memcmp(from->color, to->color, sizeof(color)) != 0) {
+          for (uint32_t i = 0; i < sizeof(color); ++i) {
+             color[i] = _interpolate(from->color[i], to->color[i], pos_map);
+          }
+       }
+
+       return true;
     }
 };
 
@@ -99,6 +132,21 @@ struct ShapePath
             return;
         }
         memcpy(pts, src->pts, sizeof(Point) * ptsCnt);
+    }
+
+    bool interpolate(const ShapePath* from, const ShapePath* to, double pos_map)
+    {
+       if (ptsCnt != from->ptsCnt || ptsCnt != to->ptsCnt) return false;
+       if (cmdCnt != from->cmdCnt || cmdCnt != to->cmdCnt) return false;
+
+       if (memcmp(from->pts, to->pts, from->ptsCnt * sizeof(Point))) {
+          for (uint32_t i = 0; i < from->ptsCnt; ++i) {
+             pts[i].x = _interpolate(from->pts[i].x, to->pts[i].x, pos_map);
+             pts[i].y = _interpolate(from->pts[i].y, to->pts[i].y, pos_map);
+          }
+       }
+
+       return true;
     }
 
     void reserveCmd(uint32_t cmdCnt)
@@ -384,6 +432,37 @@ struct Shape::Impl
         }
 
         return ret.release();
+    }
+
+    bool interpolate(Paint* from, Paint* to, double pos_map)
+    {
+       Impl* impl_from = static_cast<const Shape*>(from)->pImpl;
+       Impl* impl_to = static_cast<const Shape*>(to)->pImpl;
+
+       //Path
+       if (!path.interpolate(&impl_from->path, &impl_to->path, pos_map)) return false;
+       flag |= RenderUpdateFlag::Path;
+
+       //Color
+       if (memcmp(impl_from->color, impl_to->color, sizeof(color)) != 0) {
+          for (uint32_t i = 0; i < sizeof(color); ++i) {
+             color[i] = _interpolate(impl_from->color[i], impl_to->color[i], pos_map);
+          }
+          flag = RenderUpdateFlag::Color;
+       }
+
+       //Stroke
+       if (!stroke->interpolate(impl_from->stroke, impl_to->stroke, pos_map)) return false;
+       if (stroke->fill) flag |= RenderUpdateFlag::GradientStroke;
+       flag |= RenderUpdateFlag::Stroke;
+
+       //Fill
+       if (fill) {
+          if (!fill->interpolate(impl_from->fill, impl_to->fill, pos_map)) return false;
+          flag |= RenderUpdateFlag::Gradient;
+       }
+
+       return true;
     }
 
     ByteCounter serializeFill(Saver* saver, Fill* f, TvgIndicator fillTvgFlag)

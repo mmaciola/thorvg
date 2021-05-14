@@ -789,6 +789,20 @@ TVG_EXPORT Tvg_Result tvg_paint_get_bounds(const Tvg_Paint* paint, float* x, flo
 */
 TVG_EXPORT Tvg_Result tvg_paint_set_composite_method(Tvg_Paint* paint, Tvg_Paint* target, Tvg_Composite_Method method);
 
+/*!
+* \brief Interpolate destination paint from one paint to another.
+*
+* \param[in] paint_dest The destination paint.
+* \param[in] paint_from The begin paint.
+* \param[in] paint_to The end paint.
+* \param[in] pos_map Position [0-1].
+*
+* \return Tvg_Result enumeration.
+* \retval TVG_RESULT_SUCCESS Succeed.
+* \retval TVG_RESULT_INVALID_ARGUMENT An invalid parameter.
+*/
+TVG_EXPORT Tvg_Result tvg_paint_interpolate(Tvg_Paint* paint_dest, Tvg_Paint* paint_from, Tvg_Paint* paint_to, double pos_map);
+
 
 /** \} */   // end defgroup ThorVGCapi_Paint
 

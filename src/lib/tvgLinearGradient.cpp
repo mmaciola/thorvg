@@ -46,6 +46,12 @@ struct LinearGradient::Impl
 
         return ret.release();
     }
+
+    bool interpolate(Fill* from, Fill* to, double pos_map)
+    {
+       // TODO: interpolate linear gradient fill
+       return true;
+    }
 };
 
 /************************************************************************/

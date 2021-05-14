@@ -302,6 +302,13 @@ Result Paint::composite(std::unique_ptr<Paint> target, CompositeMethod method) c
 }
 
 
+Result Paint::interpolate(std::unique_ptr<Paint> from, std::unique_ptr<Paint> to, double pos_map) const noexcept
+{
+    if (pImpl->interpolate(from.release(), to.release(), pos_map)) return Result::Success;
+    return Result::InvalidArguments;
+}
+
+
 Result Paint::opacity(uint8_t o) noexcept
 {
     if (pImpl->opacity == o) return Result::Success;

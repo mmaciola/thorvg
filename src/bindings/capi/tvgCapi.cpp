@@ -197,6 +197,13 @@ TVG_EXPORT Tvg_Result tvg_paint_set_composite_method(Tvg_Paint* paint, Tvg_Paint
    return (Tvg_Result) reinterpret_cast<const Paint*>(paint)->composite(unique_ptr<Paint>((Paint*)(target)), (CompositeMethod)method);
 }
 
+
+TVG_EXPORT Tvg_Result tvg_paint_interpolate(Tvg_Paint* paint_dest, Tvg_Paint* paint_from, Tvg_Paint* paint_to, double pos_map)
+{
+   if (!paint_dest || !paint_from || !paint_to || pos_map < 0.0 || pos_map > 1.0) return TVG_RESULT_INVALID_ARGUMENT;
+   return (Tvg_Result) reinterpret_cast<const Paint*>(paint_dest)->interpolate(unique_ptr<Paint>((Paint*)(paint_from)), unique_ptr<Paint>((Paint*)(paint_to)), pos_map);
+}
+
 /************************************************************************/
 /* Shape API                                                            */
 /************************************************************************/

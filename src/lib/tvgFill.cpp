@@ -89,3 +89,9 @@ Fill* Fill::duplicate() const noexcept
 {
     return pImpl->duplicate();
 }
+
+
+bool Fill::interpolate(Fill* from, Fill* to, double pos_map) const noexcept
+{
+    return pImpl->interpolate(from, to, pos_map);
+}
