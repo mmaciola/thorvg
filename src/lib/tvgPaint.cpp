@@ -111,17 +111,6 @@ Paint* Paint::Impl::duplicate()
 }
 
 
-/*bool Paint::Impl::interpolate(Paint* from, Paint* to, double pos_map)
-{
-   //auto ret = smethod->interpolate(from, to, pos_map);
-   //if (!ret) return nullptr;
-
-   // todo
-
-   return true;
-}*/
-
-
 bool Paint::Impl::rotate(float degree)
 {
     if (rTransform) {

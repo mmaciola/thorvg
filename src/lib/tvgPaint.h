@@ -122,7 +122,6 @@ namespace tvg
         void* update(RenderMethod& renderer, const RenderTransform* pTransform, uint32_t opacity, Array<RenderData>& clips, uint32_t pFlag);
         bool render(RenderMethod& renderer);
         Paint* duplicate();
-        //bool interpolate(Paint* from, Paint* to, double pos_map);
 
         ByteCounter serializePaint(Saver* saver)
         {

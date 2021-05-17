@@ -72,7 +72,7 @@ struct ShapeStroke
           if (!fill->interpolate(from->fill, from->fill, pos_map)) return false;
        }
 
-       //dashPattern
+       //DashPattern
        if (dashCnt) {
           if (dashCnt != from->dashCnt || dashCnt != to->dashCnt) return false;
           for (uint32_t i = 0; i < dashCnt; ++i) {
