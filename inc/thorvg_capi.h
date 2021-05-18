@@ -179,6 +179,16 @@ typedef enum {
     TVG_FILL_RULE_EVEN_ODD     ///< A line from the point to a location outside the shape is drawn and its intersections with the path segments of the shape are counted. If the number of intersections is an odd number, the point is inside the shape.
 } Tvg_Fill_Rule;
 
+
+/**
+ * \brief Enumeration specifying the paint type.
+ */
+typedef enum {
+    TVG_PAINTTYPE_SHAPE = 0, ///< Shape
+    TVG_PAINTTYPE_SCENE,     ///< Scene
+    TVG_PAINTTYPE_PICTURE,   ///< Picture
+} Tvg_PaintType;
+
 /** \} */   // end addtogroup ThorVGCapi_Shape
 
 
@@ -788,6 +798,34 @@ TVG_EXPORT Tvg_Result tvg_paint_get_bounds(const Tvg_Paint* paint, float* x, flo
 * \retval TVG_RESULT_INVALID_ARGUMENT An invalid @p paint or @p target object or the @p method equal to TVG_COMPOSITE_METHOD_NONE.
 */
 TVG_EXPORT Tvg_Result tvg_paint_set_composite_method(Tvg_Paint* paint, Tvg_Paint* target, Tvg_Composite_Method method);
+
+
+/*!
+* \brief Get nodes of the provided paint.
+*
+* \param[in] paint The source (parent) paint.
+* \param[out] paints Array of paints.
+* \param[out] count Count of child paints in parent.
+*
+* \return Tvg_Result enumeration.
+* \retval TVG_RESULT_SUCCESS Succeed.
+* \retval TVG_RESULT_INVALID_ARGUMENT An invalid Tvg_Paint pointer.
+* \retval TVG_RESULT_INSUFFICIENT_CONDITION Paint has no nodes.
+*/
+TVG_EXPORT Tvg_Result tvg_paint_get_nodes(Tvg_Paint* paint, Tvg_Paint*** paints, uint32_t* count);
+
+
+/*!
+* \brief Gets the paint's type.
+*
+* \param[in] paint The source paint.
+* \param[out] type Type of the paint.
+*
+* \return Tvg_Result enumeration.
+* \retval TVG_RESULT_SUCCESS Succeed.
+* \retval TVG_RESULT_INVALID_ARGUMENT An invalid Tvg_Paint pointer.
+*/
+TVG_EXPORT Tvg_Result tvg_paint_get_painttype(Tvg_Paint* paint, Tvg_PaintType* type);
 
 
 /** \} */   // end defgroup ThorVGCapi_Paint

@@ -59,6 +59,7 @@ enum class TVG_EXPORT FillSpread { Pad = 0, Reflect, Repeat };
 enum class TVG_EXPORT FillRule { Winding = 0, EvenOdd };
 enum class TVG_EXPORT CompositeMethod { None = 0, ClipPath, AlphaMask, InvAlphaMask };
 enum class TVG_EXPORT CanvasEngine { Sw = (1 << 1), Gl = (1 << 2)};
+enum class TVG_EXPORT PaintType { Shape = 0, Scene, Picture };
 
 struct Point
 {
@@ -74,6 +75,8 @@ struct Matrix
 };
 
 enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption, LogicalCorruption };
+
+struct Node;
 
 /**
  * @class Paint
@@ -102,8 +105,17 @@ public:
 
     uint8_t opacity() const noexcept;
 
+    PaintType type() const noexcept;
+    virtual std::unique_ptr<Node> nodes() const noexcept;
+
     _TVG_DECLARE_ACCESSOR();
     _TVG_DECLARE_PRIVATE(Paint);
+};
+
+struct Node
+{
+   Paint** paints;
+   uint32_t count;
 };
 
 
@@ -294,6 +306,8 @@ public:
     Result size(float* w, float* h) const noexcept;
     const uint32_t* data() const noexcept;
 
+    std::unique_ptr<Node> nodes() const noexcept;
+
     static std::unique_ptr<Picture> gen() noexcept;
 
     _TVG_DECLARE_PRIVATE(Picture);
@@ -316,6 +330,8 @@ public:
     Result push(std::unique_ptr<Paint> paint) noexcept;
     Result reserve(uint32_t size) noexcept;
     Result clear() noexcept;
+
+    std::unique_ptr<Node> nodes() const noexcept;
 
     static std::unique_ptr<Scene> gen() noexcept;
 

@@ -317,3 +317,15 @@ uint8_t Paint::opacity() const noexcept
 {
     return pImpl->opacity;
 }
+
+
+PaintType Paint::type() const noexcept
+{
+    return pImpl->type;
+}
+
+
+std::unique_ptr<Node> Paint::nodes() const noexcept
+{
+    return nullptr;
+}

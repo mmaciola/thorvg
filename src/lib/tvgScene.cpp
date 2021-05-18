@@ -68,3 +68,13 @@ Result Scene::clear() noexcept
 
     return Result::Success;
 }
+
+
+std::unique_ptr<Node> Scene::nodes() const noexcept
+{
+   std::unique_ptr<Node> node(static_cast<Node*>(malloc(sizeof(Node))));
+   if (!node) return nullptr;
+   node->paints = pImpl->paints.data;
+   node->count = pImpl->paints.count;
+   return move(node);
+}

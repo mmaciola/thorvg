@@ -114,3 +114,14 @@ Result Picture::paint(unique_ptr<Paint> paint) noexcept
    pImpl->paint = p;
    return Result::Success;
 }
+
+
+std::unique_ptr<Node> Picture::nodes() const noexcept
+{
+    if (!pImpl->paint) return nullptr;
+    std::unique_ptr<Node> node(static_cast<Node*>(malloc(sizeof(Node))));
+    if (!node) return nullptr;
+    node->paints = &pImpl->paint;
+    node->count = 1;
+    return move(node);
+}

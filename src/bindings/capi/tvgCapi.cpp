@@ -197,6 +197,25 @@ TVG_EXPORT Tvg_Result tvg_paint_set_composite_method(Tvg_Paint* paint, Tvg_Paint
    return (Tvg_Result) reinterpret_cast<const Paint*>(paint)->composite(unique_ptr<Paint>((Paint*)(target)), (CompositeMethod)method);
 }
 
+
+TVG_EXPORT Tvg_Result tvg_paint_get_nodes(Tvg_Paint* paint, Tvg_Paint*** paints, uint32_t* count)
+{
+   if (!paint) return TVG_RESULT_INVALID_ARGUMENT;
+   unique_ptr<Node> node = reinterpret_cast<const Paint*>(paint)->nodes();
+   if (!node) return TVG_RESULT_INSUFFICIENT_CONDITION;
+   *paints = (Tvg_Paint**) node->paints;
+   *count = node->count;
+   return TVG_RESULT_SUCCESS;
+}
+
+
+TVG_EXPORT Tvg_Result tvg_paint_get_painttype(Tvg_Paint* paint, Tvg_PaintType* type)
+{
+   if (!paint) return TVG_RESULT_INVALID_ARGUMENT;
+   *type = (Tvg_PaintType) reinterpret_cast<const Paint*>(paint)->type();
+   return TVG_RESULT_SUCCESS;
+}
+
 /************************************************************************/
 /* Shape API                                                            */
 /************************************************************************/
