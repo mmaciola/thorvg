@@ -32,6 +32,10 @@ public:
     char* buffer = nullptr;
     const char* pointer = nullptr;
     uint32_t size = 0;
+<<<<<<< HEAD
+=======
+    bool async = false;
+>>>>>>> 24b6581... TVG Loader/Saver: tvg loader
 
     unique_ptr<Scene> root;
 
@@ -42,7 +46,11 @@ public:
     bool open(const string &path) override;
     bool open(const char *data, uint32_t size) override;
 
+<<<<<<< HEAD
     bool read() override;
+=======
+    bool read(bool async) override;
+>>>>>>> 24b6581... TVG Loader/Saver: tvg loader
     bool close() override;
 
     void run(unsigned tid) override;

@@ -2654,11 +2654,12 @@ bool SvgLoader::open(const string& path)
 }
 
 
-bool SvgLoader::read()
+bool SvgLoader::read(bool async)
 {
     if (!content || size == 0) return false;
 
-    TaskScheduler::request(this);
+    this->async = async;
+    TaskScheduler::request(this, async);
 
     return true;
 }
@@ -2666,7 +2667,11 @@ bool SvgLoader::read()
 
 bool SvgLoader::close()
 {
+<<<<<<< HEAD
    this->done();
+=======
+   if (this->async) this->done();
+>>>>>>> 24b6581... TVG Loader/Saver: tvg loader
 
    if (loaderData.svgParse) {
      free(loaderData.svgParse);
@@ -2689,7 +2694,11 @@ bool SvgLoader::close()
 
 unique_ptr<Scene> SvgLoader::scene()
 {
+<<<<<<< HEAD
    this->done();
+=======
+   if (this->async) this->done();
+>>>>>>> 24b6581... TVG Loader/Saver: tvg loader
    if (root) return move(root);
    else return nullptr;
 }

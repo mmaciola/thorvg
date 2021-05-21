@@ -90,18 +90,31 @@ bool TvgLoader::open(const char *data, uint32_t size)
     return true;
 }
 
+<<<<<<< HEAD
 bool TvgLoader::read()
 {
     if (!this->pointer || this->size == 0) return false;
 
     TaskScheduler::request(this);
+=======
+bool TvgLoader::read(bool async)
+{
+    if (!this->pointer || this->size == 0) return false;
+
+    this->async = async;
+    TaskScheduler::request(this, async);
+>>>>>>> 24b6581... TVG Loader/Saver: tvg loader
 
     return true;
 }
 
 bool TvgLoader::close()
 {
+<<<<<<< HEAD
     this->done();
+=======
+    if (this->async) this->done();
+>>>>>>> 24b6581... TVG Loader/Saver: tvg loader
     tvg_clean_buffer();
     return true;
 }
@@ -120,7 +133,11 @@ void TvgLoader::run(unsigned tid)
 
 unique_ptr<Scene> TvgLoader::scene()
 {
+<<<<<<< HEAD
     this->done();
+=======
+    if (this->async) this->done();
+>>>>>>> 24b6581... TVG Loader/Saver: tvg loader
     if (root) return move(root);
     return nullptr;
 }
