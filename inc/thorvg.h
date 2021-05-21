@@ -175,6 +175,7 @@ struct Matrix
     float e31, e32, e33;
 };
 
+enum class TVG_EXPORT LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption, LogicalCorruption };
 
 /**
  * @class Paint
@@ -1019,6 +1020,19 @@ public:
      * @BETA_API
      */
     const uint32_t* data() const noexcept;
+
+    /**
+     * @brief Set paint fot the picture.
+     *
+     * @param[in] paint A Paint object to be drawn.
+     *
+     * @return Result::Success when succeed, Result::MemoryCorruption otherwise.
+     *
+     * @warning Please do not use it, this API is not official one. It could be modified in the next version.
+     *
+     * @BETA_API
+     */
+    Result paint(std::unique_ptr<Paint> paint) noexcept;
 
     /**
      * @brief Loads a raw data from a memory block with a given size.

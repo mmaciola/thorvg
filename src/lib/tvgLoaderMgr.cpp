@@ -29,6 +29,7 @@
     #include "tvgPngLoader.h"
 #endif
 
+#include "tvgTvgLoader.h"
 #include "tvgRawLoader.h"
 
 /************************************************************************/
@@ -48,6 +49,10 @@ static Loader* _find(FileType type)
 #ifdef THORVG_PNG_LOADER_SUPPORT
             return new PngLoader;
 #endif
+            break;
+        }
+        case FileType::Tvg: {
+            return new TvgLoader;
             break;
         }
         case FileType::Raw: {
@@ -70,6 +75,9 @@ static Loader* _find(FileType type)
             format = "PNG";
             break;
         }
+        case FileType::Tvg: {
+            format = "TVG";
+        }
         case FileType::Raw: {
             format = "RAW";
         }
@@ -90,6 +98,7 @@ static Loader* _find(const string& path)
     auto ext = path.substr(path.find_last_of(".") + 1);
     if (!ext.compare("svg")) return _find(FileType::Svg);
     if (!ext.compare("png")) return _find(FileType::Png);
+    if (!ext.compare("tvg")) return _find(FileType::Tvg);
     return nullptr;
 }
 

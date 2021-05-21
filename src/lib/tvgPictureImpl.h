@@ -175,13 +175,13 @@ struct Picture::Impl
 
     Result load(const char* data, uint32_t size)
     {
-        if (loader) loader->close();
-        loader = LoaderMgr::loader(data, size);
-        if (!loader) return Result::NonSupport;
-        if (!loader->read()) return Result::Unknown;
-        w = loader->w;
-        h = loader->h;
-        return Result::Success;
+       if (loader) loader->close();
+       loader = LoaderMgr::loader(data, size);
+       if (!loader) return Result::NonSupport;
+       if (!loader->read()) return Result::Unknown;
+       w = loader->w;
+       h = loader->h;
+       return Result::Success;
     }
 
     Result load(uint32_t* data, uint32_t w, uint32_t h, bool copy)

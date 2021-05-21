@@ -2666,30 +2666,30 @@ bool SvgLoader::read()
 
 bool SvgLoader::close()
 {
-    this->done();
+   this->done();
 
-    if (loaderData.svgParse) {
-        free(loaderData.svgParse);
-        loaderData.svgParse = nullptr;
-    }
-    auto gradients = loaderData.gradients.data;
-    for (size_t i = 0; i < loaderData.gradients.count; ++i) {
-        _freeGradientStyle(*gradients);
-        ++gradients;
-    }
-    loaderData.gradients.reset();
+   if (loaderData.svgParse) {
+     free(loaderData.svgParse);
+     loaderData.svgParse = nullptr;
+   }
+   auto gradients = loaderData.gradients.data;
+   for (size_t i = 0; i < loaderData.gradients.count; ++i) {
+     _freeGradientStyle(*gradients);
+     ++gradients;
+   }
+   loaderData.gradients.reset();
 
-    _freeNode(loaderData.doc);
-    loaderData.doc = nullptr;
-    loaderData.stack.reset();
+   _freeNode(loaderData.doc);
+   loaderData.doc = nullptr;
+   loaderData.stack.reset();
 
-    return true;
+   return true;
 }
 
 
 unique_ptr<Scene> SvgLoader::scene()
 {
-    this->done();
-    if (root) return move(root);
-    else return nullptr;
+   this->done();
+   if (root) return move(root);
+   else return nullptr;
 }
