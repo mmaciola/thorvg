@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd. All rights reserved.
 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,24 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef _TVG_RAW_LOADER_H_
-#define _TVG_RAW_LOADER_H_
 
-class RawLoader : public Loader
-{
-public:
-    const uint32_t* content = nullptr;
-    bool copy = false;
+#ifndef _TVG_TVG_LOAD_PARSER_H_
+#define _TVG_TVG_LOAD_PARSER_H_
 
-    ~RawLoader();
+#include "tvgCommon.h"
+#include "tvgTvgHelper.h"
 
-    using Loader::open;
-    bool open(const uint32_t* data, uint32_t w, uint32_t h, bool copy) override;
-    bool read(bool async) override;
-    bool close() override;
+/**
+ * Enumeration specifying the loading result.
+ */
+enum class LoaderResult { InvalidType, Success, SizeCorruption, MemoryCorruption, LogicalCorruption };
 
-    const uint32_t* pixels() override;
-};
+bool tvgParseTvgFile(const char * pointer, uint32_t size, Scene * root);
+tvg_block tvgReadTvgBlock(const char * pointer);
+LoaderResult tvgParsePaint(tvg_block block, Paint ** paint);
 
-
-#endif //_TVG_RAW_LOADER_H_
+#endif //_TVG_TVG_LOAD_PARSER_H_

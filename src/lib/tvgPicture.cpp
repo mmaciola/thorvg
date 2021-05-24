@@ -53,11 +53,11 @@ Result Picture::load(const std::string& path) noexcept
 }
 
 
-Result Picture::load(const char* data, uint32_t size) noexcept
+Result Picture::load(const char* data, uint32_t size, bool async /*=true*/) noexcept
 {
     if (!data || size <= 0) return Result::InvalidArguments;
 
-    return pImpl->load(data, size);
+    return pImpl->load(data, size, async);
 }
 
 
@@ -97,4 +97,14 @@ const uint32_t* Picture::data() const noexcept
     if (pImpl->loader) return pImpl->loader->pixels();
 
     return pImpl->pixels;
+}
+
+
+Result Picture::paint(unique_ptr<Paint> paint) noexcept
+{
+   Paint * p = paint.release();
+   if (!p) return Result::MemoryCorruption;
+   if (pImpl->paint) return Result::InsufficientCondition;
+   pImpl->paint = p;
+   return Result::Success;
 }

@@ -175,7 +175,6 @@ struct Matrix
     float e31, e32, e33;
 };
 
-
 /**
  * @class Paint
  *
@@ -975,6 +974,7 @@ public:
 
     /**
      * @brief Loads a picture data from a memory block of a given size.
+     * Function allows to choose whether the loading should be asynchronous (default) or synchronous.
      *
      * @param[in] data A pointer to a memory location where the content of the picture file is stored.
      * @param[in] size The size in bytes of the memory occupied by the @p data.
@@ -986,7 +986,7 @@ public:
      *
      * @note: This api supports only SVG format
      */
-    Result load(const char* data, uint32_t size) noexcept;
+    Result load(const char* data, uint32_t size, bool async = true) noexcept;
 
     /**
      * @brief Resize the picture content with the given width and height.
@@ -1019,6 +1019,19 @@ public:
      * @BETA_API
      */
     const uint32_t* data() const noexcept;
+
+    /**
+     * @brief Set paint fot the picture.
+     *
+     * @param[in] paint A Paint object to be drawn.
+     *
+     * @return Result::Success when succeed, Result::MemoryCorruption otherwise.
+     *
+     * @warning Please do not use it, this API is not official one. It could be modified in the next version.
+     *
+     * @BETA_API
+     */
+    Result paint(std::unique_ptr<Paint> paint) noexcept;
 
     /**
      * @brief Loads a raw data from a memory block with a given size.
