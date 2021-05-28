@@ -45,7 +45,7 @@ void tvgDrawCmds(tvg::Canvas* canvas)
     auto shape3 = tvg::Shape::gen();
     shape3->appendCircle(500, 400, 200, 200); //cx, cy, radiusW, radiusH
     shape3->fill(255, 128, 0, 255);           //r, g, b, a
-    shape3->blending(tvg::BlendingMode::Difference);
+    shape3->blending(tvg::BlendingMode::SoftLight);
     if (canvas->push(move(shape3)) != tvg::Result::Success) return;
 }
 

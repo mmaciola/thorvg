@@ -97,17 +97,19 @@ static uint32_t _blendLayers(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t 
 {
     // https://love2d.org/wiki/BlendMode_Formulas
     // http://www.deepskycolors.com/archive/2010/04/21/formulas-for-Photoshop-blending-modes.html
+    // http://www.simplefilter.de/en/basics/mixmods.html
+    // https://stackoverflow.com/questions/5919663/how-does-photoshop-blend-two-images-together
     switch (mode)
     {
         default:
         case BlendingMode::Normal:
         {
-            // normal: A + B
+            // Normal: A + B
             return src_blended + ALPHA_BLEND(dst, ialpha);
         }
         case BlendingMode::Screen:
         {
-            // screen: 1 - (1-A)*(1-B) = A + B - A*B
+            // Screen: 1 - (1-A)*(1-B) = A + B - A*B
             // src_blended - (src_blended * dst) >> 8 + dst
             // ((src_blended >> i) & 0xff) - ((((src_blended >> i) & 0xff) * ((dst >> i) & 0xff)) >> 8) + ((dst >> i) & 0xff)
             return (LIMIT_BYTE(((src_blended >> 16) & 0xff) - ((((src_blended >> 16) & 0xff) * ((dst >> 16) & 0xff)) >> 8) + ((dst >> 16) & 0xff)) << 16)
@@ -116,7 +118,7 @@ static uint32_t _blendLayers(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t 
         }
         case BlendingMode::Multiply:
         {
-            // multiply: A*B
+            // Multiply: A*B
             // alpha (A*B) + ialpha B = B * (A_blended + ialpha)
             // ((dst >> i) & 0xff) * (((src_blended >> i) & 0xff) + ialpha) >> 8
             return (LIMIT_BYTE(((dst >> 16) & 0xff) * (((src_blended >> 16) & 0xff) + ialpha) >> 8) << 16)
@@ -124,16 +126,22 @@ static uint32_t _blendLayers(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t 
                     | LIMIT_BYTE((dst & 0xff) * ((src_blended & 0xff) + ialpha) >> 8);
         }
         case BlendingMode::Overlay:
-        { // TODO
-            // overlay: 2AB if A < 0.5 OR 1-2(1-A)(1-B) otherwise
-            //if (alpha < 128) return 2 * src * dst;
-            //else
-                //return 2 * src + 2 * dst - 2 * src * dst - 0xffffff;
-            return 0; // TODO
+        {
+            // Overlay: B<=0.5: 2*A*B or B>0.5: 1-2*(1-A)*(1-B)
+            uint32_t result = (((dst >> 16) & 0xff) <= 0x80)
+                        ? ((2 * ((src >> 16) & 0xff) * ((dst >> 16) & 0xff)) >> 8) << 16 // multiply
+                        : (0xff - (2*(0xff - ((src >> 16) & 0xff))*(0xff - ((dst >> 16) & 0xff)) >> 8)) << 16; // screen
+            result |= (((dst >> 8) & 0xff) <= 0x80)
+                        ? ((2 * ((src >> 8) & 0xff) * ((dst >> 8) & 0xff)) >> 8) << 8 // multiply
+                        : (0xff - (2*(0xff - ((src >> 8) & 0xff))*(0xff - ((dst >> 8) & 0xff)) >> 8)) << 8; // screen
+            result |= ((dst & 0xff) <= 0x80)
+                        ? ((2 * (src & 0xff) * (dst & 0xff)) >> 8) // multiply
+                        : (0xff - (2*(0xff - (src & 0xff))*(0xff - (dst & 0xff)) >> 8)); // screen
+            return BLEND_COLORS(result, dst, alpha, ialpha);
         }
         case BlendingMode::Darken:
         {
-            // darken: min(A, B)
+            // Darken: min(A, B)
             uint32_t result = (min((src >> 16) & 0xff, (dst >> 16) & 0xff) << 16)
                     | (min((src >> 8) & 0xff, (dst >> 8) & 0xff) << 8)
                     | (min(src & 0xff, dst & 0xff));
@@ -141,7 +149,7 @@ static uint32_t _blendLayers(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t 
         }
         case BlendingMode::Lighten:
         {
-            // lighten: max(A, B)
+            // Lighten: max(A, B)
             uint32_t result = (max((src >> 16) & 0xff, (dst >> 16) & 0xff) << 16)
                     | (max((src >> 8) & 0xff, (dst >> 8) & 0xff) << 8)
                     | (max(src & 0xff, dst & 0xff));
@@ -149,23 +157,49 @@ static uint32_t _blendLayers(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t 
         }
         case BlendingMode::ColorDodge:
         {
-            // ColorDodge: A / (1-B)
-            return 0;
+            // ColorDodge: B / (1-A)
+            uint32_t src_inverted = 0xffffffff - src;
+            uint32_t result = (((src_inverted >> 16) & 0xff) == 0) ? (dst & 0xff0000) : (LIMIT_BYTE(((dst >> 8) & 0xff00) / ((src_inverted >> 16) & 0xff)) << 16);
+            result |= (((src_inverted >> 8) & 0xff) == 0) ? (dst & 0xff00) : (LIMIT_BYTE((dst & 0xff00) / ((src_inverted >> 8) & 0xff)) << 8);
+            result |= ((src_inverted & 0xff) == 0) ? (dst & 0xff) : LIMIT_BYTE(((dst & 0xff) << 8) / (src_inverted & 0xff));
+            return BLEND_COLORS(result, dst, alpha, ialpha);
         }
         case BlendingMode::ColorBurn:
         {
-            // ColorBurn: 1 - (1-A) / B
-            return (LIMIT_BYTE(0) << 16) | (LIMIT_BYTE(0) << 8) | LIMIT_BYTE(0);
+            // ColorBurn: 1 - (1-B) / A
+            uint32_t dst_inverted = 0xffffffff - dst;
+            uint32_t result = (((src >> 16) & 0xff) == 0) ? (dst & 0xff0000) : (LIMIT_BYTE_LOW(0xff - ((((dst_inverted >> 16) & 0xff) << 8) / ((src >> 16) & 0xff))) << 16);
+            result |= (((src >> 8) & 0xff) == 0) ? (dst & 0xff00) : (LIMIT_BYTE_LOW(0xff - ((((dst_inverted >> 8) & 0xff) << 8) / ((src >> 8) & 0xff))) << 8);
+            result |= ((src & 0xff) == 0) ? (dst & 0xff) : (LIMIT_BYTE_LOW(0xff - (((dst_inverted & 0xff) << 8) / (src & 0xff))));
+            return BLEND_COLORS(result, dst, alpha, ialpha);
         }
         case BlendingMode::HardLight:
         {
-            // HardLight: TODO
-            return 0;
+            // HardLight Layers-inverted overlay
+            uint32_t result = (((src >> 16) & 0xff) <= 0x80)
+                        ? ((2 * ((dst >> 16) & 0xff) * ((src >> 16) & 0xff)) >> 8) << 16 // multiply
+                        : (0xff - (2*(0xff - ((dst >> 16) & 0xff))*(0xff - ((src >> 16) & 0xff)) >> 8)) << 16; // screen
+            result |= (((src >> 8) & 0xff) <= 0x80)
+                        ? ((2 * ((dst >> 8) & 0xff) * ((src >> 8) & 0xff)) >> 8) << 8 // multiply
+                        : (0xff - (2*(0xff - ((dst >> 8) & 0xff))*(0xff - ((src >> 8) & 0xff)) >> 8)) << 8; // screen
+            result |= ((src & 0xff) <= 0x80)
+                        ? ((2 * (dst & 0xff) * (src & 0xff)) >> 8) // multiply
+                        : (0xff - (2*(0xff - (dst & 0xff))*(0xff - (src & 0xff)) >> 8)); // screen
+            return BLEND_COLORS(result, dst, alpha, ialpha);
         }
         case BlendingMode::SoftLight:
         {
-            // SoftLight: TODO
-            return 0;
+            // SoftLight: A<=0.5: (2*A-1)*(B-B^2)+B or A>0.5: (2*A-1)*(sqrt(B)-B)+B
+            uint32_t result = 0x000000;
+            for (uint8_t i = 0; i <= 16; i += 8) {
+                uint8_t src_b = (src >> i) & 0xff;
+                uint8_t dst_b = (dst >> i) & 0xff;
+                uint8_t soft = ((src_b < 0x80) ? ((2 * dst_b * src_b >> 8) + (dst_b * dst_b * (0xff - 2 * src_b) >> 16)) : (sqrt((float)dst_b/255) * (2 * src_b - 0xff) + (2 * dst_b * (0xff - src_b) >> 8)));
+                result |= soft << i;
+            }
+            return BLEND_COLORS(result, dst, alpha, ialpha);
+
+
         }
         case BlendingMode::Difference:
         {
@@ -177,8 +211,10 @@ static uint32_t _blendLayers(uint32_t src, uint32_t dst, uint8_t alpha, uint8_t 
         }
         case BlendingMode::Exclusion:
         {
-            // Exclusion: 0.5 - 2*(A-0.5)*(B-0.5)
-            return 0;
+            // Exclusion: 0.5 - 2*(A-0.5)*(B-0.5) = A + B - 2AB
+            return (LIMIT_BYTE(((src_blended >> 16) & 0xff) - ((((src_blended >> 16) & 0xff) * ((dst >> 16) & 0xff) * 2) >> 8) + ((dst >> 16) & 0xff)) << 16)
+                    | (LIMIT_BYTE(((src_blended >> 8) & 0xff) - ((((src_blended >> 8) & 0xff) * ((dst >> 8) & 0xff) * 2) >> 8) + ((dst >> 8) & 0xff)) << 8)
+                    | LIMIT_BYTE((src_blended & 0xff) - (((src_blended & 0xff) * (dst & 0xff) * 2) >> 8) + (dst & 0xff));
         }
         case BlendingMode::Hue:
         {
