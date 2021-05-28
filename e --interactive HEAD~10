@@ -1,0 +1,74 @@
+[33mcommit 93cb4c77024a5f47f60fe62ac77119dd3d29975e[m[33m ([m[1;36mHEAD[m[33m, [m[1;31morigin/master-8-blending[m[33m, [m[1;32mmaster-8-blending[m[33m)[m
+Author: Michal Maciola <m.maciola@samsung.com>
+Date:   Thu May 27 13:36:45 2021 +0200
+
+    Rect images etc
+
+[33mcommit 2e10bb3e80b82d20b0a47e8c0a21193774bafbee[m
+Author: Michal Maciola <m.maciola@samsung.com>
+Date:   Thu May 27 11:39:48 2021 +0200
+
+    interface
+
+[33mcommit 7d10cb60baddd202a0af8f8925356ba61a9286e0[m
+Author: Michal Maciola <m.maciola@samsung.com>
+Date:   Wed May 26 18:04:13 2021 +0200
+
+    fix example
+
+[33mcommit dc97f38465c30dc7e8a917990c9f8bd2bc3bd50d[m
+Author: Michal Maciola <m.maciola@samsung.com>
+Date:   Mon May 24 14:51:59 2021 +0200
+
+    fix
+
+[33mcommit 69f2a63d52e08c2610eacd7dc2770140b8491763[m
+Author: Michal Maciola <m.maciola@samsung.com>
+Date:   Mon May 24 14:02:36 2021 +0200
+
+    get set blending
+
+[33mcommit 9a0a9136256ad16f8942bef038fc4b27d49f6185[m
+Author: Michal Maciola <m.maciola@samsung.com>
+Date:   Fri Apr 9 12:12:41 2021 +0200
+
+    Support Blending Option
+    
+    Patch introduces blending options such as Normal, Screen, Multiply, Overlay,
+    Darken, Lighten, ColorDodge, ColorBurn, HardLight, SoftLight, Difference,
+    Exclusion, Hue, Saturation, Color, Luminosity
+
+[33mcommit f18fca51738234cde72da10111877b2be4f0a816[m[33m ([m[1;31mupstream/master[m[33m, [m[1;32mmaster-8[m[33m)[m
+Author: Mira Grudzinska <m.grudzinska@samsung.com>
+Date:   Tue May 18 13:30:28 2021 +0200
+
+    sw_engine: gradient shapes with opacity < 255 rastered properly
+    
+    The cases with gradient shapes with composition are handled
+    in the same function as gradint shapes with opacity < 255.
+    Parts of the code from _rasterOpaque... grad functions moved to
+    _rasterTranslucent... grad functions.
+
+[33mcommit e52a6555d2b8d3b812d0003b5b9ca98a8514b568[m
+Author: Hermet Park <hermetpark@gmail.com>
+Date:   Sat May 22 16:14:12 2021 +0900
+
+    Update README.md
+
+[33mcommit d49e91f68343960734526b48233c21d492133b16[m
+Author: Hermet Park <chuneon.park@samsung.com>
+Date:   Fri May 21 19:56:39 2021 +0900
+
+    sw_engine rle: ++ precise alpha in anti-aliasing
+    
+    could loss 1 pixel since it divides 255 values by 256.
+
+[33mcommit edaafd99b31c48121b6b8951abd6b4d05d696cba[m
+Author: Mira Grudzinska <m.grudzinska@samsung.com>
+Date:   Tue May 18 02:57:48 2021 +0200
+
+    sw_engine: fixing wrong 'if else' statement handling when gradient shapes rastered
+    
+    The cases when composition was applied were handled only for AlphaMask and
+    InvAlphaMask. When opacity value was to be < 255, there was no code
+    to handle this.
