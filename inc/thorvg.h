@@ -306,10 +306,10 @@ public:
      */
     class Iterator
     {
+        public:
         const Paint* parent;
         const Paint* child;
 
-        public:
             Iterator (Paint* p = nullptr, Paint* c = nullptr);
             const Paint& operator*() const;
             Iterator& operator++();
