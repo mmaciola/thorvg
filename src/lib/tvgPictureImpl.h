@@ -173,10 +173,10 @@ struct Picture::Impl
         return Result::Success;
     }
 
-    Result load(const char* data, uint32_t size)
+    Result load(const char* data, uint32_t size, FileType type)
     {
         if (loader) loader->close();
-        loader = LoaderMgr::loader(data, size);
+        loader = (type != FileType::Unknown) ? LoaderMgr::loader(data, size, type) : LoaderMgr::loader(data, size);
         if (!loader) return Result::NonSupport;
         if (!loader->read()) return Result::Unknown;
         w = loader->w;

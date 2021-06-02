@@ -125,14 +125,22 @@ shared_ptr<Loader> LoaderMgr::loader(const string& path)
 }
 
 
+shared_ptr<Loader> LoaderMgr::loader(const char* data, uint32_t size, FileType type)
+{
+    auto loader = _find(type);
+    if (loader) {
+        if (loader->open(data, size)) return shared_ptr<Loader>(loader);
+        else delete(loader);
+    }
+    return nullptr;
+}
+
+
 shared_ptr<Loader> LoaderMgr::loader(const char* data, uint32_t size)
 {
     for (int i = 0; i < static_cast<int>(FileType::Unknown); i++) {
-        auto loader = _find(static_cast<FileType>(i));
-        if (loader) {
-            if (loader->open(data, size)) return shared_ptr<Loader>(loader);
-            else delete(loader);
-        }
+        auto loader = loader(data, size, static_cast<FileType>(i));
+        if (loader) return loader;
     }
     return nullptr;
 }
