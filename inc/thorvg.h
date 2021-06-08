@@ -335,6 +335,7 @@ public:
     Iterator end() const noexcept;
 
     _TVG_DECLARE_ACCESSOR();
+    _TVG_DECALRE_IDENTIFIER();
     _TVG_DECLARE_PRIVATE(Paint);
 };
 

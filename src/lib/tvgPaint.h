@@ -27,8 +27,6 @@
 
 namespace tvg
 {
-    enum class PaintType { Shape = 0, Scene, Picture };
-
     struct StrategyMethod
     {
         virtual ~StrategyMethod() {}
