@@ -87,8 +87,8 @@ struct Saver::Impl
 
     void clearBuffer()
     {
-        if (buffer) free(buffer);
-        buffer = nullptr;
+        /*if (buffer) free(buffer);
+        buffer = nullptr;*/
         bufferPosition = nullptr;
         size = 0;
         reserved = 0;

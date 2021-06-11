@@ -56,6 +56,7 @@ static Loader* _find(FileType type)
             break;
         }
         case FileType::Tvg: {
+            printf("TVG loader\n");
             return new TvgLoader;
             break;
         }

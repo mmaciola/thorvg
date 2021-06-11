@@ -82,14 +82,17 @@ bool TvgLoader::open(const string &path)
 
 bool TvgLoader::open(const char *data, uint32_t size)
 {
-    pointer = data;
-    size = size;
+    this->pointer = data;
+    this->size = size;
+    printf("TvgLoader::open %d %c%c%c \n", size, data[0], data[1], data[2]);
     return true;
 }
 
 bool TvgLoader::read(bool async)
 {
+    printf("TvgLoader::read 0 \n");
     if (!pointer || size == 0) return false;
+    printf("TvgLoader::read \n");
 
     this->async = async;
     TaskScheduler::request(this, async);
@@ -106,6 +109,7 @@ bool TvgLoader::close()
 
 void TvgLoader::run(unsigned tid)
 {
+    printf("TvgLoader::run \n");
     if (root) root.reset();
     root = tvgParseTvgFile(pointer, size);
 

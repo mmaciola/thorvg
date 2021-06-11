@@ -567,6 +567,11 @@ unique_ptr<Scene> tvgParseTvgFile(const char *pointer, uint32_t size)
         pointer = block.blockEnd;
     }
 
+    auto shape1 = tvg::Shape::gen();
+    shape1->appendRect(0, 0, 200, 200, 10, 10);
+    shape1->fill(255, 255, 0, 255);
+    scene->push(move(shape1));
+
     // LOG: File parsed correctly
 #ifdef THORVG_LOG_ENABLED
     printf("TVG_LOADER: File parsed correctly.\n");
