@@ -39,15 +39,18 @@ static tvgBlock _readTvgBlock(const char *pointer)
 
 static bool _readTvgHeader(const char **pointer)
 {
-    if (!*ptr) return false;
+    printf("header %c%c%c%c\n", (*pointer)[0], (*pointer)[1], (*pointer)[2], (*pointer)[3]);
+    if (!*pointer) return false;
+    printf("1 \n");
 
     //Sign phase, always TVG_BIN_HEADER_SIGNATURE is declared
-    if (memcmp(*ptr, TVG_BIN_HEADER_SIGNATURE, TVG_BIN_HEADER_SIGNATURE_LENGTH)) return false;
-    *ptr += TVG_BIN_HEADER_SIGNATURE_LENGTH;
+    if (memcmp(*pointer, TVG_HEADER_TVG_SIGN_CODE, TVG_HEADER_TVG_SIGN_CODE_LENGTH)) return false;
+    *pointer += TVG_HEADER_TVG_SIGN_CODE_LENGTH;
+    printf("2 \n");
 
     //Version number, declared in TVG_BIN_HEADER_VERSION
-    if (memcmp(*ptr, TVG_BIN_HEADER_VERSION, TVG_BIN_HEADER_VERSION_LENGTH)) return false;
-    *ptr += TVG_BIN_HEADER_VERSION_LENGTH;
+    if (memcmp(*pointer, TVG_HEADER_TVG_VERSION_CODE, TVG_HEADER_TVG_VERSION_CODE_LENGTH)) return false;
+    *pointer += TVG_HEADER_TVG_VERSION_CODE_LENGTH;
 
     // Matadata phase
     uint16_t meta_length; // Matadata phase length
@@ -544,6 +547,7 @@ static LoaderResult _parsePaint(tvgBlock base_block, Paint **paint)
 
 bool tvgValidateTvgHeader(const char *ptr, uint32_t size)
 {
+    printf("tvgValidateTvgHeader\n");
     auto end = ptr + size;
     if (_readTvgHeader(&ptr) && ptr < end) {
         return true;
@@ -551,8 +555,9 @@ bool tvgValidateTvgHeader(const char *ptr, uint32_t size)
     return false;
 }
 
-unique_ptr<Scene> tvgLoadTvgData(const char *ptr, uint32_t size)
+unique_ptr<Scene> tvgLoadTvgData(const char *pointer, uint32_t size)
 {
+    printf("tvgLoadTvgData\n");
     const char* end = pointer + size;
     if (!_readTvgHeader(&pointer) || pointer >= end)
     {
