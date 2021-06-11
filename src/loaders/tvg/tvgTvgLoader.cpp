@@ -77,15 +77,17 @@ bool TvgLoader::open(const string &path)
 
     pointer = buffer;
 
-    return true;
+    return tvgValidateTvgHeader(pointer, size);
 }
 
 bool TvgLoader::open(const char *data, uint32_t size)
 {
-    this->pointer = data;
-    this->size = size;
-    printf("TvgLoader::open %d %c%c%c \n", size, data[0], data[1], data[2]);
-    return true;
+    //TODO: verify memory leak if open() is called multiple times.
+
+    pointer = data;
+    size = size;
+
+    return tvgValidateTvgHeader(pointer, size);
 }
 
 bool TvgLoader::read(bool async)
@@ -111,7 +113,7 @@ void TvgLoader::run(unsigned tid)
 {
     printf("TvgLoader::run \n");
     if (root) root.reset();
-    root = tvgParseTvgFile(pointer, size);
+    root = tvgLoadTvgData(pointer, size);
 
     if (!root)
     {

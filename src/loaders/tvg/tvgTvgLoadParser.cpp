@@ -39,13 +39,15 @@ static tvgBlock _readTvgBlock(const char *pointer)
 
 static bool _readTvgHeader(const char **pointer)
 {
-    // Sign phase, always "TVG" declared in TVG_HEADER_TVG_SIGN_CODE
-    if (memcmp(*pointer, TVG_HEADER_TVG_SIGN_CODE, TVG_HEADER_TVG_SIGN_CODE_LENGTH)) return false;
-    *pointer += TVG_HEADER_TVG_SIGN_CODE_LENGTH; // move after sing code
+    if (!*ptr) return false;
 
-    // Standard version number, declared in TVG_HEADER_TVG_VERSION_CODE
-    if (memcmp(*pointer, TVG_HEADER_TVG_VERSION_CODE, TVG_HEADER_TVG_VERSION_CODE_LENGTH)) return false;
-    *pointer += TVG_HEADER_TVG_VERSION_CODE_LENGTH; // move after version code
+    //Sign phase, always TVG_BIN_HEADER_SIGNATURE is declared
+    if (memcmp(*ptr, TVG_BIN_HEADER_SIGNATURE, TVG_BIN_HEADER_SIGNATURE_LENGTH)) return false;
+    *ptr += TVG_BIN_HEADER_SIGNATURE_LENGTH;
+
+    //Version number, declared in TVG_BIN_HEADER_VERSION
+    if (memcmp(*ptr, TVG_BIN_HEADER_VERSION, TVG_BIN_HEADER_VERSION_LENGTH)) return false;
+    *ptr += TVG_BIN_HEADER_VERSION_LENGTH;
 
     // Matadata phase
     uint16_t meta_length; // Matadata phase length
@@ -535,7 +537,21 @@ static LoaderResult _parsePaint(tvgBlock base_block, Paint **paint)
     return LoaderResult::Success;
 }
 
-unique_ptr<Scene> tvgParseTvgFile(const char *pointer, uint32_t size)
+
+/************************************************************************/
+/* External Class Implementation                                        */
+/************************************************************************/
+
+bool tvgValidateTvgHeader(const char *ptr, uint32_t size)
+{
+    auto end = ptr + size;
+    if (_readTvgHeader(&ptr) && ptr < end) {
+        return true;
+    }
+    return false;
+}
+
+unique_ptr<Scene> tvgLoadTvgData(const char *ptr, uint32_t size)
 {
     const char* end = pointer + size;
     if (!_readTvgHeader(&pointer) || pointer >= end)
