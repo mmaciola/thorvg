@@ -1372,6 +1372,7 @@ public:
      * @return
      */
     static Result save(std::unique_ptr<Paint> paint, const std::string& path) noexcept;
+    static Result save(std::unique_ptr<Paint> paint, char** buffer_out, uint32_t* size_out) noexcept;
 
     _TVG_DECLARE_PRIVATE(Saver);
 };

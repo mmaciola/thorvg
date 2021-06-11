@@ -475,6 +475,20 @@ struct Saver::Impl
 
         return true;
     }
+
+    bool save(Paint* paint, char** buffer_out, uint32_t* size_out)
+    {
+        if (!prepareBuffer()) return false;
+        if (!writeHeader()) return false;
+
+        //TODO - proper error handling
+        if (serialize(paint) == 0) return false;
+
+       *buffer_out = buffer;
+       *size_out = size;
+
+       return true;
+    }
 };
 
 #endif //_TVG_SAVER_IMPL_H_

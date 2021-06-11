@@ -1686,6 +1686,7 @@ TVG_EXPORT Tvg_Result tvg_picture_load_raw(Tvg_Paint* paint, uint32_t *data, uin
 */
 TVG_EXPORT Tvg_Result tvg_picture_load_data(Tvg_Paint* paint, const char *data, uint32_t size, bool async);
 
+TVG_EXPORT Tvg_Result tvg_picture_save_data(Tvg_Paint* paint, char **data, uint32_t *size);
 
 /*!
 * \brief Gets the position and the size of the loaded picture. (BETA version)

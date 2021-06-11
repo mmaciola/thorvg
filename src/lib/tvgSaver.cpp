@@ -59,3 +59,22 @@ Result Saver::save(std::unique_ptr<Paint> paint, const std::string& path) noexce
     delete p;
     return Result::Unknown;
 }
+
+Result Saver::save(std::unique_ptr<Paint> paint, char** buffer_out, uint32_t* size_out) noexcept
+{
+    if (!paint) return Result::InvalidArguments;
+
+    auto saver = unique_ptr<Saver>(new Saver());
+    if (!saver) return Result::FailedAllocation;
+
+    auto p = paint.release();
+    if (!p) return Result::MemoryCorruption;
+
+    if (saver->pImpl->save(p, buffer_out, size_out)) {
+        delete p;
+        return Result::Success;
+    }
+
+    delete p;
+    return Result::Unknown;
+}
