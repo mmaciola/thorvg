@@ -1,16 +1,13 @@
 /*
  * Copyright (c) 2020-2021 Samsung Electronics Co., Ltd. All rights reserved.
-
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
-
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
-
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,42 +17,11 @@
  * SOFTWARE.
  */
 
-#include <vector>
 #include "Common.h"
 
 /************************************************************************/
 /* Drawing Commands                                                     */
 /************************************************************************/
-
-#define NUM_PER_LINE 5
-#define SIZE (WIDTH/NUM_PER_LINE)
-
-static int count = 0;
-
-static std::vector<unique_ptr<tvg::Picture>> pictures;
-
-void svgDirCallback(const char* name, const char* path, void* data)
-{
-    //ignore if not svgs.
-    const char *ext = name + strlen(name) - 3;
-    if (strcmp(ext, "svg")) return;
-
-    auto picture = tvg::Picture::gen();
-
-    char buf[PATH_MAX];
-    sprintf(buf, "/%s/%s", path, name);
-
-    if (picture->load(buf) != tvg::Result::Success) return;
-
-    picture->size(SIZE, SIZE);
-    picture->translate((count % NUM_PER_LINE) * SIZE, SIZE * (count / NUM_PER_LINE));
-
-    pictures.push_back(move(picture));
-
-    cout << "SVG: " << buf << endl;
-
-    count++;
-}
 
 void tvgDrawCmds(tvg::Canvas* canvas)
 {
@@ -63,22 +29,17 @@ void tvgDrawCmds(tvg::Canvas* canvas)
 
     //Background
     auto shape = tvg::Shape::gen();
-    shape->appendRect(0, 0, WIDTH, HEIGHT, 0, 0);    //x, y, w, h, rx, ry
-    shape->fill(255, 255, 255, 255);                 //r, g, b, a
+    shape->appendRect(0, 0, WIDTH, HEIGHT, 0, 0);
+    shape->fill(255, 255, 255, 255);
 
     if (canvas->push(move(shape)) != tvg::Result::Success) return;
 
-    eina_file_dir_list(EXAMPLE_DIR, EINA_TRUE, svgDirCallback, canvas);
+    //Picture
+    auto picture = tvg::Picture::gen();
+    if (picture->load("/home/mmaciola_local/Downloads/neural-blend-shapes-camera-ready-page-1(1)/neural-blend-shapes-camera-ready-page-1.svg") != tvg::Result::Success) return;
+    picture->size(WIDTH, HEIGHT);
 
-    /* This showcase shows you asynchrounous loading of svg.
-       For this, pushing pictures at a certian sync time.
-       This means it earns the time to finish loading svg resources,
-       otherwise you can push pictures immediately. */
-    for (auto& paint : pictures) {
-        canvas->push(move(paint));
-    }
-
-    pictures.clear();
+    canvas->push(move(picture));
 }
 
 

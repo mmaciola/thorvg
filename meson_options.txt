@@ -1,13 +1,13 @@
 option('engines',
    type: 'array',
    choices: ['sw', 'gl'],
-   value: ['sw'],
+   value: ['sw', 'gl'],
    description: 'Enable Rasterizer Engine in thorvg')
 
 option('loaders',
    type: 'array',
    choices: ['', 'svg', 'tvg', 'png'],
-   value: ['svg'],
+   value: ['svg', 'tvg', 'png'],
    description: 'Enable File Loaders in thorvg')
 
 option('vectors',
@@ -19,26 +19,26 @@ option('vectors',
 option('bindings',
    type: 'array',
    choices: ['', 'capi'],
-   value: [''],
+   value: ['capi'],
    description: 'Enable C API binding')
 
 option('tools',
    type: 'array',
    choices: ['', 'svg2png'],
-   value: [''],
+   value: ['svg2png'],
    description: 'Enable building thorvg tools')
 
 option('examples',
     type: 'boolean',
-    value: false,
+    value: true,
     description: 'Enable building examples')
 
 option('tests',
    type: 'boolean',
-   value: false,
+   value: true,
    description: 'Enable building Unit Tests')
 
 option('log',
     type: 'boolean',
-    value: false,
+    value: true,
     description: 'Enable log message')
