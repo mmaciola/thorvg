@@ -104,7 +104,7 @@ TVG_EXPORT Tvg_Result tvg_canvas_update(Tvg_Canvas* canvas)
 
 TVG_EXPORT Tvg_Result tvg_canvas_update_paint(Tvg_Canvas* canvas, Tvg_Paint* paint)
 {
-    if (!canvas || !paint) return TVG_RESULT_INVALID_ARGUMENT;
+    if (!canvas) return TVG_RESULT_INVALID_ARGUMENT;
     return (Tvg_Result) reinterpret_cast<Canvas*>(canvas)->update((Paint*) paint);
 }
 

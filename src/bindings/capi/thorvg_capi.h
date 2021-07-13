@@ -575,12 +575,15 @@ TVG_EXPORT Tvg_Result tvg_canvas_update(Tvg_Canvas* canvas);
 * If a client application using the TVG library does not update the entire canvas with tvg_canvas_update() in the frame
 * rendering process, Tvg_Paint objects previously added to the canvas should be updated manually with this function.
 *
+* If a @c nullptr is passed all paint objects retained by the Canvas are updated,
+* otherwise only the paint to which the given @p paint points.
+*
 * \param[in] canvas The Tvg_Canvas object to which the @p paint belongs.
-* \param[in] paint The Tvg_Paint object to be updated.
+* \param[in] paint The Tvg_Paint object to be updated or @c nullptr.
 *
 * \return Tvg_Result enumeration.
 * \retval TVG_RESULT_SUCCESS Succeed.
-* \retval TVG_RESULT_INVALID_ARGUMENT In case a @c nullptr is passed as the argument.
+* \retval TVG_RESULT_INVALID_ARGUMENT An invalid Tvg_Canvas pointer.
 */
 TVG_EXPORT Tvg_Result tvg_canvas_update_paint(Tvg_Canvas* canvas, Tvg_Paint* paint);
 
