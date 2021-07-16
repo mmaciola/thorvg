@@ -180,7 +180,7 @@ static bool _translucentRectColorMask(SwSurface* surface, const SwBBox& region, 
         auto dst = &buffer[y * surface->stride];
         auto cmp = &cbuffer[y * surface->stride];
         for (uint32_t x = 0; x < w; ++x) {
-            auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+            auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
             auto tmp = ALPHA_BLEND(color, grayvalue);
             dst[x] = tmp + ALPHA_BLEND(dst[x], 255 - surface->blender.alpha(tmp));
             ++cmp;
@@ -306,7 +306,7 @@ static bool _translucentRleColorMask(SwSurface* surface, const SwRleData* rle, u
         if (span->coverage < 255) src = ALPHA_BLEND(color, span->coverage);
         else src = color;
         for (uint32_t x = 0; x < span->len; ++x) {
-            auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+            auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
             auto tmp = ALPHA_BLEND(src, grayvalue);
             dst[x] = tmp + ALPHA_BLEND(dst[x], 255 - surface->blender.alpha(tmp));
             ++cmp;
@@ -526,7 +526,7 @@ static bool _translucentImageColorMask(SwSurface* surface, const uint32_t *img, 
             auto rX = static_cast<uint32_t>(roundf(x * invTransform->e11 + ey1));
             auto rY = static_cast<uint32_t>(roundf(x * invTransform->e21 + ey2));
             if (rX >= w || rY >= h) continue;
-            auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+            auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
             auto tmp = ALPHA_BLEND(img[rX + (rY * w)], ALPHA_MULTIPLY(opacity, grayvalue));  //TODO: need to use image's stride
             *dst = tmp + ALPHA_BLEND(*dst, 255 - surface->blender.alpha(tmp));
         }
@@ -636,7 +636,7 @@ static bool _translucentImageColorMask(SwSurface* surface, uint32_t *img, uint32
     auto w2 = static_cast<uint32_t>(region.max.x - region.min.x);
 
 #ifdef THORVG_LOG_ENABLED
-    cout <<"SW_ENGINE: Image Alpha Mask Composition" << endl;
+    cout <<"SW_ENGINE: Image Color Mask Composition" << endl;
 #endif
 
     auto sbuffer = img + (region.min.y * w) + region.min.x;
@@ -647,7 +647,7 @@ static bool _translucentImageColorMask(SwSurface* surface, uint32_t *img, uint32
         auto cmp = cbuffer;
         auto src = sbuffer;
         for (uint32_t x = 0; x < w2; ++x, ++dst, ++src, ++cmp) {
-            auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * opacity * 85) >> 24; // (B + G + R) * A * opacity / 3
+            auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) * opacity + 0xffffff) >> 24; //(0.0721*B + 0.7154*G + 0.2125*R) * A * opacity
             auto tmp = ALPHA_BLEND(*src, grayvalue);
             *dst = tmp + ALPHA_BLEND(*dst, 255 - surface->blender.alpha(tmp));
         }
@@ -811,7 +811,7 @@ static bool _translucentLinearGradientRectColorMask(SwSurface* surface, const Sw
         auto cmp = cbuffer;
         auto src = sbuffer;
         for (uint32_t x = 0; x < w; ++x, ++dst, ++cmp, ++src) {
-            auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+            auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
             auto tmp = ALPHA_BLEND(*src, grayvalue);
             *dst = tmp + ALPHA_BLEND(*dst, 255 - surface->blender.alpha(tmp));
         }
@@ -950,7 +950,7 @@ static bool _translucentRadialGradientRectColorMask(SwSurface* surface, const Sw
         auto cmp = cbuffer;
         auto src = sbuffer;
         for (uint32_t x = 0; x < w; ++x, ++dst, ++cmp, ++src) {
-            auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+            auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
              auto tmp = ALPHA_BLEND(*src, grayvalue);
              *dst = tmp + ALPHA_BLEND(*dst, 255 - surface->blender.alpha(tmp));
         }
@@ -1099,14 +1099,14 @@ static bool _translucentLinearGradientRleColorMask(SwSurface* surface, const SwR
         auto src = buffer;
         if (span->coverage == 255) {
             for (uint32_t x = 0; x < span->len; ++x, ++dst, ++cmp, ++src) {
-                auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+                auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
                 auto tmp = ALPHA_BLEND(*src, grayvalue);
                 *dst = tmp + ALPHA_BLEND(*dst, 255 - surface->blender.alpha(tmp));
             }
         } else {
             auto ialpha = 255 - span->coverage;
             for (uint32_t x = 0; x < span->len; ++x, ++dst, ++cmp, ++src) {
-                auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+                auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
                 auto tmp = ALPHA_BLEND(*src, grayvalue);
                 tmp = ALPHA_BLEND(tmp, span->coverage) + ALPHA_BLEND(*dst, ialpha);
                 *dst = tmp + ALPHA_BLEND(*dst, 255 - surface->blender.alpha(tmp));
@@ -1266,14 +1266,14 @@ static bool _translucentRadialGradientRleColorMask(SwSurface* surface, const SwR
         auto src = buffer;
         if (span->coverage == 255) {
             for (uint32_t x = 0; x < span->len; ++x, ++dst, ++cmp, ++src) {
-                auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+                auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
                 auto tmp = ALPHA_BLEND(*src, grayvalue);
                 *dst = tmp + ALPHA_BLEND(*dst, 255 - surface->blender.alpha(tmp));
             }
         } else {
             auto ialpha = 255 - span->coverage;
             for (uint32_t x = 0; x < span->len; ++x, ++dst, ++cmp, ++src) {
-                auto grayvalue = ((((*cmp)&0xff) + (((*cmp)>>8)&0xff) + (((*cmp)>>16)&0xff)) * surface->blender.alpha(*cmp) * 85) >> 16; // (B + G + R) * A / 3
+                auto grayvalue = (((((*cmp)&0xff)*19) + ((((*cmp)>>8)&0xff)*183) + ((((*cmp)>>16)&0xff)*54)) * surface->blender.alpha(*cmp) + 0xffff) >> 16; //(0.0721*B + 0.7154*G + 0.2125*R) * A
                 auto tmp = ALPHA_BLEND(*src, grayvalue);
                 tmp = ALPHA_BLEND(tmp, span->coverage) + ALPHA_BLEND(*dst, ialpha);
                 *dst = tmp + ALPHA_BLEND(*dst, 255 - surface->blender.alpha(tmp));
